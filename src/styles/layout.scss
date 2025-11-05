@@ -1,0 +1,24 @@
+@use "_variables.scss";
+.layout {
+  // height: 100dvh;
+  display: flex;
+  flex-direction: row;
+}
+
+.collapse-sidebar-main-container {
+  width: 97% !important;
+}
+.main-container {
+  display: flex;
+  flex-direction: column;
+  width: 85%;
+  // height: 100dvh;
+  background-color: #f6f6f6;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .main-container {
+    width: 92% !important;
+  }
+}

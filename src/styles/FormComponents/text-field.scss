@@ -1,0 +1,51 @@
+@use "../_variables.scss";
+.text-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.text-box {
+  background-color: variables.$input-bg;
+  padding: 10px;
+  border-radius: 6px;
+  border: solid 1px #e0e0e0;
+  font-size: variables.$font-s;
+  height: 20px;
+}
+
+.disabled-text-box {
+  background-color: variables.$disabled-bg !important;
+}
+
+.generate-password-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+
+  .password-text-box {
+    background-color: variables.$input-bg;
+    padding: 10px;
+    border-radius: 6px 0px 0px 6px;
+    border: solid 1px #e0e0e0;
+    font-size: variables.$font-s;
+    width: 90%;
+    height: 20px;
+  }
+
+  .disabled-password-text-box {
+    background-color: variables.$disabled-bg !important;
+  }
+
+  .generate-btn {
+    width: 10%;
+    height: 100%;
+    background-color: variables.$input-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0px 6px 6px 0px;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 0px 1px;
+    cursor: pointer;
+  }
+}

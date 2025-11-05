@@ -1,0 +1,144 @@
+@use "_variables.scss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #ffffff;
+    --foreground: #000000;
+  }
+}
+
+body {
+  margin: 0px !important;
+  overflow: hidden !important;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Figtree", Arial, Helvetica, sans-serif;
+}
+
+.input-label {
+  font-size: variables.$font-m;
+}
+
+.required-asterisk {
+  color: variables.$error-color;
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  text-indent: 0.01px;
+  text-overflow: "";
+  background: transparent;
+}
+
+/* Custom scrollbar for Chrome/Edge/Safari */
+::-webkit-scrollbar {
+  width: 3px !important;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 6px;
+  background-color: variables.$primary-color !important;
+  box-shadow: 0 0 1px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Custom scrollbar for Firefox */
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: variables.$primary-color transparent !important;
+}
+
+/* Loading spinner */
+.spinner {
+  border: 2px solid transparent;
+  border-top-color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+
+
+.w-100 {
+  width: 100%;
+}
+
+.h1 {
+  font-size: variables.$font-xxl;
+}
+
+.h2 {
+  font-size: variables.$font-xl;
+}
+
+.h3 {
+  font-size: variables.$font-l;
+}
+
+.h4 {
+  font-size: variables.$font-m;
+}
+
+.h5 {
+  font-size: variables.$font-s;
+}
+
+.h6 {
+  font-size: variables.$font-xs;
+}
+
+.h7 {
+  font-size: variables.$font-xxs;
+}
+
+@media (max-width: 768px) {
+  .h1 {
+    font-size: variables.$font-l;
+  }
+
+  .h2 {
+    font-size: variables.$font-m;
+  }
+
+  .h3 {
+    font-size: variables.$font-s;
+  }
+
+  .h4 {
+    font-size: variables.$font-xs;
+  }
+
+  .h5 {
+    font-size: variables.$font-xxs;
+  }
+  .h6 {
+    font-size: variables.$font-xxxs;
+  }
+
+  .w-100 {
+    width: 50%;
+  }
+}

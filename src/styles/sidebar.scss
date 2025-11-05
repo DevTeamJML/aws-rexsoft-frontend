@@ -1,0 +1,507 @@
+// Sidebar.scss
+@use "_variables.scss";
+
+.sidebar-container {
+  height: 100vh;
+  width: 15%;
+  background: white;
+  color: black;
+  transition: all 0.3s ease;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+
+  .sidebar-header {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1.5rem;
+
+    span {
+      font-size: variables.$font-l;
+      font-weight: 600;
+    }
+
+    .logo {
+      max-height: 40px;
+      width: auto;
+      object-fit: contain;
+    }
+  }
+
+  &.collapsed {
+    width: 5%;
+
+    .logo {
+      transform: scale(0.8);
+    }
+
+    .menu-label,
+    .submenu-label {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
+
+  .sidebar-top-section {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    min-height: 80px;
+
+    &.top-section-justify-end {
+      justify-content: flex-end;
+    }
+
+    .logo {
+      transition: all 0.3s ease;
+      object-fit: contain;
+    }
+
+    .toggle-button {
+      color: white;
+      position: absolute;
+      right: -12px;
+      top: 60%;
+      transform: translateY(-50%);
+      background: variables.$primary-color;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      z-index: 1003;
+
+      &:hover {
+        background: variables.$secondary-color;
+        transform: translateY(-50%) scale(1.1);
+      }
+    }
+  }
+
+  .sidebar-bottom-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0;
+    overflow-y: auto;
+    overflow-x: hidden; // Prevent horizontal scroll
+
+    .mid-section {
+      flex: 1;
+      width: 100%;
+    }
+
+    .bottom-section {
+      margin-top: auto;
+      border-top: 1px solid #e0e0e0;
+      padding-top: 0.5rem;
+      width: 100%;
+    }
+  }
+
+  .menu-group {
+    margin-bottom: 0.25rem;
+    width: 100%;
+  }
+
+  .sidebar-section {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    background: transparent;
+    color: inherit;
+    width: 100%;
+    text-align: left;
+    box-sizing: border-box;
+
+    &:hover {
+      background: variables.$secondary-color;
+    }
+
+    &.selected-sidebar-section {
+      background: variables.$secondary-color;
+      border-right: 3px solid variables.$primary-color;
+      color: variables.$primary-color;
+    }
+
+    &.active-menu {
+      background: variables.$secondary-color;
+      border-right: 3px solid variables.$primary-color;
+    }
+
+    &.menu-item {
+      .menu-item-content {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+        width: 100%;
+        box-sizing: border-box;
+
+        .icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 24px;
+          flex-shrink: 0;
+          transition: transform 0.2s ease;
+        }
+
+        .menu-label {
+          flex: 1;
+          transition: all 0.3s ease;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          font-size: variables.$font-m;
+          min-width: 0;
+        }
+
+        .submenu-arrow {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.3s ease;
+          opacity: 0.7;
+          margin-left: auto;
+          flex-shrink: 0;
+          min-width: 16px;
+          color: variables.$primary-color;
+
+          .active-menu & {
+            transform: rotate(90deg);
+            opacity: 1;
+          }
+        }
+      }
+
+      &:hover {
+        .icon {
+          transform: scale(1.1);
+        }
+      }
+    }
+  }
+}
+
+// Submenu Backdrop
+.submenu-backdrop {
+  position: fixed;
+  top: 0;
+  left: 15%; // Match main sidebar width
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  z-index: 999;
+
+  .sidebar-container.collapsed ~ & {
+    left: 5%; // Match collapsed sidebar width
+  }
+}
+
+// Submenu Sidebar
+.submenu-sidebar {
+  position: fixed;
+  left: 15%; // Position next to main sidebar
+  top: 0;
+  height: 100vh;
+  width: 15%; // Same width as main sidebar
+  background: white;
+  color: variables.$primary-color;
+  z-index: 1000;
+  animation: slideInRight 0.2s ease;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  border-left: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+
+  .submenu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    background: white;
+    min-height: 80px;
+
+    span {
+      margin: 0;
+      font-size: variables.$font-l;
+      font-weight: bold;
+      color: variables.$primary-color;
+    }
+  }
+
+  .close-submenu-btn {
+    background: none;
+    border: none;
+    color: variables.$primary-color;
+    cursor: pointer;
+    padding: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: variables.$secondary-color;
+    }
+  }
+
+  .submenu-content {
+    flex: 1;
+    padding: 1rem 0;
+    overflow-y: auto;
+  }
+
+  .submenu-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    margin-bottom: 0.25rem;
+    width: 100%;
+    box-sizing: border-box;
+
+    &:hover {
+      background: variables.$secondary-color;
+      // border-left-color: variables.$primary-color;
+    }
+
+    &.selected-submenu-item {
+      background: variables.$secondary-color;
+      // border-left-color: variables.$primary-color;
+      color: variables.$primary-color;
+    }
+
+    .submenu-item-content {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+
+      .submenu-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+
+        .submenu-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: currentColor;
+          opacity: 0.7;
+        }
+      }
+
+      .submenu-label {
+        font-size: variables.$font-s;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+      }
+    }
+  }
+}
+
+// Adjust submenu position when main sidebar is collapsed
+.sidebar-container.collapsed ~ .submenu-sidebar {
+  left: 5%; // Match collapsed width
+  width: 15%; // Submenu can have different width when main is collapsed
+}
+
+// Animations
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// Scrollbar styling
+.sidebar-container,
+.submenu-sidebar {
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+}
+// Responsive design - Using viewport width instead of fixed pixels
+// @media (max-width: 1200px) {
+//   .sidebar-container {
+//     width: 80px;
+
+//     &:not(.collapsed) {
+//       width: 200px;
+//     }
+
+//     &.collapsed {
+//       width: 60px;
+//     }
+//   }
+
+//   .submenu-sidebar {
+//     left: 200px;
+//     width: 180px;
+
+//     .sidebar-container.collapsed ~ & {
+//       left: 60px;
+//     }
+//   }
+
+//   .submenu-backdrop {
+//     left: 200px;
+
+//     .sidebar-container.collapsed ~ & {
+//       left: 60px;
+//     }
+//   }
+
+//   .main-content {
+//     margin-left: 200px;
+
+//     .sidebar-container.collapsed ~ & {
+//       margin-left: 60px;
+//     }
+
+//     .submenu-sidebar ~ & {
+//       margin-left: 380px; // 200px main + 180px submenu
+//     }
+
+//     .sidebar-container.collapsed ~ .submenu-sidebar ~ & {
+//       margin-left: 240px; // 60px main + 180px submenu
+//     }
+//   }
+// }
+
+// @media (max-width: 768px) {
+//   .sidebar-container {
+//     width: 60px;
+
+//     &:not(.collapsed) {
+//       width: 180px;
+//     }
+
+//     &.collapsed {
+//       width: 50px;
+//     }
+//   }
+
+//   .submenu-sidebar {
+//     left: 180px;
+//     width: 160px;
+
+//     .sidebar-container.collapsed ~ & {
+//       left: 50px;
+//     }
+//   }
+
+//   .submenu-backdrop {
+//     left: 180px;
+
+//     .sidebar-container.collapsed ~ & {
+//       left: 50px;
+//     }
+
+//     // Keep backdrop on mobile for better UX
+//     display: block;
+//     background: rgba(0, 0, 0, 0.3);
+//   }
+
+//   .main-content {
+//     margin-left: 180px;
+
+//     .sidebar-container.collapsed ~ & {
+//       margin-left: 50px;
+//     }
+
+//     .submenu-sidebar ~ & {
+//       margin-left: 340px; // 180px main + 160px submenu
+//     }
+
+//     .sidebar-container.collapsed ~ .submenu-sidebar ~ & {
+//       margin-left: 210px; // 50px main + 160px submenu
+//     }
+//   }
+// }
+
+// @media (max-width: 480px) {
+//   .sidebar-container {
+//     width: 50px;
+
+//     &:not(.collapsed) {
+//       width: 150px;
+//     }
+
+//     &.collapsed {
+//       width: 40px;
+//     }
+//   }
+
+//   .submenu-sidebar {
+//     left: 150px;
+//     width: 140px;
+
+//     .sidebar-container.collapsed ~ & {
+//       left: 40px;
+//     }
+//   }
+
+//   .submenu-backdrop {
+//     left: 150px;
+
+//     .sidebar-container.collapsed ~ & {
+//       left: 40px;
+//     }
+//   }
+
+//   .main-content {
+//     margin-left: 150px;
+
+//     .sidebar-container.collapsed ~ & {
+//       margin-left: 40px;
+//     }
+
+//     .submenu-sidebar ~ & {
+//       margin-left: 290px; // 150px main + 140px submenu
+//     }
+
+//     .sidebar-container.collapsed ~ .submenu-sidebar ~ & {
+//       margin-left: 180px; // 40px main + 140px submenu
+//     }
+//   }
+// }

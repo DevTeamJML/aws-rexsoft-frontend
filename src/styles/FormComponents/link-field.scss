@@ -1,0 +1,74 @@
+@use '../_variables.scss';
+.link-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.link-container .link-box {
+  background-color: variables.$input-bg;
+  padding: 10px;
+  border-radius: 3px;
+
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 0px 1px;
+  display: inline-block;
+  position: relative;
+  font-size: variables.$font-s;
+  border: none;
+}
+
+.link-box .anchor-box {
+
+  font-size: variables.$font-s;
+  border: none;
+  cursor: pointer;
+
+
+  .anchor-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: underline;
+    color: variables.$link-color;
+    border: none;
+    width: 100%;
+    pointer-events: none;
+  }
+}
+
+
+.link-edit-modal {
+  display: none;
+  position: absolute;
+  top: 90%;
+  left: 0;
+  margin-top: 4px;
+  background-color: variables.$input-bg;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  border-radius: 3px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  min-width: 80px;
+  font-size: variables.$font-s;
+}
+
+.link-box:hover .link-edit-modal,
+.link-edit-modal:hover {
+  display: flex;
+  align-items: center;
+  justify-content: center ;
+}
+
+.link-edit-modal .link-edit-btn {
+  cursor: pointer;
+  color: black;
+  font-size: variables.$font-s;
+}
+
+.link-edit-modal .link-edit-btn:hover {
+  cursor: pointer;
+  color: variables.$link-color;
+  text-decoration: underline;
+}

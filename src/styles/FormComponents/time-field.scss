@@ -1,0 +1,29 @@
+@use "../_variables.scss";
+.time-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.time-container .time-box {
+  background-color: variables.$input-bg;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: solid 1px #e0e0e0;
+  height: 20px;
+}
+
+.time-container .time-box input {
+  cursor: pointer;
+  font-size: variables.$font-s;
+  border: none;
+  width: 100%;
+  height: 100%;
+}
+
+.time-container .time-box input[type="date"]:focus {
+  outline: none;
+  box-shadow: none;
+  border-color: inherit;
+}

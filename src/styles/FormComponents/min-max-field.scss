@@ -1,0 +1,38 @@
+@use "../_variables.scss";
+.min-max-fields {
+  display: flex;
+  gap: 10px;
+
+  .separator {
+    display: flex;
+    align-items: center;
+  }
+  input {
+    padding: 6px 8px;
+    background-color: variables.$input-bg;
+    height: 30px;
+    border: 1px solid;
+    border-color: variables.$input-stroke;
+    border-radius: 10px;
+    font-size: variables.$font-s;
+    width: 40%;
+  }
+
+  @media (max-width: 768px) {
+    input {
+      font-size: variables.$font-xxs !important;
+    }
+  }
+}
+
+/* Chrome, Edge, Safari */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}

@@ -1,0 +1,58 @@
+@use "../_variables.scss";
+
+.reusable-button {
+  padding: 0.5rem 1.25rem;
+  border: none;
+  border-radius: 5px;
+  font-size: variables.$font-s;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease;
+
+  &.primary {
+    border: 1px solid variables.$primary-color;
+    background-color: variables.$primary-color;
+    color: #fff;
+
+    &:hover {
+      background-color:variables.$primary-color;
+    }
+
+    &:active {
+      background-color: variables.$primary-color, 12%;
+    }
+  }
+
+  &.outlined {
+    background-color: transparent;
+    border: 1px solid variables.$primary-color;
+    color: variables.$primary-color;
+
+    &:hover {
+      background-color: rgba(variables.$primary-color, 0.1);
+    }
+
+    &:active {
+      background-color: rgba(variables.$primary-color, 0.2);
+    }
+  }
+}
+
+// .add-field-button {
+//   padding: 0.75rem 1rem;
+//   border: 2px dashed variables.$primary-color;
+//   border-radius: 0.5rem;
+//   background-color: transparent;
+//   color: variables.$primary-color;
+//   cursor: pointer;
+//   font-weight: 500;
+//   transition: background-color 0.2s ease, color 0.2s ease;
+
+//   &:hover {
+//     background-color: rgba(variables.$primary-color, 0.08);
+//   }
+
+//   &:active {
+//     background-color: rgba(variables.$primary-color, 0.15);
+//   }
+// }

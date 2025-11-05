@@ -1,0 +1,42 @@
+@use '../_variables.scss';
+.toast-container {
+    position: fixed;
+    transform: translateX(-50%);
+    top: 20px;
+    left: 50%;
+    padding: 10px 20px;
+    border-radius: 8px;
+    z-index: 10000;
+    color: white;
+    opacity: 0.9;
+    animation: slideIn 0.3s ease-out;
+    gap: 10px;
+    display : flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .toast-container.success {
+    background-color: variables.$success-color;
+  }
+
+   .toast-container.refresh {
+    background-color: variables.$refresh-color;
+  }
+  
+  .toast-container.error {
+    background-color: variables.$error-color;
+  }
+  
+@keyframes slideIn {
+  from {
+    transform: translateX(-50%) translateY(-20px); /* Combine with center offset */
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0); /* Settle into place */
+    opacity: 0.9;
+  }
+}
+
+  

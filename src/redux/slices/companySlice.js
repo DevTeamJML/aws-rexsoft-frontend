@@ -1,0 +1,104 @@
+import { createSlice } from "@reduxjs/toolkit";
+import { useSelector } from "react-redux";
+import { v4 } from "uuid";
+
+const initialState = {
+  allCompanies: [],
+  currCompany: null,
+  currCompanyId: "",
+  allCompanyUsers : [],
+
+  // Loading
+  switchCompanyLoading: false,
+  createCompanyLoading: false,
+  setCurrCompanyIdLoading: false,
+  getAllCompaniesLoading: false,
+  setCompanyLoading: false,
+  getAllCompanyUsersLoading: false,
+};
+
+const companySlice = createSlice({
+  name: "company",
+  initialState,
+  reducers: {
+    switchCompany(state) {
+      state.switchCompanyLoading = true;
+    },
+    switchCompanySuccess(state, { payload }) {
+      if (payload) {
+        state.currCompany = payload;
+        state.currCompanyId = payload.company_id;
+      } else {
+        state.currCompany = null;
+        state.currCompanyId = "";
+      }
+
+      state.switchCompanyLoading = false;
+    },
+    createCompany(state) {
+      state.createCompanyLoading = true;
+    },
+    createCompanySuccess(state) {
+      state.createCompanyLoading = false;
+    },
+    setCurrCompanyId(state) {
+      state.setCurrCompanyIdLoading = true;
+    },
+    setCurrCompanyIdSuccess(state) {
+      state.setCurrCompanyIdLoading = false;
+    },
+    getAllCompanies(state) {
+      state.getAllCompaniesLoading = true;
+    },
+    getAllCompaniesSuccess(state, { payload }) {
+      state.allCompanies = payload;
+      state.getAllCompaniesLoading = false;
+    },
+    setCurrCompany(state) {
+      state.setCompanyLoading = true;
+    },
+    setCurrCompanySuccess(state, { payload }) {
+      state.group = payload;
+      // state.clientGroups = [] find id then replace
+      state.setCompanyLoading = false;
+    },
+    getAllCompanyUsers(state) {
+      state.setCompanyLoading = true;
+    },
+    getAllCompanyUsersSuccess(state, { payload }) {
+      // state.group = payload;
+      // state.clientGroups = [] find id then replace
+      state.allCompanyUsers = payload;
+      state.getAllCompanyUsersLoading = false;
+    },
+  },
+});
+
+// Export the reducer functions as actions
+export const {
+  switchCompany,
+  switchCompanySuccess,
+  createCompany,
+  createCompanySuccess,
+  getAllCompanies,
+  getAllCompaniesSuccess,
+  setCurrCompanyId,
+  setCurrCompanyIdSuccess,
+  setCurrCompany,
+  setCurrCompanySuccess,
+  getAllCompanyUsers,
+  getAllCompanyUsersSuccess
+} = companySlice.actions;
+
+export const useSelectAllCompanies = () =>
+  useSelector((state) => state.company.allCompanies);
+export const useSelectCurrCompany = () =>
+  useSelector((state) => state.company.currCompany);
+export const useSelectCurrCompanyId = () =>
+  useSelector((state) => state.company.currCompanyId);
+export const useSelectAllCompanyUsers = () =>
+  useSelector((state) => state.company.allCompanyUsers);
+
+const companyReducer = companySlice.reducer;
+
+export default companyReducer;

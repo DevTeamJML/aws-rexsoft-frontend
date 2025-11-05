@@ -1,0 +1,26 @@
+@use "../_variables.scss";
+.start-end-fields {
+  display: flex;
+  gap: 10px;
+
+  .separator {
+    display: flex;
+    align-items: center;
+  }
+  input {
+    padding: 6px 8px;
+    background-color: variables.$input-bg;
+    height: 30px;
+    border: 1px solid;
+    border-color: variables.$input-stroke;
+    border-radius: 10px;
+    font-size: variables.$font-s;
+    width: 30%;
+  }
+
+  @media (max-width: 768px) {
+    input {
+      font-size: variables.$font-xxs !important;
+    }
+  }
+}

@@ -1,0 +1,188 @@
+@use "../_variables.scss";
+/* Container */
+.multi-entry-field-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.multientry-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.multi-entry-field-inner-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.multi-entry-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.multi-entry-field-input-box {
+  display: flex;
+  gap: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: none;
+}
+
+/* Label */
+.multi-entry-field-container .field-name-input {
+  background-color: variables.$input-bg;
+  padding: 10px;
+  border-radius: 3px;
+  width: 20%;
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 0px 1px;
+  font-size: variables.$font-s;
+  border: none;
+}
+
+/* General Input Field */
+.multi-entry-field-container .multi-entry-field-input-box .field-input {
+  background-color: variables.$input-bg;
+  border: none;
+  padding: 10px;
+  border-radius: 3px;
+  width: 74%;
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 0px 1px;
+  position: relative;
+  display: inline-block;
+  font-size: variables.$font-s;
+}
+/* Schedule */
+.multi-entry-schedule-container {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  align-items: center;
+}
+
+/* KPI */
+.multi-entry-kpi-container {
+  display: flex;
+  width: 74%;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Notes */
+.input-w-100 {
+  width: 94% !important;
+}
+
+/* Link */
+.field-input .anchor-box {
+  font-size: variables.$font-s;
+  border: none;
+  cursor: pointer;
+
+  .anchor-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: underline;
+    color: variables.$link-color;
+    border: none;
+    width: 100%;
+    pointer-events: none;
+  }
+}
+
+.link-edit-modal {
+  display: none;
+  position: absolute;
+  top: 90%;
+  left: 0;
+  margin-top: 4px;
+  background-color: variables.$input-bg;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  border-radius: 3px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  min-width: 80px;
+}
+
+.field-input:hover .link-edit-modal,
+.link-edit-modal:hover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.link-edit-modal .link-edit-btn {
+  cursor: pointer;
+  color: black;
+  font-size: variables.$font-s;
+}
+
+.link-edit-modal .link-edit-btn:hover {
+  cursor: pointer;
+  color: variables.$link-color;
+  text-decoration: underline;
+}
+
+/* Action Buttons */
+/* disable hover when dragging */
+.drag-active .link-edit-modal {
+  display: none !important;
+}
+
+.multi-entry-field-input-box.drag-active {
+  transform: scale(1.02) translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.multi-entry-field-input-box.drag-hover {
+  outline: 2px dashed variables.$primary-color;
+  background-color: #f0f8ff;
+}
+
+.multi-entry-drag-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3%;
+  cursor: pointer;
+}
+
+.multi-entry-drag-box:active {
+  cursor: grabbing;
+}
+
+.multi-entry-delete-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3%;
+  cursor: pointer;
+}
+
+.multi-entry-add-box {
+  display: flex;
+  // border: 1px dashed variables.$primary-color !important;
+  background-color: variables.$primary-color;
+  padding: 7px 0px;
+  border-radius: 3px;
+  width: 10%;
+  cursor: pointer;
+  // color: variables.$primary-color;
+  color: white;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  font-size: variables.$font-s;
+}
+
+.multi-entry-add-box:hover {
+  background-color: variables.$primary-color;
+  // border: 1px solid variables.$primary-color;
+  color: white !important;
+}

@@ -1,0 +1,24 @@
+@use "../_variables.scss";
+.multiline-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 5px 0px;
+
+  .multiline-box {
+    background-color: variables.$input-bg;
+    padding: 10px;
+    border-radius: 3px;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 0px 1px;
+    font-size: variables.$font-s;
+    border: none;
+    resize: vertical;
+    height: 100px;
+    min-height: 100px;
+    max-height: 400px;
+  }
+}
+
+.disabled-multiline-box {
+  background-color: variables.$disabled-bg !important;
+}
