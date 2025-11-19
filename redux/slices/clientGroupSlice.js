@@ -1,3 +1,4 @@
+import { jsonParser } from "@/utils/jsonParser";
 import { createSlice } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 import { v4 } from "uuid";
@@ -73,7 +74,17 @@ const clientGroupSlice = createSlice({
       state.getSelectedClientGroupLoading = true;
     },
     getSelectedClientGroupSuccess(state, { payload }) {
-      // state.currGroup = payload;
+      const res = payload;
+      const updatedData = {
+        ...res,
+        columns : res?.columns.map(c => {
+          return {
+            ...c,
+            options : JSON.parse(c?.options)
+          }
+        }),
+      }
+      state.currGroup = updatedData;
       // state.clientGroups = [] find id then replace
       state.getSelectedClientGroupLoading = false;
     },

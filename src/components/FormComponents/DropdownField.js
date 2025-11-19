@@ -11,11 +11,6 @@ export const DropdownField = ({
       className="reusable-dropdown"
       style={{ width: width }}
     >
-      {/* <label className="input-label">
-        {label}
-        <span className="required-asterisk">{required ? "*" : null}</span>
-      </label> */}
-
       <select 
         value={value}
         onChange={(e) => onChange(e.target.value)}

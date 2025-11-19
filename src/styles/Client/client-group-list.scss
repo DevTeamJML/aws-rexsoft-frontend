@@ -1,10 +1,20 @@
 @use "../_variables.scss";
 
-.client-group-page-container{
+.page-container{
     display: flex;
     flex-direction: column;
 
     .title-container{
-        padding: 1rem;
+        font-size: variables.$font-s;
+        padding: 0rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .title-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
     }
 }

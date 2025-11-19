@@ -62,3 +62,47 @@ export function dropMultiEntryFieldItem(setState, indexToDelete) {
     return updated;
   });
 }
+
+
+
+import { v4 as uuidv4, v4 } from "uuid";
+
+/**
+ * Generate an array of client custom values from form data and column definitions.
+ * @param {Array} columns - Array of column objects (existing or missing columns)
+ * @param {Object} formData - Key/value form data keyed by column_id
+ * @param {String} client_id - ID of the client
+ * @param {String} client_group_id - ID of the client group
+ * @returns {Array} - Array of formatted custom value objects
+ */
+export function generateCustomValues(columns, formData, client_id, client_group_id) {
+  return columns.map((col) => {
+    const { field_type, column_id } = col;
+    const matchingValue = formData[column_id];
+
+    if (field_type === "alert") {
+      const matchingObj = matchingValue || {};
+      const defaultValue = {
+        date: matchingObj.date ?? "",
+        is_complete: matchingObj.is_complete ?? false,
+      };
+
+      return {
+        client_custom_value_id: v4(),
+        client_id,
+        client_group_id,
+        column_id,
+        row_value: JSON.stringify(defaultValue),
+      };
+    }
+
+    // For non-alert fields
+    return {
+      client_custom_value_id: uuidv4(),
+      client_id,
+      client_group_id,
+      column_id,
+      row_value: matchingValue || "",
+    };
+  });
+}

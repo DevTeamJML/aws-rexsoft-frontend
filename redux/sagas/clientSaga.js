@@ -25,6 +25,7 @@ import { addToLocalStorage } from "@/utils/localStorage";
 import { API } from "@/service/api";
 import { ApiRoute } from "@/enums/api-route";
 import { hideToast, showToast } from "../slices/toastSlice";
+import { setShowModal } from "../slices/confirmModalSlice";
 
 function* handleOnChangeClientGroupSaga({ payload }) {
   try {
@@ -130,7 +131,7 @@ function* setSelectedClientIdsSaga({ payload }) {
   try {
     const { router, data } = payload;
     yield put(setSelectedClientIdsSuccess(data));
-    router.push("/client/client-list/bulkUpdate");
+    router.push("/client/client-list/bulk-update");
   } catch (error) {
     console.log(error);
   }
@@ -139,22 +140,47 @@ function* setSelectedClientIdsSaga({ payload }) {
 function* bulkUpdateClientSaga({ payload }) {
   try {
     const { router, ...otherData } = payload;
+
     yield call(API.post, ApiRoute.client.bulkUpdate, otherData.payload);
-    router.push("/client/client-list");
+
+    // yield put(
+    //   showToast({
+    //     message: "Processing data, please wait..",
+    //     status: "success",
+    //     loader: true,
+    //   })
+    // );
+
+    // // yield put(router.push("/client/client-list"));
+    // yield put(hideToast());
   } catch (error) {
     console.log(error);
+    yield put(
+      showToast({
+        message: "Bulk update failed",
+        status: "error",
+      })
+    );
   }
 }
 
 function* deleteClientSaga({ payload }) {
   try {
-    const { client_id, setShowModal, client_group_id } = payload;
+    const { client_id, client_group_id } = payload;
     yield call(API.post, ApiRoute.client.delete, {
       client_id,
       client_group_id,
     });
     yield put(deleteClientSuccess(client_id));
-    setShowModal(false);
+    yield put(setShowModal(false));
+    yield put(
+      showToast({
+        message: "Delete client successfully !",
+        status: "success",
+      })
+    );
+    yield delay(3000);
+    yield put(hideToast());
     // router.push("/client/client-list");
   } catch (error) {
     console.log(error);
@@ -163,10 +189,10 @@ function* deleteClientSaga({ payload }) {
 
 function* bulkDeleteClientSaga({ payload }) {
   try {
-    const { client_id_list, setShowModal, client_group_id } = payload;
+    const { client_id_list, client_group_id } = payload;
     yield call(API.post, ApiRoute.client.bulkDelete, payload);
     yield put(bulkDeleteClientSuccess(client_id_list));
-    setShowModal(false);
+    yield put(setShowModal(false));
     // router.push("/client/client-list");
   } catch (error) {
     console.log(error);

@@ -1,0 +1,57 @@
+@use "../_variables.scss";
+
+.input-color-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-color-label {
+  font-size: variables.$font-s;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+}
+
+.color-picker {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #e0e0e0;
+  border-radius: 100%;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #999;
+    transform: scale(1.1);
+  }
+
+  &.custom {
+    background: var(--custom-color, #1976d2);
+  }
+
+  .color-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
+
+// Multiple color pickers in a group
+.color-pickers-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  .input-color-container {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+}

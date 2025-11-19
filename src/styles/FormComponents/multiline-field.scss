@@ -1,24 +1,27 @@
 @use "../_variables.scss";
-.multiline-container {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 5px 0px;
 
-  .multiline-box {
-    background-color: variables.$input-bg;
-    padding: 10px;
-    border-radius: 3px;
-    box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 0px 1px;
-    font-size: variables.$font-s;
-    border: none;
-    resize: vertical;
-    height: 100px;
-    min-height: 100px;
-    max-height: 400px;
-  }
+/* TextArea Field Styles */
+.textarea-container {
+  margin-bottom: 16px;
 }
 
-.disabled-multiline-box {
-  background-color: variables.$disabled-bg !important;
+.textarea-field {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+.textarea-field:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.textarea-field::placeholder {
+  color: #999;
 }

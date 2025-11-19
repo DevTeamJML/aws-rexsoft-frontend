@@ -17,45 +17,34 @@ export const TableColumns = {
   // Client Pages
   "client-list": [
     {
-      id: 'serial_number',
-      label: 'Serial Number',
-      type: ColumnType.TEXT,
+      id: 'handler',
+      label: 'Handler',
+      field_type: "handler",
       sortable: true,
-      fixed: true,
       width: 120
     },
     {
-      id: 'client_name',
-      label: 'Client Name',
-      type: ColumnType.TEXT,
+      id: 'serial_number',
+      label: 'Serial Number',
+      field_type: ColumnType.TEXT,
       sortable: true,
-      fixed: true,
-      width: 200
-    },
-    {
-      id: 'email',
-      label: 'Email',
-      type: ColumnType.TEXT,
-      sortable: true,
-      fixed: true,
-      width: 180
+      width: 120
     },
     {
       id: 'created_at',
       label: 'Creation Date',
-      type: ColumnType.DATE,
+      field_type: ColumnType.DATE,
       sortable: true,
-      fixed: true,
       width: 150
     },
-    {
-      id: 'actions',
-      label: 'Actions',
-      type: ColumnType.ACTION,
-      sortable: false,
-      fixed: true,
-      width: 120
-    }
+    // {
+    //   id: 'actions',
+    //   label: 'Actions',
+    //   type: ColumnType.ACTION,
+    //   sortable: false,
+    //   fixed: true,
+    //   width: 120
+    // }
   ],
   
   "client-group-list": [
@@ -75,14 +64,6 @@ export const TableColumns = {
       fixed: true,
       width: 150
     },
-    {
-      id: 'actions',
-      label: 'Actions',
-      type: ColumnType.ACTION,
-      sortable: false,
-      fixed: true,
-      width: 120
-    }
   ],
   
   // Form Pages

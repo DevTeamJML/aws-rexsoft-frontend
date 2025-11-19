@@ -1,4 +1,4 @@
-"use client";
+
 import { FaTimesCircle } from "react-icons/fa";
 import { useState, useMemo, useRef, useEffect } from "react";
 
@@ -7,7 +7,8 @@ export default function MultiSelectDropdownField({
   options = [],
   placeholder = "Select...",
   onChange = () => {},
-  width
+  onRemove = () => {},
+  width,
 }) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
@@ -27,11 +28,20 @@ export default function MultiSelectDropdownField({
   }, []);
 
   const filteredOptions = useMemo(() => {
-    return options.filter(
-      (opt) =>
-        opt.toLowerCase().includes(search.toLowerCase()) &&
-        !selected.includes(opt)
-    );
+    return options.filter((opt) => {
+      const optionValue = opt.value ?? opt; // fallback for string arrays
+      const optionLabel = opt.label ?? opt;
+
+      // Check if option matches search AND is not already selected
+      return (
+        (optionValue.toLowerCase().includes(search.toLowerCase()) ||
+          optionLabel.toLowerCase().includes(search.toLowerCase())) &&
+        !selected.some((selectedItem) => {
+          const selectedValue = selectedItem.value ?? selectedItem;
+          return selectedValue === optionValue;
+        })
+      );
+    });
   }, [options, search, selected]);
 
   const toggleSelect = (option) => {
@@ -47,7 +57,7 @@ export default function MultiSelectDropdownField({
   };
 
   const removeSelected = (option) => {
-    onChange(option);
+    onRemove(option);
     // setSelected((prev) => {
     //   const newSelected = prev.filter((o) => o !== option);
     //   onChange(newSelected);
@@ -56,23 +66,29 @@ export default function MultiSelectDropdownField({
   };
 
   return (
-    <div className="multi-select" ref={dropdownRef} style={{width : width}}>
+    <div className="multi-select" ref={dropdownRef} style={{ width: width }}>
       {/* Input + selected items */}
       <div className="multi-select-input">
-        {selected.map((item) => (
-          <div key={item} className="chip">
-            <span>{item}</span>
-            <div
-              className="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                removeSelected(item);
-              }}
-            >
-              <FaTimesCircle />
-            </div>
-          </div>
-        ))}
+        {options.map((item, index) => {
+          const optionValue = item.value ?? item;
+          const optionLabel = item.label ?? item;
+          if (selected.includes(optionValue)) {
+            return (
+              <div key={index} className="chip">
+                <span>{optionLabel}</span>
+                <div
+                  className="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeSelected(optionValue);
+                  }}
+                >
+                  <FaTimesCircle />
+                </div>
+              </div>
+            );
+          }
+        })}
         <input
           type="text"
           value={search}
@@ -86,9 +102,9 @@ export default function MultiSelectDropdownField({
       {open && (
         <ul className="multi-select-dropdown">
           {filteredOptions.length > 0 ? (
-            filteredOptions.map((opt) => (
-              <li key={opt} onClick={() => toggleSelect(opt)}>
-                {opt}
+            filteredOptions.map((opt, index) => (
+              <li key={index} onClick={() => toggleSelect(opt.value)}>
+                {opt.label}
               </li>
             ))
           ) : (

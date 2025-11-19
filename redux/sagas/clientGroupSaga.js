@@ -33,6 +33,12 @@ function* deleteClientGroupSaga({ payload }) {
     setTargetGroupId("");
     yield put(deleteClientGroupSuccess(client_group_id));
     yield call(remove, ref(db, `ColumnSorting/${client_group_id}/`));
+    yield put(
+      showToast({
+        message: "Delete successfully !",
+        status: "success"
+      })
+    );
     yield delay(1000);
     // yield put(getAllClientGroups({company_id}))
     yield put(setShowModal(false));
@@ -54,17 +60,6 @@ function* getAllClientGroupsSaga({ payload }) {
       );
       const groupList = response.data;
       yield put(getAllClientGroupsSuccess(groupList));
-    } else {
-      yield put(
-        showToast({
-          message: "Please Create/Choose A Company !",
-          status: "error",
-        })
-      );
-
-      yield delay(3000);
-
-      hideToast();
     }
   } catch (error) {
     console.log(error);
@@ -82,7 +77,7 @@ function* createClientGroupSaga({ payload }) {
     yield call(API.post, ApiRoute.clientGroup.create, data);
     yield call(set, ref(db, `ColumnSorting/${client_group_id}/`), columnIdList);
     yield delay(1000);
-    router.push("/client/manage-group");
+    router.push("/client/client-group-list");
     // yield put(createClientGroupSuccess(payload));
   } catch (error) {
     console.error(error);
@@ -100,7 +95,7 @@ function* updateClientGroupSaga({ payload }) {
     yield call(API.post, ApiRoute.clientGroup.updateClientGroup, data);
     yield call(set, ref(db, `ColumnSorting/${client_group_id}/`), columnIdList);
     yield delay(1000);
-    router.push("/client/manage-group");
+    router.push("/client/client-group-list");
   } catch (error) {
     console.error(error);
   }
@@ -134,7 +129,6 @@ function* getSelectedClientGroupSaga({ payload }) {
       }
     );
     const selectedGroup = response.data;
-    console.log(selectedGroup)
     yield put(setSelectedClientGroupIdSuccess(client_group_id));
     yield put(setSelectedClientGroupSuccess(selectedGroup));
     yield put(getSelectedClientGroupSuccess(selectedGroup));

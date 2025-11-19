@@ -56,20 +56,48 @@
     overflow: scroll;
 
     .fields-container {
-      flex: 1;
       margin-bottom: 1rem;
       position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: row;
+      gap: 1rem;
 
       .field-item {
         display: flex;
         align-items: center;
         border-radius: 8px;
         margin-bottom: 0.75rem;
+        padding-inline: 0.5rem;
+         transition: all 0.3s ease;
         cursor: pointer;
+
+        // Drag & Drop States
+        &.dragging {
+          opacity: 0.5;
+          transform: rotate(5deg);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        &.drag-over {
+          border: 2px dashed #1976d2;
+          background: #e3f2fd;
+          transform: scale(1.02);
+        }
+
+        &:hover {
+          // box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+          // border: 2px dashed #1976d2;
+          transform: translateY(-1px);
+        }
+
+        &:active {
+          cursor: grabbing;
+        }
 
         .drag-handle {
           cursor: grab;
-          margin-right: 1rem;
+          margin-right: 0.5rem;
           color: #666;
 
           &:active {
@@ -88,7 +116,7 @@
 
           .delete-overlay {
             position: absolute;
-            right: -1.5%;
+            right: -2%;
             top: 50%;
             z-index: 300;
             transform: translateY(-50%);
@@ -233,26 +261,31 @@
             display: flex;
             gap: 0.5rem;
 
-            .color-picker {
-              width: 24px;
-              height: 24px;
-              border: 2px solid #e0e0e0;
-              border-radius: 100%;
-              cursor: pointer;
+            // .color-picker {
+            //   width: 24px;
+            //   height: 24px;
+            //   border: 2px solid #e0e0e0;
+            //   border-radius: 100%;
+            //   cursor: pointer;
 
-              &.primary {
-                background: #1976d2;
-              }
+            //   &.primary {
+            //     background: #1976d2;
+            //   }
 
-              &.secondary {
-                background: #dc004e;
-              }
-            }
+            //   &.secondary {
+            //     background: #dc004e;
+            //   }
+            // }
           }
 
           .option-input-container {
             flex: 1;
             position: relative;
+
+            &.alert {
+              display: flex;
+              gap: 5px;
+            }
 
             .reusable-input {
               //   width: 100%;

@@ -1,33 +1,24 @@
 export const MultilineField = ({
   label,
   value,
-  type,
   onChange,
   width,
   required,
-  disable,
-  minHeight
+  placeholder,
+  rows = 4,
 }) => {
   return (
-    <div
-      className="multiline-container"
-      style={{
-        width: width,
-      }}
-    >
+    <div className="textarea-container" style={{ width: width }}>
       <label className="input-label">
         {label}
         <span className="required-asterisk">{required ? "*" : null}</span>
       </label>
       <textarea
-        style={{
-          minHeight: minHeight,
-        }}
-        disabled={disable}
-        className={`multiline-box ${disable ? "disabled-multiline-box" : ""}`}
-        type={type}
+        className="textarea-field"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={rows}
       />
     </div>
   );

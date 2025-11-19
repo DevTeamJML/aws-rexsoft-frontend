@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from "react-redux";
-import { useSelectToast, showToast, hideToast } from "@/redux/slices/toastSlice";
+import { useSelectToast, showToast, hideToast } from "../../../redux/slices/toastSlice";
 import { createContext, useContext } from "react";
 
 const ToastContext = createContext();

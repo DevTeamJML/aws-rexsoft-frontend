@@ -1,4 +1,4 @@
-"use client";
+
 import { useState } from "react";
 import { FaUpload } from "react-icons/fa";
 

@@ -16,6 +16,13 @@ import { getAllClientGroups } from "../slices/clientGroupSlice";
 
 function* switchCompanySaga({ payload }) {
   try {
+    yield put(
+      showToast({
+        message: "Changing Company. Please wait.",
+        status: "success",
+        loader: true,
+      })
+    );
     const { company_id } = payload;
     addToLocalStorage(process.env.CURR_COMPANY_ID, company_id);
     // addToLocalStorage(CURR_COMPANY_ID, company_id);
@@ -28,6 +35,7 @@ function* switchCompanySaga({ payload }) {
     yield put(switchCompanySuccess(payload));
     // window.location.replace("/dashboard");
     window.location.reload();
+    yield put(hideToast());
   } catch (error) {
     console.log(error);
   }

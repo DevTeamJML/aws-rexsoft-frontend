@@ -1,13 +1,13 @@
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
-import { logOut, useSelectUser } from "@/redux/slices/authSlice";
+import { logOut, useSelectUser } from "../../../redux/slices/authSlice";
 import {
   resetUnsavedState,
   setPendingPath,
   setShowModal,
   useSelectUnsavedChanges,
-} from "@/redux/slices/confirmModalSlice";
+} from "../../../redux/slices/confirmModalSlice";
 import Image from "next/image";
 import {
   FaCalendarAlt,
@@ -21,10 +21,16 @@ import {
   FaFileAlt,
   FaSlidersH,
   FaThLarge,
+  FaBuilding,
+  FaChevronDown,
 } from "react-icons/fa";
 import { ImHammer2 } from "react-icons/im";
-import { useState } from "react";
-import { useSelectCurrCompany } from "@/redux/slices/companySlice";
+import { useState, useRef, useEffect } from "react";
+import {
+  switchCompany,
+  useSelectAllCompanies,
+  useSelectCurrCompany,
+} from "../../../redux/slices/companySlice";
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const router = useRouter();
@@ -33,9 +39,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const user = useSelectUser();
   const unsavedChanges = useSelectUnsavedChanges();
   const currCompany = useSelectCurrCompany();
+  const companies = useSelectAllCompanies();
 
   const [activeMenu, setActiveMenu] = useState(null);
   const [showSubmenu, setShowSubmenu] = useState(false);
+  const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
+  const companyDropdownRef = useRef(null);
 
   const LogoutIcon = dynamic(
     () => import("@mui/icons-material/LogoutOutlined"),
@@ -46,13 +55,30 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
 
   const currentPath = router.pathname;
 
-  // Menu configuration
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        companyDropdownRef.current &&
+        !companyDropdownRef.current.contains(event.target)
+      ) {
+        setShowCompanyDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Menu configuration (same as before)
   const menuItems = [
     {
       id: "dashboard",
       label: "Dashboard",
       icon: <FaThLarge size={20} />,
-      path: "/dashboard", // Add path for direct navigation
+      path: "/dashboard",
     },
     {
       id: "graph",
@@ -64,11 +90,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           label: "Graph Client",
           path: "/graph/graph-client",
         },
-        {
-          id: "graph-kpi",
-          label: "KPI Graph",
-          path: "/graph/graph-kpi",
-        },
+        // {
+        //   id: "graph-kpi",
+        //   label: "KPI Graph",
+        //   path: "/graph/graph-kpi",
+        // },
         {
           id: "graph-form",
           label: "Graph Form",
@@ -185,7 +211,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
 
   const handleGoToSelectedPage = (path) => {
     router.push(path);
-    // Close submenu when navigating
     setShowSubmenu(false);
     setActiveMenu(null);
   };
@@ -196,7 +221,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
-    // Close submenu when collapsing main sidebar
     if (!isCollapsed) {
       setShowSubmenu(false);
       setActiveMenu(null);
@@ -207,18 +231,14 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     const hasSubItems = menu.subItems && menu.subItems.length > 0;
 
     if (hasSubItems) {
-      // Toggle submenu on click
       if (activeMenu?.id === menu.id && showSubmenu) {
-        // Clicking the same menu - close submenu
         setShowSubmenu(false);
         setActiveMenu(null);
       } else {
-        // Clicking different menu - open submenu
         setActiveMenu(menu);
         setShowSubmenu(true);
       }
     } else if (menu.path) {
-      // No subitems, navigate directly
       handleGoToSelectedPage(menu.path);
     }
   };
@@ -226,6 +246,16 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const closeSubmenu = () => {
     setShowSubmenu(false);
     setActiveMenu(null);
+  };
+
+  const toggleCompanyDropdown = () => {
+    setShowCompanyDropdown(!showCompanyDropdown);
+  };
+
+  const handleCompanySwitch = (company) => {
+    const id = company.company_id;
+    dispatch(switchCompany({ company_id: id }));
+    setShowCompanyDropdown(false);
   };
 
   const isMenuActive = (menu) => {
@@ -270,27 +300,62 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         >
           {!isCollapsed ? (
             <div className="sidebar-header">
-              {/* <Image
-                className="logo"
-                src="/assets/favicon.ico"
-                alt="Logo"
-                style={{ objectFit: "contain" }}
-                width={150}
-                height={50}
-                priority
-              /> */}
-              <span className="">{currCompany?.company_name || null}</span>
+              <div className="company-selector" ref={companyDropdownRef}>
+                <div
+                  className="company-current"
+                  onClick={toggleCompanyDropdown}
+                >
+                  <FaBuilding className="company-icon" />
+                  <span className="company-name">
+                    {currCompany?.company_name || "Select Company"}
+                  </span>
+                  <FaChevronDown
+                    className={`dropdown-arrow ${
+                      showCompanyDropdown ? "rotated" : ""
+                    }`}
+                  />
+                </div>
+
+                {showCompanyDropdown && (
+                  <div className="company-dropdown">
+                    <div className="dropdown-header">
+                      <span>Switch Company</span>
+                    </div>
+                    <div className="dropdown-list">
+                      {companies.map((company) => (
+                        <div
+                          key={company.company_id}
+                          className={`dropdown-item ${
+                            currCompany?.company_id === company.company_id
+                              ? "active"
+                              : ""
+                          }`}
+                          onClick={() => handleCompanySwitch(company)}
+                        >
+                          {/* <FaBuilding className="item-icon" /> */}
+                          <span className="item-name">
+                            {company.company_name || "N/A"}
+                          </span>
+                          {currCompany?.company_id === company.company_id && (
+                            <div className="active-indicator" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="dropdown-footer">
+                      {/* <button 
+                        className="manage-companies-btn"
+                        onClick={() => handleGoToSelectedPage('/control-panel/create-company')}
+                      >
+                        <FaSlidersH className="btn-icon" />
+                        Manage Companies
+                      </button> */}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          ) : // <Image
-          //   className="logo"
-          //   src="/assets/favicon.ico"
-          //   alt="Logo"
-          //   style={{ objectFit: "contain" }}
-          //   width={200}
-          //   height={30}
-          //   priority
-          // />
-          null}
+          ) : null}
           <div
             className="toggle-button"
             onClick={(e) => {
@@ -331,7 +396,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
                       {!isCollapsed && (
                         <>
                           <span className="menu-label">{menu.label}</span>
-                          {/* Only show arrow for items with submenus */}
                           {hasSubItems && (
                             <div className="submenu-arrow">
                               <FaAngleRight size={14} />
@@ -347,11 +411,19 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           </div>
 
           <div className="bottom-section">
-            <div className={`sidebar-section`} onClick={handleSignOut}>
-              <div className="icon">
+            <div className={`sidebar-section menu-item`} onClick={handleSignOut}>
+                <div className="menu-item-content">
+                      <div className="icon"> <LogoutIcon sx={{ fontSize: 23 }} /></div>
+                      {!isCollapsed && (
+                        <>
+                          <span className="menu-label">Logout</span>
+                        </>
+                      )}
+                    </div>
+              {/* <div className="icon">
                 <LogoutIcon sx={{ fontSize: 23 }} />
               </div>
-              {!isCollapsed && <span>Logout</span>}
+              {!isCollapsed && <span>Logout</span>} */}
             </div>
           </div>
         </div>
@@ -359,10 +431,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
 
       {/* Submenu Sidebar */}
       {showSubmenu && activeMenu && (
-        <div
-          className="submenu-sidebar"
-          onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
-        >
+        <div className="submenu-sidebar" onClick={(e) => e.stopPropagation()}>
           <div className="submenu-header">
             <span>{activeMenu.label}</span>
             <button className="close-submenu-btn" onClick={closeSubmenu}>
@@ -380,7 +449,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
               >
                 <div className="submenu-item-content">
                   <div className="submenu-icon">
-                    {/* <div className="submenu-dot" /> */}
+                    <div className="submenu-dot" />
                   </div>
                   <span className="submenu-label">{subItem.label}</span>
                 </div>

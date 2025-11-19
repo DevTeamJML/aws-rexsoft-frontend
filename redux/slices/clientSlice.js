@@ -2,7 +2,13 @@ import { createSlice } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 const initialState = {
   allClients: [],
-  allClientsCount : 0,
+  clientPagination: {
+    pageIndex: 0,
+    pageSize: 200,
+    currentPage: 1,
+    totalPages: 0,
+  },
+  allClientsCount: 0,
   currSelectedClientGroupId: null,
   currSelectedClientGroup: null,
   selectedClientIds: [],
@@ -12,7 +18,7 @@ const initialState = {
   setSelectedClientGroupIdLoading: false,
   setSelectedClientGroupLoading: false,
   handleOnChangeClientGroupLoading: false,
-  bulkCreateClientLoading : false,
+  bulkCreateClientLoading: false,
   createClientLoading: false,
   updateClientLoading: false,
   setSelectedClientIdsLoading: false,
@@ -64,7 +70,8 @@ const clientSlice = createSlice({
       state.getAllClientsLoading = true;
     },
     getAllClientsSuccess(state, { payload }) {
-      state.allClients = payload;
+      state.allClients = payload.data;
+      state.clientPagination = payload.pagination;
       state.getAllClientsLoading = false;
     },
     getAllClientsCount(state) {
@@ -106,7 +113,9 @@ const clientSlice = createSlice({
     deleteClientSuccess(state, { payload }) {
       const targetClientId = payload;
       const currClients = state.allClients;
-      const updatedList = currClients.filter((client)=>client.client_id !== targetClientId);
+      const updatedList = currClients.filter(
+        (client) => client.client_id !== targetClientId
+      );
       state.allClients = updatedList;
       state.deleteClientLoading = false;
     },
@@ -116,7 +125,9 @@ const clientSlice = createSlice({
     bulkDeleteClientSuccess(state, { payload }) {
       const targetClientIdList = payload;
       const currClients = state.allClients;
-      const updatedList = currClients.filter((client)=>!targetClientIdList.includes(client.client_id));
+      const updatedList = currClients.filter(
+        (client) => !targetClientIdList.includes(client.client_id)
+      );
       state.allClients = updatedList;
       state.bulkDeleteClientLoading = false;
     },
@@ -150,11 +161,13 @@ export const {
   getClientDataByClientId,
   getClientDataByClientIdSuccess,
   getAllClientsCount,
-  getAllClientsCountSuccess
+  getAllClientsCountSuccess,
 } = clientSlice.actions;
 
 export const useSelectAllClients = () =>
   useSelector((state) => state.client.allClients);
+export const useSelectClientPagination = () =>
+  useSelector((state) => state.client.clientPagination);
 export const useSelectGetAllClientsLoading = () =>
   useSelector((state) => state.client.getAllClientsLoading);
 export const useSelectCurrSelectedGroupId = () =>

@@ -1,4 +1,3 @@
-// Sidebar.scss
 @use "_variables.scss";
 
 .sidebar-container {
@@ -18,7 +17,7 @@
     width: 100%;
     align-items: center;
     justify-content: space-between;
-    padding: 0.5rem 1.5rem;
+    padding: 0.5rem 0;
 
     span {
       font-size: variables.$font-l;
@@ -29,6 +28,164 @@
       max-height: 40px;
       width: auto;
       object-fit: contain;
+    }
+  }
+
+  // Company Selector Styles
+  .company-selector {
+    position: relative;
+    width: 100%;
+
+    .company-current {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      // background: #f8f9fa;
+
+      &:hover {
+        background: #e9ecef;
+        border-color: #dee2e6;
+      }
+
+      .company-icon {
+        color: variables.$primary-color;
+        flex-shrink: 0;
+      }
+
+      .company-name {
+        flex: 1;
+        font-size: variables.$font-m;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: variables.$primary-color;
+      }
+
+      .dropdown-arrow {
+        color: #6c757d;
+        transition: transform 0.2s ease;
+        flex-shrink: 0;
+
+        &.rotated {
+          transform: rotate(180deg);
+        }
+      }
+    }
+
+    .company-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      z-index: 1004; // Higher than sidebar
+      margin-top: 0.5rem;
+      overflow: hidden;
+
+      .dropdown-header {
+        padding: 1rem;
+        border-bottom: 1px solid #e9ecef;
+        background: #f8f9fa;
+
+        span {
+          font-size: variables.$font-s;
+          font-weight: 600;
+          color: #495057;
+        }
+      }
+
+      .dropdown-list {
+        max-height: 200px;
+        overflow-y: auto;
+
+        .dropdown-item {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.75rem 1rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          position: relative;
+          border-left: 3px solid transparent;
+
+          &:hover {
+            background: #e3f2fd;
+          }
+
+          &.active {
+            background: variables.$secondary-color;
+            border-left-color: variables.$primary-color;
+
+            .item-name {
+              color: variables.$primary-color;
+              font-weight: 600;
+            }
+          }
+
+          .item-icon {
+            color: #6c757d;
+            flex-shrink: 0;
+            // font-size: 0.875rem;
+          }
+
+          .item-name {
+            flex: 1;
+            font-size: variables.$font-s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #495057;
+          }
+
+          .active-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: variables.$primary-color;
+            flex-shrink: 0;
+          }
+        }
+      }
+
+      .dropdown-footer {
+        padding: 0.75rem;
+        border-top: 1px solid #e9ecef;
+        background: #f8f9fa;
+
+        .manage-companies-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          width: 100%;
+          padding: 0.5rem;
+          background: transparent;
+          border: 1px dashed #6c757d;
+          border-radius: 6px;
+          color: #6c757d;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: variables.$font-s;
+
+          &:hover {
+            background: white;
+            border-color: variables.$primary-color;
+            color: variables.$primary-color;
+          }
+
+          .btn-icon {
+            font-size: 0.75rem;
+          }
+        }
+      }
     }
   }
 
@@ -43,6 +200,10 @@
     .submenu-label {
       opacity: 0;
       visibility: hidden;
+    }
+
+    .company-selector {
+      display: none;
     }
   }
 
@@ -89,13 +250,14 @@
     }
   }
 
+  // ... rest of your existing SCSS styles remain the same
   .sidebar-bottom-section {
     flex: 1;
     display: flex;
     flex-direction: column;
     padding: 1rem 0;
     overflow-y: auto;
-    overflow-x: hidden; // Prevent horizontal scroll
+    overflow-x: hidden;
 
     .mid-section {
       flex: 1;
@@ -165,7 +327,7 @@
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          font-size: variables.$font-m;
+          font-size: variables.$font-s;
           min-width: 0;
         }
 
@@ -196,28 +358,27 @@
   }
 }
 
-// Submenu Backdrop
+// ... rest of your existing SCSS (submenu-backdrop, submenu-sidebar, animations, etc.) remains the same
 .submenu-backdrop {
   position: fixed;
   top: 0;
-  left: 15%; // Match main sidebar width
+  left: 15%;
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.1);
   z-index: 999;
 
   .sidebar-container.collapsed ~ & {
-    left: 5%; // Match collapsed sidebar width
+    left: 5%;
   }
 }
 
-// Submenu Sidebar
 .submenu-sidebar {
   position: fixed;
-  left: 15%; // Position next to main sidebar
+  left: 15%;
   top: 0;
   height: 100vh;
-  width: 15%; // Same width as main sidebar
+  width: 15%;
   background: white;
   color: variables.$primary-color;
   z-index: 1000;
@@ -280,12 +441,10 @@
 
     &:hover {
       background: variables.$secondary-color;
-      // border-left-color: variables.$primary-color;
     }
 
     &.selected-submenu-item {
       background: variables.$secondary-color;
-      // border-left-color: variables.$primary-color;
       color: variables.$primary-color;
     }
 
@@ -322,13 +481,11 @@
   }
 }
 
-// Adjust submenu position when main sidebar is collapsed
 .sidebar-container.collapsed ~ .submenu-sidebar {
-  left: 5%; // Match collapsed width
-  width: 15%; // Submenu can have different width when main is collapsed
+  left: 5%;
+  width: 15%;
 }
 
-// Animations
 @keyframes slideInRight {
   from {
     opacity: 0;
@@ -340,7 +497,6 @@
   }
 }
 
-// Scrollbar styling
 .sidebar-container,
 .submenu-sidebar {
   &::-webkit-scrollbar {
@@ -360,148 +516,3 @@
     background: #a8a8a8;
   }
 }
-// Responsive design - Using viewport width instead of fixed pixels
-// @media (max-width: 1200px) {
-//   .sidebar-container {
-//     width: 80px;
-
-//     &:not(.collapsed) {
-//       width: 200px;
-//     }
-
-//     &.collapsed {
-//       width: 60px;
-//     }
-//   }
-
-//   .submenu-sidebar {
-//     left: 200px;
-//     width: 180px;
-
-//     .sidebar-container.collapsed ~ & {
-//       left: 60px;
-//     }
-//   }
-
-//   .submenu-backdrop {
-//     left: 200px;
-
-//     .sidebar-container.collapsed ~ & {
-//       left: 60px;
-//     }
-//   }
-
-//   .main-content {
-//     margin-left: 200px;
-
-//     .sidebar-container.collapsed ~ & {
-//       margin-left: 60px;
-//     }
-
-//     .submenu-sidebar ~ & {
-//       margin-left: 380px; // 200px main + 180px submenu
-//     }
-
-//     .sidebar-container.collapsed ~ .submenu-sidebar ~ & {
-//       margin-left: 240px; // 60px main + 180px submenu
-//     }
-//   }
-// }
-
-// @media (max-width: 768px) {
-//   .sidebar-container {
-//     width: 60px;
-
-//     &:not(.collapsed) {
-//       width: 180px;
-//     }
-
-//     &.collapsed {
-//       width: 50px;
-//     }
-//   }
-
-//   .submenu-sidebar {
-//     left: 180px;
-//     width: 160px;
-
-//     .sidebar-container.collapsed ~ & {
-//       left: 50px;
-//     }
-//   }
-
-//   .submenu-backdrop {
-//     left: 180px;
-
-//     .sidebar-container.collapsed ~ & {
-//       left: 50px;
-//     }
-
-//     // Keep backdrop on mobile for better UX
-//     display: block;
-//     background: rgba(0, 0, 0, 0.3);
-//   }
-
-//   .main-content {
-//     margin-left: 180px;
-
-//     .sidebar-container.collapsed ~ & {
-//       margin-left: 50px;
-//     }
-
-//     .submenu-sidebar ~ & {
-//       margin-left: 340px; // 180px main + 160px submenu
-//     }
-
-//     .sidebar-container.collapsed ~ .submenu-sidebar ~ & {
-//       margin-left: 210px; // 50px main + 160px submenu
-//     }
-//   }
-// }
-
-// @media (max-width: 480px) {
-//   .sidebar-container {
-//     width: 50px;
-
-//     &:not(.collapsed) {
-//       width: 150px;
-//     }
-
-//     &.collapsed {
-//       width: 40px;
-//     }
-//   }
-
-//   .submenu-sidebar {
-//     left: 150px;
-//     width: 140px;
-
-//     .sidebar-container.collapsed ~ & {
-//       left: 40px;
-//     }
-//   }
-
-//   .submenu-backdrop {
-//     left: 150px;
-
-//     .sidebar-container.collapsed ~ & {
-//       left: 40px;
-//     }
-//   }
-
-//   .main-content {
-//     margin-left: 150px;
-
-//     .sidebar-container.collapsed ~ & {
-//       margin-left: 40px;
-//     }
-
-//     .submenu-sidebar ~ & {
-//       margin-left: 290px; // 150px main + 140px submenu
-//     }
-
-//     .sidebar-container.collapsed ~ .submenu-sidebar ~ & {
-//       margin-left: 180px; // 40px main + 140px submenu
-//     }
-//   }
-// }

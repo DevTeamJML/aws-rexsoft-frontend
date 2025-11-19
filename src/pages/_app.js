@@ -3,17 +3,27 @@ import "@/styles/globals.scss";
 import "@/styles/login.scss";
 import "@/styles/sidebar.scss";
 import "@/styles/layout.scss";
-import "@/styles/page-header.scss";
 import "@/styles/reusable-table.scss";
 
 // Misc
 import "@/styles/Misc/action-button.scss";
 import "@/styles/Misc/toast.scss";
+import "@/styles/Misc/confirm-modal.scss";
+import "@/styles/Misc/simple-import-table.scss";
+import "@/styles/Misc/filter-drawer.scss";
+import "@/styles/Misc/column-order-drawer.scss";
+
+
+// Client
+import "@/styles/Graph/graph-client.scss";
+import "@/styles/Graph/new-graph-client.scss";
 
 // Client
 import "@/styles/Client/client-list.scss";
 import "@/styles/Client/client-group-list.scss";
 import "@/styles/Client/new-client-group.scss";
+import "@/styles/Client/new-client.scss"
+import "@/styles/Client/import-client.scss";;
 
 // Control panel
 import "@/styles/ControlPanel/create-company.scss";
@@ -33,11 +43,12 @@ import "@/styles/FormComponents/date-range-field.scss";
 import "@/styles/FormComponents/search-dropdown-field.scss";
 import "@/styles/FormComponents/upload-image-field.scss";
 import "@/styles/FormComponents/switch.scss";
+import "@/styles/FormComponents/input-color.scss";
 
 import { useRouter } from "next/router";
 import { ToastProvider } from "@/components/Misc/Toast";
 import { Provider } from "react-redux";
-import store from "@/redux/store";
+import store from "../../redux/store";
 import { AuthProvider } from "@/components/Provider/AuthProvider";
 
 export default function App({ Component, pageProps }) {

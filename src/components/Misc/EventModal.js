@@ -18,7 +18,7 @@ import {
 } from "react-icons/fa";
 import { ActionButton } from "./ActionButton";
 import { useRouter } from "next/router";
-import { useSelectUser } from "@/redux/slices/authSlice";
+import { useSelectUser } from "../../../redux/slices/authSlice";
 
 const EventModal = ({
   open,

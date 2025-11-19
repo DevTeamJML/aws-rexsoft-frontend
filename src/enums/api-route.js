@@ -12,6 +12,7 @@ export const ApiRoute = {
   clientGroup: {
     create: "/clientGroup/createClientGroup",
     getAllClientGroups: "/clientGroup/getAllClientGroups",
+    getClientGroupById: "/clientGroup/getClientGroupById",
     deleteClientGroupById: "/clientGroup/deleteClientGroupById",
     updateClientGroup: "/clientGroup/updateClientGroup",
     getAllClientGroupsName: "/clientGroup/getAllClientGroupsName",

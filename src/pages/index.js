@@ -1,5 +1,5 @@
 import { PlainTextField } from "@/components/FormComponents/PlainTextField";
-import { signIn } from "@/redux/slices/authSlice";
+import { signIn } from "../../redux/slices/authSlice";
 import { useMediaQuery } from "@mui/material";
 import Image from "next/image";
 import { useRouter } from "next/router";

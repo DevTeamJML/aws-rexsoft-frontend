@@ -1,5 +1,5 @@
 import { auth } from "@/config/firebaseConfig";
-import { refreshSignIn, useSelectUser } from "@/redux/slices/authSlice";
+import { refreshSignIn, useSelectUser } from "../../../redux/slices/authSlice";
 import { useDispatch } from "react-redux";
 
 const { createContext, useState, useEffect, useContext } = require("react");

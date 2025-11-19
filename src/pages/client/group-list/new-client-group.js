@@ -1,24 +1,29 @@
 import { DropdownField } from "@/components/FormComponents/DropdownField";
+import { InputColor } from "@/components/FormComponents/InputColor";
 import { PlainTextField } from "@/components/FormComponents/PlainTextField";
 import SwitchField from "@/components/FormComponents/SwitchField";
 import { ActionButton } from "@/components/Misc/ActionButton";
-import { useSelectUser } from "@/redux/slices/authSlice";
-import { createClientGroup } from "@/redux/slices/clientGroupSlice";
-import { useSelectCurrCompany } from "@/redux/slices/companySlice";
+import { useSelectUser } from "../../../../redux/slices/authSlice";
+import { createClientGroup } from "../../../../redux/slices/clientGroupSlice";
+import { useSelectCurrCompany } from "../../../../redux/slices/companySlice";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import { FaTrash } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import { FaGripVertical, FaTrash } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { v4 } from "uuid";
 
 // Main Component
-export default function NewClientGroupPage() {
+export default function NewClientGroupPage({ params }) {
   const dispatch = useDispatch();
   const router = useRouter();
   const user = useSelectUser();
   const currCompany = useSelectCurrCompany();
   const [selectedColumnId, setSelectedColumnId] = useState("");
   const [groupName, setGroupName] = useState("");
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+
+  const { client_group_id } = router.query;
   const [fields, setFields] = useState([
     {
       column_id: v4(),
@@ -44,11 +49,10 @@ export default function NewClientGroupPage() {
 
   const fieldTypes = [
     { label: "Short Text", value: "short_text" },
+    { label: "Date", value: "date" },
     { label: "Multiline", value: "multiline" },
     { label: "Rich Text", value: "rich_text" },
     { label: "Dropdown", value: "dropdown" },
-    // { label: "Choice", value: "choice" },
-    // { label: "Checkbox", value: "checkbox" },
     { label: "Alert", value: "alert" },
     { label: "Number", value: "number" },
   ];
@@ -80,6 +84,36 @@ export default function NewClientGroupPage() {
     },
   ];
 
+  // Drag and Drop Handlers
+  const handleDragStart = (e, index) => {
+    setDraggedItem(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault();
+    
+    if (draggedItem === null || draggedItem === targetIndex) return;
+
+    const newFields = [...fields];
+    const [movedItem] = newFields.splice(draggedItem, 1);
+    newFields.splice(targetIndex, 0, movedItem);
+    
+    setFields(newFields);
+    setDraggedItem(null);
+    setDragOverIndex(null);
+  };
+
   useEffect(() => {
     if (selectedColumnId) {
       const column = fields.find((f) => f.column_id === selectedColumnId);
@@ -87,6 +121,24 @@ export default function NewClientGroupPage() {
       setShowDrawer(true);
     }
   }, [selectedColumnId]);
+
+  useEffect(() => {
+    if (newField.field_type === "dropdown" || newField.field_type === "alert") {
+      setNewField((prev) => ({
+        ...prev,
+        options: [
+          {
+            option_id: v4(),
+            value: "",
+            color: "#000000",
+            fillColor: "#ffffff",
+            period: "",
+            unit: "",
+          },
+        ],
+      }));
+    }
+  }, [newField.field_type]);
 
   const handleAddField = () => {
     setNewField({
@@ -141,8 +193,8 @@ export default function NewClientGroupPage() {
         {
           option_id: v4(),
           value: "",
-          color: "",
-          fillColor: "",
+          color: "#000000",
+          fillColor: "#ffffff",
           period: "",
           unit: "",
         },
@@ -164,7 +216,7 @@ export default function NewClientGroupPage() {
 
   const handleSaveGroup = () => {
     const body = {
-      client_group_id : v4(),
+      client_group_id: v4(),
       client_group_name: groupName,
       user_id: user?.uid,
       company_id: currCompany?.company_id,
@@ -173,6 +225,7 @@ export default function NewClientGroupPage() {
 
     dispatch(createClientGroup({ data: body, router }));
   };
+
   return (
     <div className="new-client-group-container">
       {/* Top Card */}
@@ -186,13 +239,12 @@ export default function NewClientGroupPage() {
           />
         </div>
         <div className="top-actions">
-          <ActionButton type="outlined" label={"Back"} />
+          <ActionButton type="outlined" label={"Back"} onClick={() => { router.push("/client/client-group-list") }} />
           <ActionButton
             type="primary"
             label={"+ Add Field"}
             onClick={handleAddField}
           />
-
           <ActionButton
             type="primary"
             label={"Save"}
@@ -200,13 +252,29 @@ export default function NewClientGroupPage() {
           />
         </div>
       </div>
+
       {/* Bottom Card */}
       <div className="bottom-card">
         <div className="fields-container">
           {fields.map((field, index) => {
+            const isDragging = index === draggedItem;
+            const isDragOver = index === dragOverIndex;
+            const width = field.width;
             return (
-              <div key={field.column_id} className="field-item">
-                <div className="drag-handle">⋮⋮</div>
+              <div
+                key={field.column_id}
+                style={{width : `${width-2}%`}}
+                className={`field-item ${isDragging ? "dragging" : ""} ${isDragOver ? "drag-over" : ""}`}
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+                onDrop={(e) => handleDrop(e, index)}
+              >
+                <div 
+                  className="drag-handle"
+                  title="Drag to reorder"
+                >⋮⋮</div>
                 <div className="field-input-container">
                   <div
                     className="text-box"
@@ -235,18 +303,14 @@ export default function NewClientGroupPage() {
         <>
           <div
             className="drawer-overlay"
-            onClick={() => {
-              handleCloseDrawer();
-            }}
+            onClick={handleCloseDrawer}
           />
           <div className="drawer">
             <div className="drawer-header">
               <h2>Add Field</h2>
               <button
                 className="close-button"
-                onClick={() => {
-                  handleCloseDrawer();
-                }}
+                onClick={handleCloseDrawer}
               >
                 ×
               </button>
@@ -259,7 +323,6 @@ export default function NewClientGroupPage() {
                   <PlainTextField
                     type={"text"}
                     value={newField.label}
-                    disabled
                     placeholder="Enter field name"
                     onChange={(value) =>
                       setNewField((prev) => ({ ...prev, label: value }))
@@ -306,15 +369,7 @@ export default function NewClientGroupPage() {
                   />
                 </div>
 
-                <div
-                  className="input-group"
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    flexDirection: "row"
-                  }}
-                >
+                <div className="input-group row-layout">
                   <label>Required</label>
                   <SwitchField
                     checked={newField.is_required}
@@ -327,15 +382,7 @@ export default function NewClientGroupPage() {
                   />
                 </div>
 
-                <div
-                  className="input-group"
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    flexDirection: "row"
-                  }}
-                >
+                <div className="input-group row-layout">
                   <label>Allow Duplicate</label>
                   <SwitchField
                     checked={newField.allow_duplicate}
@@ -348,6 +395,7 @@ export default function NewClientGroupPage() {
                   />
                 </div>
               </div>
+
               {/* Options Section for Dropdown */}
               {newField.field_type === "dropdown" && (
                 <>
@@ -355,24 +403,48 @@ export default function NewClientGroupPage() {
                   <div className="form-section">
                     <h3>Options</h3>
                     <div className="options-container">
-                      {newField.options.map((option) => (
+                      {newField?.options?.map((option) => (
                         <div key={option.option_id} className="option-item">
                           <div className="drag-handle">⋮⋮</div>
                           <div className="color-pickers">
-                            <div
-                              title="font color"
-                              className="color-picker primary"
-                            ></div>
-                            <div
-                              title="background color"
-                              className="color-picker secondary"
-                            ></div>
+                            <InputColor
+                              placeholder={"Text Color"}
+                              value={option.color}
+                              onChange={(value) => {
+                                const updatedOptions = newField?.options?.map(
+                                  (opt) =>
+                                    opt.option_id === option.option_id
+                                      ? { ...opt, color: value }
+                                      : opt
+                                );
+                                setNewField((prev) => ({
+                                  ...prev,
+                                  options: updatedOptions,
+                                }));
+                              }}
+                            />
+                            <InputColor
+                              placeholder={"Background Color"}
+                              value={option.fillColor}
+                              onChange={(value) => {
+                                const updatedOptions = newField?.options?.map(
+                                  (opt) =>
+                                    opt.option_id === option.option_id
+                                      ? { ...opt, fillColor: value }
+                                      : opt
+                                );
+                                setNewField((prev) => ({
+                                  ...prev,
+                                  options: updatedOptions,
+                                }));
+                              }}
+                            />
                           </div>
                           <div className="option-input-container">
                             <PlainTextField
                               value={option.value}
                               onChange={(value) => {
-                                const updatedOptions = newField.options.map(
+                                const updatedOptions = newField?.options?.map(
                                   (opt) =>
                                     opt.option_id === option.option_id
                                       ? { ...opt, value: value }
@@ -406,13 +478,95 @@ export default function NewClientGroupPage() {
                   </div>
                 </>
               )}
+
+              {newField.field_type === "alert" && (
+                <>
+                  <div className="divider"></div>
+                  <div className="form-section">
+                    <h3>Options</h3>
+                    <div className="options-container">
+                      {newField?.options?.map((option) => (
+                        <div key={option.option_id} className="option-item">
+                          <div className="drag-handle"><FaGripVertical /></div>
+                          <div className="color-pickers">
+                            <InputColor
+                              placeholder={"Background Color"}
+                              value={option.fillColor}
+                              onChange={(value) => {
+                                const updatedOptions = newField?.options?.map(
+                                  (opt) =>
+                                    opt.option_id === option.option_id
+                                      ? { ...opt, fillColor: value }
+                                      : opt
+                                );
+                                setNewField((prev) => ({
+                                  ...prev,
+                                  options: updatedOptions,
+                                }));
+                              }}
+                            />
+                          </div>
+                          <div className="option-input-container alert">
+                            <PlainTextField
+                              value={option.value}
+                              onChange={(value) => {
+                                const updatedOptions = newField?.options?.map(
+                                  (opt) =>
+                                    opt.option_id === option.option_id
+                                      ? { ...opt, value: value }
+                                      : opt
+                                );
+                                setNewField((prev) => ({
+                                  ...prev,
+                                  options: updatedOptions,
+                                }));
+                              }}
+                              placeholder="Value"
+                            />
+                            <DropdownField
+                              value={option.unit}
+                              onChange={(value) => {
+                                const updatedOptions = newField?.options?.map(
+                                  (opt) =>
+                                    opt.option_id === option.option_id
+                                      ? { ...opt, unit: value }
+                                      : opt
+                                );
+                                setNewField((prev) => ({
+                                  ...prev,
+                                  options: updatedOptions,
+                                }));
+                              }}
+                              dropdownList={unitList}
+                            />
+                            <div
+                              className="delete-overlay"
+                              onClick={() =>
+                                handleDeleteOption(option.option_id)
+                              }
+                            >
+                              <FaTrash size={12} />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        className="add-option-button"
+                        onClick={handleAddOption}
+                      >
+                        + Add Option
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="drawer-footer">
               <ActionButton
                 type="outlined"
                 label={"Close"}
-                onClick={() => handleCloseDrawer()}
+                onClick={handleCloseDrawer}
               />
               <ActionButton
                 type="primary"

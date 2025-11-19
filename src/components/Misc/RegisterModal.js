@@ -1,4 +1,4 @@
-import { useSelectUser, useSelectUserList } from "@/redux/slices/authSlice";
+import { useSelectUser, useSelectUserList } from "../../../redux/slices/authSlice";
 import React, { Fragment, useEffect, useState } from "react";
 import SearchDropdownField from "../FormComponents/SearchDropdownField";
 

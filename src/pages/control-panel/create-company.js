@@ -1,7 +1,7 @@
 import { PlainTextField } from "@/components/FormComponents/PlainTextField";
 import { ActionButton } from "@/components/Misc/ActionButton";
-import { useSelectUser } from "@/redux/slices/authSlice";
-import { createCompany } from "@/redux/slices/companySlice";
+import { useSelectUser } from "../../../redux/slices/authSlice";
+import { createCompany } from "../../../redux/slices/companySlice";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
@@ -42,7 +42,8 @@ export default function CreateCompanyPage() {
     );
   };
 
-  const handleCancel = () => {
+  const handleCancel = (e) => {
+    e.preventDefault();
     router.back(); // Or navigate to companies list
   };
 
