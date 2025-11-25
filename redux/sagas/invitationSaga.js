@@ -22,7 +22,7 @@ import {
   getAllInvitationAndUserError,
   removeInvitationSuccess,
   removeInvitationError,
-  removeInvitatioAndUser,
+  removeInvitationAndUser,
 } from "../slices/invitationSlice";
 import { hideToast, showToast } from "../slices/toastSlice";
 
@@ -51,7 +51,7 @@ function* handleAcceptInvitation({ payload }) {
     yield call(API.post, ApiRoute.invitation.accept, payload);
     yield delay(2000);
     yield put(acceptInvitationSuccess());
-    window.location.replace("/login");
+    window.location.replace("/");
   } catch (error) {
     const errorMessage = error.response.data.description;
     yield put(acceptInvitationError(errorMessage));
@@ -71,7 +71,7 @@ function* handleRegisterAndAcceptInvitation({ payload }) {
 
     yield delay(2000);
     yield put(registerAndAcceptInvitationSuccess());
-    window.location.replace("/login");
+    window.location.replace("/");
   } catch (error) {
     const errorMessage = error.response.data.description;
     yield put(registerAndAcceptInvitationError(errorMessage));
@@ -130,7 +130,7 @@ function* inviteUserToCompanySaga({ payload }) {
     }
     yield delay(3000);
     yield put(hideToast());
-    router.push("/control-panel/users");
+    router.push("/control-panel/user-list");
     yield put(inviteUserToCompanySuccess());
   } catch (error) {
     console.log(error);
@@ -157,13 +157,11 @@ function* getAllInvitationAndUserSaga({ payload }) {
 
 function* removeInvitationSaga({ payload }) {
   try {
-    const { setShowModal, ...otherPayload } = payload;
     const response = yield call(
       API.post,
-      ApiRoute.invitation.removeInvitatioAndUser,
-      otherPayload
+      ApiRoute.invitation.removeInvitationAndUser,
+      payload
     );
-    setShowModal(false);
     yield put(
       showToast({
         message: "Processing, please wait...",
@@ -178,8 +176,7 @@ function* removeInvitationSaga({ payload }) {
         status: "success",
       })
     );
-    yield delay(3000);
-    yield put(removeInvitationSuccess(otherPayload.id));
+    yield put(removeInvitationSuccess(payload.id));
     yield put(hideToast());
   } catch (error) {
     const errorMessage = error.response.data.description;
@@ -199,5 +196,5 @@ export function* invitationSaga() {
   yield takeLatest(inviteUserToCompany.type, inviteUserToCompanySaga);
   yield takeLatest(resendInvitation.type, handleResendInvitation);
   yield takeLatest(getAllInvitationAndUser.type, getAllInvitationAndUserSaga);
-  yield takeLatest(removeInvitatioAndUser.type, removeInvitationSaga);
+  yield takeLatest(removeInvitationAndUser.type, removeInvitationSaga);
 }

@@ -3,6 +3,7 @@ import { DropdownField } from "@/components/FormComponents/DropdownField";
 import { MultilineField } from "@/components/FormComponents/MultilineField";
 import MultiSelectDropdownField from "@/components/FormComponents/MultiSelectDropdownField";
 import { PlainTextField } from "@/components/FormComponents/PlainTextField";
+import { SearchDropdownField } from "@/components/FormComponents/SearchDropdownField";
 
 const handleInputChange = (columnId, value, setFormData) => {
   if (columnId === "handler") {
@@ -41,13 +42,23 @@ const parseDropdownOptions = (optionsString) => {
   }
 };
 
-export const renderClientInputField = (formData, column, setFormData) => {
+export const renderClientInputField = (
+  formData,
+  column,
+  setFormData,
+  extraProps = {}
+) => {
+  const { disabled = false, error = null } = extraProps;
+
   const commonProps = {
-    value: formData[column.column_id] || "",
+    value:
+      formData[column.column_id] || (column.field_type === "handler" ? [] : ""),
     onChange: (value) =>
       handleInputChange(column.column_id, value, setFormData),
-    required: column.is_required,
+    required: !!column.is_required,
     placeholder: `Enter ${column.label.toLowerCase()}`,
+    disabled, // new
+    error, // new (if your components support it)
   };
 
   switch (column.field_type) {
@@ -69,29 +80,26 @@ export const renderClientInputField = (formData, column, setFormData) => {
         />
       );
 
-    case "alert":
-      // Get the alert value directly - backend will handle parsing
+    case "alert": {
       const alertValue = formData[column.column_id] || {
         date: "",
         is_complete: false,
       };
 
       const handleDateChange = (date) => {
-        // Update just the date field
         const updatedValue = {
           ...alertValue,
-          date: date,
+          date,
         };
-        commonProps.onChange(updatedValue); // Use commonProps.onChange
+        commonProps.onChange(updatedValue);
       };
 
-      const handleStatusChange = (e) => {
-        // Update just the is_complete field
+      const handleCompleteChange = (e) => {
         const updatedValue = {
           ...alertValue,
           is_complete: e.target.checked,
         };
-        commonProps.onChange(updatedValue); // Use commonProps.onChange
+        commonProps.onChange(updatedValue);
       };
 
       return (
@@ -99,23 +107,39 @@ export const renderClientInputField = (formData, column, setFormData) => {
           <DateField
             {...commonProps}
             value={alertValue.date}
-            onChange={handleDateChange} // Use the custom handler
+            onChange={handleDateChange}
+            disabled={disabled}
           />
+
           <div className="alert-checkbox-container">
             <label className="checkbox-label">
-              <input type="checkbox" className="alert-checkbox" />
+              <input
+                type="checkbox"
+                className="alert-checkbox"
+                checked={alertValue.is_complete}
+                onChange={handleCompleteChange}
+                disabled={disabled}
+              />
               <span className="checkmark"></span>
               Completed
             </label>
           </div>
         </div>
       );
+    }
 
-    case "dropdown":
+    case "dropdown": {
       const dropdownOptions = parseDropdownOptions(column.options);
-      return <DropdownField {...commonProps} dropdownList={dropdownOptions} />;
+      return (
+        <SearchDropdownField
+          {...commonProps}
+          dropdownList={dropdownOptions}
+          disabled={disabled}
+        />
+      );
+    }
 
-    case "handler":
+    case "handler": {
       const handlerOptions = parseDropdownOptions(column.options);
       return (
         <MultiSelectDropdownField
@@ -125,16 +149,27 @@ export const renderClientInputField = (formData, column, setFormData) => {
           onRemove={(value) =>
             handleHandlerRemove(column.column_id, value, setFormData)
           }
+          disabled={disabled}
         />
       );
+    }
 
     case "date":
-      return <DateField {...commonProps} />;
+      return <DateField {...commonProps} disabled={disabled} />;
 
     case "number":
-      return <PlainTextField {...commonProps} type="number" />;
+      return (
+        <PlainTextField {...commonProps} type="number" disabled={disabled} />
+      );
 
     default:
-      return <PlainTextField {...commonProps} type="text" width={`100%`} />;
+      return (
+        <PlainTextField
+          {...commonProps}
+          type="text"
+          width={`100%`}
+          disabled={disabled}
+        />
+      );
   }
 };

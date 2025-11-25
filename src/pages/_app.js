@@ -13,8 +13,10 @@ import "@/styles/Misc/simple-import-table.scss";
 import "@/styles/Misc/filter-drawer.scss";
 import "@/styles/Misc/column-order-drawer.scss";
 
+// Invitation
+import "@/styles/Invitation/invitation.scss";
 
-// Client
+// Graph
 import "@/styles/Graph/graph-client.scss";
 import "@/styles/Graph/new-graph-client.scss";
 
@@ -27,6 +29,11 @@ import "@/styles/Client/import-client.scss";;
 
 // Control panel
 import "@/styles/ControlPanel/create-company.scss";
+import "@/styles/ControlPanel/user-list.scss";
+import "@/styles/ControlPanel/role-list.scss";
+import "@/styles/ControlPanel/new-role.scss";
+import "@/styles/ControlPanel/new-invite-user.scss";
+import "@/styles/ControlPanel/logs.scss";
 
 // Components
 import "@/styles/FormComponents/date-field.scss";
@@ -54,7 +61,7 @@ import { AuthProvider } from "@/components/Provider/AuthProvider";
 export default function App({ Component, pageProps }) {
   const router = useRouter();
 
-  const noSidebarRoutes = ["/", "/forgot-password"]; // add more if needed
+  const noSidebarRoutes = ["/", "/forgot-password", "/invitation"]; // add more if needed
 
   // Special check for 404 page
   const is404 = Component.name === "Error" || pageProps.statusCode === 404;

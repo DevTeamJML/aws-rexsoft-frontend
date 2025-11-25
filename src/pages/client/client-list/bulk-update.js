@@ -12,13 +12,17 @@ import {
   useSelectCurrSelectedGroupId,
   useSelectSelectedClientIds,
 } from "../../../../redux/slices/clientSlice";
-import { useSelectAllCompanyUsers } from "../../../../redux/slices/companySlice";
+import {
+  useSelectAllCompanyUsers,
+  useSelectIsAdmin,
+} from "../../../../redux/slices/companySlice";
 import { hideToast, showToast } from "../../../../redux/slices/toastSlice";
 import { useRouter } from "next/router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import { useDispatch } from "react-redux";
 import { DateField } from "@/components/FormComponents/DateField";
 import { renderClientInputField } from "@/utils/renderField";
+import { useSelectUserPermissions } from "../../../../redux/slices/roleAuthSlice";
 
 export default function BulkUpdateClient() {
   const dispatch = useDispatch();
@@ -33,6 +37,11 @@ export default function BulkUpdateClient() {
   const [formData, setFormData] = useState({});
   const [addHandler, setAddHandler] = useState([]);
   const [removeHandler, setRemoveHandler] = useState([]);
+
+  const userPermissions = useSelectUserPermissions();
+  const isAdmin = useSelectIsAdmin();
+  const canManageHandler =
+    isAdmin || userPermissions.includes("manage_handler");
 
   const { client_group_id } = router.query;
 
@@ -252,7 +261,6 @@ export default function BulkUpdateClient() {
           await new Promise((resolve) => setTimeout(resolve, 50));
         }
       }
-
       dispatch(hideToast());
       router.push("/client/client-list");
     } catch (error) {
@@ -281,60 +289,64 @@ export default function BulkUpdateClient() {
           <div className="form-section">
             {/* Handler Fields */}
 
-            <div className="input-group" style={{ width: "98%" }}>
-              <label>Add Handlers</label>
-              <MultiSelectDropdownField
-                selected={addHandler}
-                onChange={handleAddHandlerChange}
-                options={handler}
-                placeholder="Select handlers to add"
-                onRemove={handleRemoveAddHandler}
-              />
-              {addHandler.length > 0 && (
-                <div className="handler-selection-info">
-                  Selected:{" "}
-                  {addHandler
-                    .map((userId) => {
-                      const handlerObj = handler.find(
-                        (h) => h.value === userId
-                      );
-                      return handlerObj?.label || userId;
-                    })
-                    .join(", ")}
+            {canManageHandler ? (
+              <Fragment>
+                <div className="input-group" style={{ width: "98%" }}>
+                  <label>Add Handlers</label>
+                  <MultiSelectDropdownField
+                    selected={addHandler}
+                    onChange={handleAddHandlerChange}
+                    options={handler}
+                    placeholder="Select handlers to add"
+                    onRemove={handleRemoveAddHandler}
+                  />
+                  {addHandler.length > 0 && (
+                    <div className="handler-selection-info">
+                      Selected:{" "}
+                      {addHandler
+                        .map((userId) => {
+                          const handlerObj = handler.find(
+                            (h) => h.value === userId
+                          );
+                          return handlerObj?.label || userId;
+                        })
+                        .join(", ")}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            <div className="input-group" style={{ width: "98%" }}>
-              <label>Remove Handlers</label>
-              <MultiSelectDropdownField
-                selected={removeHandler}
-                onChange={handleRemoveHandlerChange}
-                options={handler}
-                placeholder="Select handlers to remove"
-                onRemove={handleRemoveRemoveHandler}
-              />
-              {removeHandler.length > 0 && (
-                <div className="handler-selection-info">
-                  Selected:{" "}
-                  {removeHandler
-                    .map((userId) => {
-                      const handlerObj = handler.find(
-                        (h) => h.value === userId
-                      );
-                      return handlerObj?.label || userId;
-                    })
-                    .join(", ")}
+                <div className="input-group" style={{ width: "98%" }}>
+                  <label>Remove Handlers</label>
+                  <MultiSelectDropdownField
+                    selected={removeHandler}
+                    onChange={handleRemoveHandlerChange}
+                    options={handler}
+                    placeholder="Select handlers to remove"
+                    onRemove={handleRemoveRemoveHandler}
+                  />
+                  {removeHandler.length > 0 && (
+                    <div className="handler-selection-info">
+                      Selected:{" "}
+                      {removeHandler
+                        .map((userId) => {
+                          const handlerObj = handler.find(
+                            (h) => h.value === userId
+                          );
+                          return handlerObj?.label || userId;
+                        })
+                        .join(", ")}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </Fragment>
+            ) : null}
 
             {/* Regular columns */}
             {clientColumns.map((column) => (
               <div
                 key={column.column_id}
                 className="input-group"
-                style={{ width: `${column.width - 2}%` }}
+                style={{ width: `${column.width - 4}%` }}
               >
                 <label>{column.label}</label>
                 {renderClientInputField(formData, column, setFormData)}

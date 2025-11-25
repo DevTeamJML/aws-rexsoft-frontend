@@ -1,21 +1,216 @@
 @use "../_variables.scss";
 
 .new-graph-client-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-inline: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e0e0e0;
-  gap: 1rem;
-  width: 100%;
+  padding: 20px;
 
-  .title-container {
-    font-size: variables.$font-s;
-    padding: 0rem 1.5rem;
+  .title-container h1 {
+    margin: 0 0 20px 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .graph-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    padding-bottom: 10px;
+
+    .graph-actions {
+      display: flex;
+      gap: 10px;
+
+      .publish-toggle {
+        display: flex;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: hidden;
+
+        .action-btn {
+          padding: 8px 16px;
+          border: none;
+          background: white;
+          cursor: pointer;
+          font-size: 14px;
+          transition: all 0.2s;
+
+          &:hover {
+            background: #f5f5f5;
+          }
+
+          &.active {
+            background: variables.$primary-color;
+            color: white;
+
+            &.publish-btn {
+              background: variables.$primary-color;
+            }
+          }
+        }
+      }
+    }
+
+    .settings-actions {
+      display: flex;
+      gap: 10px;
+    }
+  }
+
+  .graph-content {
     width: 100%;
+    display: flex;
+    gap: 10px;
+
+    .graph-visualization {
+      width: 75%;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+
+      .graph-config-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-bottom: 10px;
+      }
+
+      .graph-chart {
+        height: 300px;
+        margin-bottom: 20px;
+      }
+
+      .source-section {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #666;
+
+        .client-group-select {
+          border: none;
+          background: none;
+          color: variables.$primary-color;
+          font-weight: 500;
+          cursor: pointer;
+        }
+      }
+    }
+
+    .graph-settings {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+      width: 25%;
+      overflow: scroll;
+      height: 75vh;
+
+      .settings-section {
+        padding-top: 10px;
+
+        h3 {
+          margin: 0 0 0 0;
+          font-size: 16px;
+          font-weight: 600;
+        }
+
+        .settings-tabs {
+          display: flex;
+          gap: 5px;
+          padding-block: 10px;
+
+          .tab {
+            padding: 5px 10px;
+            border: none;
+            background: #f5f5f5;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+
+            &.active {
+              background: variables.$primary-color;
+              color: white;
+            }
+          }
+        }
+
+        .setting-group {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          padding-block: 5px;
+
+          label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+          }
+
+          .setting-select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+          }
+
+          .series-checkboxes {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .checkbox-label {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              cursor: pointer;
+              font-weight: normal;
+
+              .color-indicator {
+                width: 12px;
+                height: 12px;
+                border-radius: 2px;
+                display: inline-block;
+              }
+            }
+          }
+
+          .color-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+
+            .color-picker {
+              width: 40px;
+              height: 40px;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+            }
+
+            .color-hex {
+              flex: 1;
+              padding: 8px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              font-size: 14px;
+            }
+          }
+
+          &.checkbox-group {
+            label {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              cursor: pointer;
+            }
+
+            input[type="checkbox"] {
+              margin: 0;
+            }
+          }
+        }
+      }
+    }
   }
 }

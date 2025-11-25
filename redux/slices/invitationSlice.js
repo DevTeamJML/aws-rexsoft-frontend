@@ -99,7 +99,7 @@ const invitationSlice = createSlice({
       state.getAllInvitationAndUserError = payload;
       state.getAllInvitationAndUserLoading = false;
     },
-    removeInvitatioAndUser(state) {
+    removeInvitationAndUser(state) {
       state.removeInvitationLoading = true;
     },
     removeInvitationSuccess(state, { payload }) {
@@ -135,7 +135,7 @@ export const {
   getAllInvitationAndUser,
   getAllInvitationAndUserSuccess,
   getAllInvitationAndUserError,
-  removeInvitatioAndUser,
+  removeInvitationAndUser,
   removeInvitationError,
   removeInvitationSuccess
 } = invitationSlice.actions;

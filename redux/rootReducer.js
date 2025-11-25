@@ -8,6 +8,11 @@ import companyReducer from "./slices/companySlice";
 import clientReducer from "./slices/clientSlice";
 import formReducer from "./slices/formSlice";
 import tableReducer from "./slices/tableSlice";
+import graphReducer from "./slices/graphSlice";
+import invitationReducer from "./slices/invitationSlice";
+import roleReducer from "./slices/roleSlice";
+import roleAuthReducer from "./slices/roleAuthSlice";
+import logsReducer from "./slices/logSlice";
 
 const rootReducer = combineReducers({
     toast : toastReducer,
@@ -19,6 +24,11 @@ const rootReducer = combineReducers({
     newCompanyModal : newCompanyModalReducer,
     form: formReducer,
     table : tableReducer,
+    graph: graphReducer,
+    invitation : invitationReducer,
+    role : roleReducer,
+    roleAuth : roleAuthReducer,
+    logs : logsReducer
   });
   
   export default rootReducer;

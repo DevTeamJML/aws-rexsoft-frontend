@@ -27,6 +27,11 @@ const initialState = {
   bulkDeleteClientLoading: false,
   getClientDataByClientIdLoading: false,
   getAllClientsCountLoading: false,
+
+  dupLoading: false,
+  dupLastRequest: null, // { client_group_id, column_id, row_value }
+  dupResult: null, // { isDuplicate: boolean }
+  dupError: null,
 };
 
 const clientSlice = createSlice({
@@ -131,6 +136,29 @@ const clientSlice = createSlice({
       state.allClients = updatedList;
       state.bulkDeleteClientLoading = false;
     },
+
+    duplicateCheckRequest(state, action) {
+      state.dupLoading = true;
+      state.dupError = null;
+      state.dupLastRequest = action.payload?.request || null;
+      state.dupResult = null;
+    },
+    duplicateCheckSuccess(state, action) {
+      state.dupLoading = false;
+      state.dupResult = action.payload;
+      state.dupError = null;
+    },
+    duplicateCheckFailure(state, action) {
+      state.dupLoading = false;
+      state.dupError = action.payload || "Unknown error";
+      state.dupResult = null;
+    },
+    clearDuplicateState(state) {
+      state.dupLoading = false;
+      state.dupLastRequest = null;
+      state.dupResult = null;
+      state.dupError = null;
+    },
   },
 });
 
@@ -162,6 +190,10 @@ export const {
   getClientDataByClientIdSuccess,
   getAllClientsCount,
   getAllClientsCountSuccess,
+  duplicateCheckRequest,
+  duplicateCheckSuccess,
+  duplicateCheckFailure,
+  clearDuplicateState,
 } = clientSlice.actions;
 
 export const useSelectAllClients = () =>

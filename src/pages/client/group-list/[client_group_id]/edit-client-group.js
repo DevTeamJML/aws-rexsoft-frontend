@@ -289,7 +289,7 @@ export default function EditClientGroupPage({ params }) {
             return (
               <div
                 key={field.column_id}
-                style={{ width: `${width - 2}%` }}
+                style={{ width: `${width - 4}%` }}
                 className={`field-item ${isDragging ? "dragging" : ""} ${
                   isDragOver ? "drag-over" : ""
                 }`}

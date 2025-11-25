@@ -1,3 +1,5 @@
+import { getUserRoles } from "../../redux/slices/roleAuthSlice";
+
 export const ApiRoute = {
   user: {
     getUserDetailsById: "/user/getUserDetailsById",
@@ -28,6 +30,7 @@ export const ApiRoute = {
     bulkDelete: "/client/bulkDelete",
     getClientDataByClientId: "/client/getClientDataByClientId",
     getAllClientsCount: "/client/getAllClientsCount",
+    checkDuplicate: "/client/checkDuplicate"
   },
   invitation: {
     getInvitationById: "/invitation/getInvitationById",
@@ -38,7 +41,7 @@ export const ApiRoute = {
     remove: "/invitation/remove",
     inviteUserToCompany: "/invitation/inviteUserToCompany",
     getAllInvitationAndUser: "/invitation/getAllInvitationAndUser",
-    removeInvitatioAndUser: "/invitation/removeInvitatioAndUser",
+    removeInvitationAndUser: "/invitation/removeInvitationAndUser",
   },
   form: {
     create: "/form/create",
@@ -52,6 +55,22 @@ export const ApiRoute = {
     getAll: "/form/form-submission/retrieve-all",
     get: "/form/form-submission/retrieve",
     update: "/form/form-submission/update",
-    delete: "/form/form-submission/delete"
+    delete: "/form/form-submission/delete",
+  },
+  graph: {
+    generateGraphData: "/graph/generateGraphData",
+  },
+  // suggestion for ApiRoute (not required here, just for reference)
+  role: {
+    getAllRoles: "/roles/roles",
+    getRole: "/roles/get-role",
+    createRole: "/roles/create",
+    updateRole: "/roles/update",
+    getUserRoles: "/roles/get-user-role",
+  },
+  logs: {
+    list: "/logs/getLogs",
+    me: "/logs/getMyLogs",
+    create: "/logs/createLogs",
   },
 };

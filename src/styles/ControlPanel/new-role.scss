@@ -1,0 +1,471 @@
+@use "../_variables.scss" as variables;
+
+.new-role-container {
+  padding: 24px;
+  background: variables.$tertiary-color;
+  min-height: 100vh;
+  color: variables.$text-primary;
+  box-sizing: border-box;
+
+  .page-header {
+    margin-bottom: 16px;
+  }
+
+  .title {
+    margin: 0;
+    font-size: variables.$font-xl;
+    color: variables.$primary-color;
+    font-weight: 600;
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 12px;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .form-col {
+    flex: 1 1 50%;
+  }
+
+  .form-col-full {
+    flex: 1 1 100%;
+  }
+
+  .field-label {
+    display: block;
+    font-size: variables.$font-m;
+  }
+
+  .color-picker-container {
+    display: flex;
+    gap: 8;
+    align-items: center;
+  }
+
+  .select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid variables.$input-stroke;
+    background: variables.$input-bg;
+    border-radius: 6px;
+    font-size: variables.$font-s;
+    color: variables.$text-primary;
+  }
+
+  /* Permissions wrapper now scrollable; all sections visible by default */
+  .permissions {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* New: scrollable area that contains all permission sections */
+  .permissions-scroll {
+    display: flex;
+    flex-direction: column;
+    max-height: 60vh; // adjust height to taste
+    overflow-y: auto;
+    padding-right: 8px; // give space for scrollbar
+    border-radius: 6px;
+    gap: 15px;
+  }
+
+  /* Section header (replaces accordion header) */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: variables.$primary-color;
+    font-weight: 600;
+    font-size: variables.$font-l;
+    padding: 8px 0;
+  }
+
+  /* Permission item layout */
+  .permission-item {
+    padding: 10px 0;
+
+    .permission-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .permission-text {
+      flex: 1;
+      padding-right: 12px;
+    }
+
+    .permission-title {
+      font-size: variables.$font-m;
+      color: variables.$grey-text-color;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .permission-desc {
+      font-size: variables.$font-xs;
+      color: variables.$description-color;
+      line-height: 1.5;
+    }
+
+    .permission-switch {
+      margin-left: 12px;
+      flex: 0 0 auto;
+    }
+
+    .permission-sep {
+      border: none;
+      border-top: 1px solid variables.$input-stroke;
+      margin: 12px 0 0 0;
+      opacity: 0.7;
+    }
+  }
+
+  /* Toggle switch (simple) */
+  .toggle {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 28px;
+  }
+  .toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .toggle .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: variables.$editing-bg;
+    transition: 0.2s;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  }
+  .toggle .slider::before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    top: 3px;
+    background: variables.$white-text-color;
+    border-radius: 50%;
+    transition: 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+  .toggle input:checked + .slider {
+    background: variables.$primary-color;
+  }
+  .toggle input:checked + .slider::before {
+    transform: translateX(20px);
+  }
+
+  .toggle.disabled {
+    opacity: 0.55;
+    pointer-events: auto; /* keep input usable? input has disabled attr anyway */
+  }
+  .toggle.disabled .slider {
+    background: #e6e6e6; /* or variables.$editing-bg */
+  }
+  .toggle.disabled .slider::before {
+    background: #f7f7f7;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid #e0e0e0;
+
+    button {
+      min-width: 120px;
+    }
+  }
+
+  .error {
+    margin-top: 6px;
+    color: variables.$error-color;
+    font-size: variables.$font-s;
+  }
+
+  .plain-text-field {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 12px;
+    margin: 16px 0;
+    border-bottom: 1px solid variables.$input-stroke;
+
+    .tab {
+      padding: 8px 16px;
+      font-size: variables.$font-m;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: variables.$grey-text-color;
+      border-bottom: 2px solid transparent;
+      transition: 0.2s ease;
+
+      &:hover {
+        color: variables.$primary-color;
+      }
+
+      &.active {
+        font-weight: 600;
+        color: variables.$primary-color;
+        border-bottom: 2px solid variables.$primary-color;
+      }
+    }
+  }
+
+  // Manage Member
+  .manage-members {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .members-header {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .members-list {
+      background: variables.$input-bg;
+      border: 1px solid variables.$input-stroke;
+      border-radius: 6px;
+      padding: 12px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .member-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 8px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .member-info {
+        display: flex;
+        flex-direction: column;
+
+        .member-name {
+          font-weight: 600;
+          font-size: variables.$font-m;
+          color: variables.$text-primary;
+        }
+
+        .member-email {
+          font-size: variables.$font-xs;
+          color: variables.$description-color;
+        }
+      }
+
+      .member-actions {
+        .icon-btn {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 4px 6px;
+          border-radius: 4px;
+          font-size: 18px;
+          color: variables.$error-color;
+          transition: 0.2s;
+
+          &:hover {
+            background: rgba(variables.$error-color, 0.1);
+          }
+        }
+      }
+    }
+
+    .empty {
+      text-align: center;
+      color: variables.$description-color;
+      padding: 20px;
+    }
+  }
+
+  // Add Member Modal
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9000;
+  }
+
+  .modal {
+    width: 480px;
+    max-width: 95%;
+    background: variables.$tertiary-color;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+    color: variables.$text-primary;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: modalFadeIn 0.2s ease;
+
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+
+      .modal-title {
+        margin: 0;
+        font-size: variables.$font-l;
+        font-weight: 600;
+        color: variables.$primary-color;
+      }
+
+      .modal-desc {
+        font-size: variables.$font-s;
+        margin-top: 4px;
+        color: variables.$description-color;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 4px;
+        color: variables.$grey-text-color;
+
+        &:hover {
+          color: variables.$error-color;
+        }
+      }
+    }
+
+    .modal-search {
+      margin-bottom: 10px;
+    }
+
+    .modal-body {
+      max-height: 50vh;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .modal-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .modal-list-item {
+        display: flex;
+        gap: 10px;
+        padding: 8px;
+        border: 1px solid variables.$input-stroke;
+        background: variables.$input-bg;
+        border-radius: 8px;
+        cursor: pointer;
+        align-items: center;
+
+        input[type="checkbox"] {
+          width: 18px;
+          height: 18px;
+        }
+
+        .modal-member-info {
+          display: flex;
+          flex-direction: column;
+
+          .modal-member-name {
+            font-size: variables.$font-m;
+            font-weight: 600;
+          }
+
+          .modal-member-email {
+            font-size: variables.$font-xs;
+            color: variables.$description-color;
+          }
+        }
+      }
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 12px;
+
+      button {
+        min-width: 100px;
+      }
+    }
+
+    .empty {
+      text-align: center;
+      padding: 20px 0;
+      color: variables.$description-color;
+    }
+  }
+
+  @media (max-width: 800px) {
+    .form-row {
+      flex-direction: column;
+    }
+
+    .label {
+      min-width: 120px;
+      text-align: left;
+    }
+    .tabs {
+      flex-direction: column;
+      gap: 4px;
+
+      .tab {
+        width: 100%;
+      }
+    }
+
+    .manage-members {
+      .members-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  }
+}

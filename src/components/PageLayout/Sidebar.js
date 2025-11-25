@@ -30,7 +30,13 @@ import {
   switchCompany,
   useSelectAllCompanies,
   useSelectCurrCompany,
+  useSelectIsAdmin,
 } from "../../../redux/slices/companySlice";
+import {
+  useSelectUserPermissions,
+  useSelectUserRoles,
+} from "../../../redux/slices/roleAuthSlice";
+import { filterMenuByPermissions } from "@/utils/filterSidebarMenuByPermission";
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const router = useRouter();
@@ -40,6 +46,33 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const unsavedChanges = useSelectUnsavedChanges();
   const currCompany = useSelectCurrCompany();
   const companies = useSelectAllCompanies();
+  const userPermissions = useSelectUserPermissions();
+  const role = useSelectUserRoles();
+  const isAdmin = useSelectIsAdmin();
+  console.log("ADMIN ? : ", isAdmin);
+
+  console.log("USER ROLE : ", role);
+  console.log("USER PERM : ", userPermissions);
+
+  //   [
+  //     "approval",
+  //     "company_profile",
+  //     "delete_client",
+  //     "delete_form",
+  //     "delete_kpi",
+  //     "export_client",
+  //     "manage_appointment",
+  //     "manage_client",
+  //     "manage_form",
+  //     "manage_graph",
+  //     "manage_handler",
+  //     "manage_kpi",
+  //     "manage_roles",
+  //     "publish_graph",
+  //     "view_all",
+  //     "view_all_appointment",
+  //     "view_form"
+  // ]
 
   const [activeMenu, setActiveMenu] = useState(null);
   const [showSubmenu, setShowSubmenu] = useState(false);
@@ -72,7 +105,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     };
   }, []);
 
-  // Menu configuration (same as before)
+  // // Menu configuration (same as before)
   const menuItems = [
     {
       id: "dashboard",
@@ -90,11 +123,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           label: "Graph Client",
           path: "/graph/graph-client",
         },
-        // {
-        //   id: "graph-kpi",
-        //   label: "KPI Graph",
-        //   path: "/graph/graph-kpi",
-        // },
         {
           id: "graph-form",
           label: "Graph Form",
@@ -186,14 +214,19 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       icon: <FaSlidersH size={20} />,
       subItems: [
         {
+          id: "logs",
+          label: "Logs",
+          path: "/control-panel/logs",
+        },
+        {
           id: "users",
           label: "User",
-          path: "/control-panel/user",
+          path: "/control-panel/user-list",
         },
         {
           id: "role",
           label: "Role",
-          path: "/control-panel/role",
+          path: "/control-panel/role-list",
         },
         {
           id: "company-profile",
@@ -208,6 +241,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       ],
     },
   ];
+  const menu = filterMenuByPermissions(menuItems, userPermissions, isAdmin);
 
   const handleGoToSelectedPage = (path) => {
     router.push(path);
@@ -373,7 +407,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
 
         <div className="sidebar-bottom-section">
           <div className="mid-section">
-            {menuItems.map((menu) => {
+            {menu.map((menu) => {
               if (!shouldShowMenuItem(menu)) return null;
 
               const isActive = isMenuActive(menu);
@@ -411,15 +445,21 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           </div>
 
           <div className="bottom-section">
-            <div className={`sidebar-section menu-item`} onClick={handleSignOut}>
-                <div className="menu-item-content">
-                      <div className="icon"> <LogoutIcon sx={{ fontSize: 23 }} /></div>
-                      {!isCollapsed && (
-                        <>
-                          <span className="menu-label">Logout</span>
-                        </>
-                      )}
-                    </div>
+            <div
+              className={`sidebar-section menu-item`}
+              onClick={handleSignOut}
+            >
+              <div className="menu-item-content">
+                <div className="icon">
+                  {" "}
+                  <LogoutIcon sx={{ fontSize: 23 }} />
+                </div>
+                {!isCollapsed && (
+                  <>
+                    <span className="menu-label">Logout</span>
+                  </>
+                )}
+              </div>
               {/* <div className="icon">
                 <LogoutIcon sx={{ fontSize: 23 }} />
               </div>

@@ -8,6 +8,9 @@ import {
   createClient,
   deleteClient,
   deleteClientSuccess,
+  duplicateCheckFailure,
+  duplicateCheckRequest,
+  duplicateCheckSuccess,
   getAllClients,
   getAllClientsCount,
   getAllClientsCountSuccess,
@@ -69,9 +72,11 @@ function* bulkCreateClientSaga({ payload }) {
 }
 
 function* createClientSaga({ payload }) {
-  const { router, ...otherData } = payload;
+  const { router, logsBody, ...otherData } = payload;
   try {
     yield call(API.post, ApiRoute.client.create, otherData.payload);
+
+    yield call(API.post, ApiRoute.logs.create, logsBody);
     router.push("/client/client-list");
   } catch (error) {
     console.log(error);
@@ -79,9 +84,10 @@ function* createClientSaga({ payload }) {
 }
 
 function* updateClientSaga({ payload }) {
-  const { router, ...otherData } = payload;
+  const { router, logsBody, ...otherData } = payload;
   try {
     yield call(API.post, ApiRoute.client.update, otherData.payload);
+    yield call(API.post, ApiRoute.logs.create, logsBody);
     router.push("/client/client-list");
   } catch (error) {
     console.log(error);
@@ -199,6 +205,33 @@ function* bulkDeleteClientSaga({ payload }) {
   }
 }
 
+function* handleDuplicateCheckSaga(action) {
+  try {
+    const { request, cb } = action.payload || {};
+    if (!request) throw new Error("Missing request payload");
+
+    // call API (returns { isDuplicate: boolean })
+    const result = yield call(API.get, ApiRoute.client.checkDuplicate, {
+      params: {
+        ...request
+      }
+    });
+
+    console.log(result)
+    // put result into store
+    yield put(duplicateCheckSuccess(result));
+
+    // fire callback if provided
+    if (typeof cb === "function") cb(null, result);
+  } catch (err) {
+    const error = err?.message || "Duplicate check failed";
+    yield put(duplicateCheckFailure(error));
+    if (action.payload && typeof action.payload.cb === "function") {
+      action.payload.cb(error, null);
+    }
+  }
+}
+
 // Watcher saga
 function* clientSaga() {
   yield takeLatest(
@@ -215,6 +248,7 @@ function* clientSaga() {
   yield takeLatest(bulkDeleteClient.type, bulkDeleteClientSaga);
   yield takeLatest(getClientDataByClientId.type, getClientDataByClientIdSaga);
   yield takeLatest(getAllClientsCount.type, getAllClientsCountSaga);
+  yield takeLatest(duplicateCheckRequest.type, handleDuplicateCheckSaga);
 }
 
 export default clientSaga;

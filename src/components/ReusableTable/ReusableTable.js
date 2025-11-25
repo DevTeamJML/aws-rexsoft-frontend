@@ -24,6 +24,8 @@ const ReusableTable = ({
   resizable = true,
   selectable = false,
   actionable = true,
+  deletableAction = true,
+  editableAction = true,
   onSort,
   onAction,
   onRowClick,
@@ -75,7 +77,7 @@ const ReusableTable = ({
     }
 
     // Add actions column at the end
-    if (actionable) {
+    if ((deletableAction || editableAction) && actionable) {
       resultColumns.push({
         id: "actions",
         label: "Actions",
@@ -118,6 +120,7 @@ const ReusableTable = ({
       }
 
       const isCompleted = alertRowValue?.is_complete || false;
+
       const dueDate = moment(alertRowValue?.date);
       const now = moment();
       const daysDiff = dueDate.isValid() ? dueDate.diff(now, "days") : Infinity;
@@ -142,7 +145,7 @@ const ReusableTable = ({
   }, [allColumns]);
 
   const getColumnWidth = (columnId) => {
-    return columnId === "_checkbox" ? 100 : (columnWidths[columnId] || 200); // default width
+    return columnId === "_checkbox" ? 100 : columnWidths[columnId] || 200; // default width
   };
 
   const handleSelectAll = () => {
@@ -285,22 +288,27 @@ const ReusableTable = ({
     if (actionable) {
       return (
         <div className="action-icons">
-          <FaEdit
-            className="action-icon edit"
-            onClick={(e) => {
-              e.stopPropagation();
-              onAction && onAction("edit", row);
-            }}
-            title="Edit"
-          />
-          <FaTrash
-            className="action-icon delete"
-            onClick={(e) => {
-              e.stopPropagation();
-              onAction && onAction("delete", row);
-            }}
-            title="Delete"
-          />
+          {editableAction ? (
+            <FaEdit
+              className="action-icon edit"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAction && onAction("edit", row);
+              }}
+              title="Edit"
+            />
+          ) : null}
+
+          {deletableAction ? (
+            <FaTrash
+              className="action-icon delete"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAction && onAction("delete", row);
+              }}
+              title="Delete"
+            />
+          ) : null}
         </div>
       );
     } else {

@@ -102,13 +102,13 @@ export default function NewClientGroupPage({ params }) {
 
   const handleDrop = (e, targetIndex) => {
     e.preventDefault();
-    
+
     if (draggedItem === null || draggedItem === targetIndex) return;
 
     const newFields = [...fields];
     const [movedItem] = newFields.splice(draggedItem, 1);
     newFields.splice(targetIndex, 0, movedItem);
-    
+
     setFields(newFields);
     setDraggedItem(null);
     setDragOverIndex(null);
@@ -239,7 +239,13 @@ export default function NewClientGroupPage({ params }) {
           />
         </div>
         <div className="top-actions">
-          <ActionButton type="outlined" label={"Back"} onClick={() => { router.push("/client/client-group-list") }} />
+          <ActionButton
+            type="outlined"
+            label={"Back"}
+            onClick={() => {
+              router.push("/client/client-group-list");
+            }}
+          />
           <ActionButton
             type="primary"
             label={"+ Add Field"}
@@ -263,18 +269,19 @@ export default function NewClientGroupPage({ params }) {
             return (
               <div
                 key={field.column_id}
-                style={{width : `${width-2}%`}}
-                className={`field-item ${isDragging ? "dragging" : ""} ${isDragOver ? "drag-over" : ""}`}
+                style={{ width: `${width - 4}%` }}
+                className={`field-item ${isDragging ? "dragging" : ""} ${
+                  isDragOver ? "drag-over" : ""
+                }`}
                 draggable
                 onDragStart={(e) => handleDragStart(e, index)}
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDragEnd={handleDragEnd}
                 onDrop={(e) => handleDrop(e, index)}
               >
-                <div 
-                  className="drag-handle"
-                  title="Drag to reorder"
-                >⋮⋮</div>
+                <div className="drag-handle" title="Drag to reorder">
+                  ⋮⋮
+                </div>
                 <div className="field-input-container">
                   <div
                     className="text-box"
@@ -282,12 +289,14 @@ export default function NewClientGroupPage({ params }) {
                   >
                     {field.label}
                   </div>
-                  <div
-                    className="delete-overlay"
-                    onClick={() => handleDeleteField(field.column_id)}
-                  >
-                    <FaTrash size={10} />
-                  </div>
+                  {field.label !== "Client Name" ? (
+                    <div
+                      className="delete-overlay"
+                      onClick={() => handleDeleteField(field.column_id)}
+                    >
+                      <FaTrash size={10} />
+                    </div>
+                  ) : null}
                 </div>
               </div>
             );
@@ -301,17 +310,11 @@ export default function NewClientGroupPage({ params }) {
       {/* Drawer */}
       {showDrawer && (
         <>
-          <div
-            className="drawer-overlay"
-            onClick={handleCloseDrawer}
-          />
+          <div className="drawer-overlay" onClick={handleCloseDrawer} />
           <div className="drawer">
             <div className="drawer-header">
               <h2>Add Field</h2>
-              <button
-                className="close-button"
-                onClick={handleCloseDrawer}
-              >
+              <button className="close-button" onClick={handleCloseDrawer}>
                 ×
               </button>
             </div>
@@ -321,6 +324,7 @@ export default function NewClientGroupPage({ params }) {
                 <div className="input-group">
                   <label>Name</label>
                   <PlainTextField
+                    disable={newField.label === "Client Name"}
                     type={"text"}
                     value={newField.label}
                     placeholder="Enter field name"
@@ -487,7 +491,9 @@ export default function NewClientGroupPage({ params }) {
                     <div className="options-container">
                       {newField?.options?.map((option) => (
                         <div key={option.option_id} className="option-item">
-                          <div className="drag-handle"><FaGripVertical /></div>
+                          <div className="drag-handle">
+                            <FaGripVertical />
+                          </div>
                           <div className="color-pickers">
                             <InputColor
                               placeholder={"Background Color"}

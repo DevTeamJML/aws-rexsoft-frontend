@@ -24,30 +24,11 @@ const ClientGroupList = () => {
   const clientGroups = useSelectAllClientGroups();
   const showModal = useSelectShowModal();
   const [targetGroupId, setTargetGroupId] = useState();
-  // const { clientGroups, loading, clientCustomFields, pagination } = useSelector(state => state.client);
 
   useEffect(() => {
     dispatch(getAllClientGroups({ company_id: currCompanyID }));
   }, [currCompanyID]);
 
-  // Mock data for testing
-  // const clientGroups = [
-  //   {
-  //     client_group_id: 1,
-  //     client_group_name: "CL001",
-  //     created_at: "2024-01-15",
-  //   },
-  //   {
-  //     client_group_id: 2,
-  //     client_group_name: "CL002",
-  //     created_at: "2024-01-16",
-  //   },
-  //   {
-  //     client_group_id: 3,
-  //     client_group_name: "CL003",
-  //     created_at: "2024-01-17",
-  //   },
-  // ];
   const loading = false;
 
   const fixedColumns = getColumnsForPage("client-group-list");
@@ -96,12 +77,10 @@ const ClientGroupList = () => {
       );
     }
 
-    // console.log("Delete id : ", targetGroupId);
   };
 
   return (
     <div className="page-container">
-      {/* <PageHeader /> */}
       <ConfirmModal
         open={showModal}
         description={"Are you sure to delete this group ? "}
@@ -137,14 +116,6 @@ const ClientGroupList = () => {
         onSelectionChange={handleSelectionChange}
         loading={loading}
         emptyMessage="No client groups found"
-        // Pagination props
-        // pagination={true}
-        // currentPage={pagination.currentPage}
-        // totalPages={pagination.totalPages}
-        // totalItems={pagination.totalItems}
-        // pageSize={pagination.pageSize}
-        // onPageChange={handlePageChange}
-        // onPageSizeChange={handlePageSizeChange}
       />
     </div>
   );

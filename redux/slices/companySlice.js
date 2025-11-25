@@ -6,7 +6,8 @@ const initialState = {
   allCompanies: [],
   currCompany: null,
   currCompanyId: "",
-  allCompanyUsers : [],
+  allCompanyUsers: [],
+  isAdmin: false,
 
   // Loading
   switchCompanyLoading: false,
@@ -66,10 +67,14 @@ const companySlice = createSlice({
       state.setCompanyLoading = true;
     },
     getAllCompanyUsersSuccess(state, { payload }) {
-      // state.group = payload;
-      // state.clientGroups = [] find id then replace
-      state.allCompanyUsers = payload;
-      state.getAllCompanyUsersLoading = false;
+      state.allCompanyUsers = payload.list;
+      state.loading = false;
+
+      const currentUserId = payload.currentUserId;
+
+      const currUser = payload.list.find((u) => u.user_id === currentUserId);
+
+      state.isAdmin = currUser?.is_owner === 1;
     },
   },
 });
@@ -87,7 +92,7 @@ export const {
   setCurrCompany,
   setCurrCompanySuccess,
   getAllCompanyUsers,
-  getAllCompanyUsersSuccess
+  getAllCompanyUsersSuccess,
 } = companySlice.actions;
 
 export const useSelectAllCompanies = () =>
@@ -98,6 +103,8 @@ export const useSelectCurrCompanyId = () =>
   useSelector((state) => state.company.currCompanyId);
 export const useSelectAllCompanyUsers = () =>
   useSelector((state) => state.company.allCompanyUsers);
+export const useSelectIsAdmin = () =>
+  useSelector((state) => state.company.isAdmin);
 
 const companyReducer = companySlice.reducer;
 

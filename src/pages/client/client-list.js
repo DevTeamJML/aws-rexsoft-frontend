@@ -14,6 +14,7 @@ import {
 import {
   useSelectCurrCompany,
   useSelectCurrCompanyId,
+  useSelectIsAdmin,
 } from "../../../redux/slices/companySlice";
 import { getFromLocalStorage } from "@/utils/localStorage";
 import { DropdownField } from "@/components/FormComponents/DropdownField";
@@ -48,6 +49,8 @@ import {
 } from "react-icons/fa";
 import FilterDrawer from "@/components/Misc/FilterDrawer";
 import ColumnOrderDrawer from "@/components/Misc/ColumnOrderDrawer";
+import { useSelectUserPermissions } from "../../../redux/slices/roleAuthSlice";
+import { useSelectUser } from "../../../redux/slices/authSlice";
 
 const ClientList = () => {
   const dispatch = useDispatch();
@@ -59,6 +62,7 @@ const ClientList = () => {
   const showModal = useSelectShowModal();
   const clients = useSelectAllClients();
   const pagination = useSelectClientPagination();
+  const user = useSelectUser();
   // const [pagination, setPagination] = useState({
   //   pageIndex: 0,
   //   pageSize: 200,
@@ -82,6 +86,16 @@ const ClientList = () => {
   const [sortConfig, setSortConfig] = useState({});
 
   const fixedColumns = getColumnsForPage("client-list");
+  const userPermissions = useSelectUserPermissions();
+  const isAdmin = useSelectIsAdmin();
+  const canDeleteClient = isAdmin || userPermissions.includes("delete_client");
+  const canManageClient = isAdmin || userPermissions.includes("manage_client");
+  const canManageHandler =
+    isAdmin || userPermissions.includes("manage_handler");
+  const filteredFixedColumns =
+    isAdmin || canManageHandler
+      ? fixedColumns
+      : fixedColumns.filter((c) => c.id !== "handler");
 
   const modalDescription = {
     bulkDelete: "Are you sure you want to delete these clients ?",
@@ -101,24 +115,30 @@ const ClientList = () => {
         pagination,
         filters: filters,
         fixedColumns,
+        user_id: user?.uid,
+        isAdmin,
+        hasPermission: canManageHandler,
       })
     );
   }, [currSelectedGroup]);
 
   useEffect(() => {
     if (currSelectedGroup === null) return;
-    if (searchText === "" || fixedColumns.length === 0) return;
-
-    dispatch(
-      getAllClients({
-        ...currSelectedGroup,
-        sortConfig,
-        pagination,
-        filters: filters,
-        fixedColumns,
-        searchText: searchText,
-      })
-    );
+    if (searchText === "" && fixedColumns.length > 0) {
+      dispatch(
+        getAllClients({
+          ...currSelectedGroup,
+          sortConfig,
+          pagination,
+          filters: filters,
+          fixedColumns,
+          searchText: searchText,
+          user_id: user?.uid,
+          isAdmin,
+          hasPermission: canManageHandler,
+        })
+      );
+    }
   }, [searchText]);
 
   useEffect(() => {
@@ -176,15 +196,17 @@ const ClientList = () => {
   };
 
   const handlePageChange = (newPage) => {
-
     dispatch(
       getAllClients({
         ...currSelectedGroup,
         sortConfig,
-        pagination: { ...pagination, currentPage : newPage },
+        pagination: { ...pagination, currentPage: newPage },
         filters: filters,
         fixedColumns,
         searchText: searchText,
+        user_id: user?.uid,
+        isAdmin,
+        hasPermission: canManageHandler,
       })
     );
   };
@@ -217,6 +239,9 @@ const ClientList = () => {
         pagination,
         filters: filters,
         fixedColumns,
+        user_id: user?.uid,
+        isAdmin,
+        hasPermission: canManageHandler,
       })
     );
   };
@@ -278,9 +303,11 @@ const ClientList = () => {
         pagination,
         filters: targetFilters,
         fixedColumns,
+        user_id: user?.uid,
+        isAdmin,
+        hasPermission: canManageHandler,
       })
     );
-    console.log("Applied filters:", targetFilters);
   };
 
   const handleGlobalSearch = () => {
@@ -292,6 +319,9 @@ const ClientList = () => {
         filters: filters,
         fixedColumns,
         searchText: searchText,
+        user_id: user?.uid,
+        isAdmin,
+        hasPermission: canManageHandler,
       })
     );
   };
@@ -346,20 +376,29 @@ const ClientList = () => {
             onChange={(value) => handleOnChangeGroup(value)}
             width={"200px"}
           />
-          <ActionButton
-            label={"Import Client"}
-            type="primary"
-            onClick={() =>
-              router.push(
-                `/client/client-list/${currSelectedGroupId}/import-client`
-              )
-            }
-          />
-          <ActionButton
-            label={"+ New Client"}
-            type="primary"
-            onClick={() => router.push("/client/client-list/new-client")}
-          />
+          {canManageClient ? (
+            <ActionButton
+              label={"Import Client"}
+              type="primary"
+              onClick={() =>
+                router.push(
+                  `/client/client-list/${currSelectedGroupId}/import-client`
+                )
+              }
+            />
+          ) : null}
+
+          {canManageClient ? (
+            <ActionButton
+              label={"+ New Client"}
+              type="primary"
+              onClick={() =>
+                router.push(
+                  `/client/client-list/${currSelectedGroupId}/new-client`
+                )
+              }
+            />
+          ) : null}
         </div>
       </div>
 
@@ -385,17 +424,22 @@ const ClientList = () => {
 
         {/* Icons Section */}
         <div className="icons-section">
-          <div className="icon-group" onClick={() => handleBulkUpdate()}>
-            <FaEdit className="icon" />
-          </div>
+          {/* Bulk Update Icon */}
+          {canManageClient ? (
+            <div className="icon-group" onClick={() => handleBulkUpdate()}>
+              <FaEdit className="icon" />
+            </div>
+          ) : null}
 
           {/* Delete Icon */}
-          <div
-            className="icon-group"
-            onClick={() => handleShowBulkDeleteModal()}
-          >
-            <FaTrash className="icon" />
-          </div>
+          {canDeleteClient ? (
+            <div
+              className="icon-group"
+              onClick={() => handleShowBulkDeleteModal()}
+            >
+              <FaTrash className="icon" />
+            </div>
+          ) : null}
 
           {/* Filter Icon */}
           <div className="icon-group" onClick={() => setIsFilterOpen(true)}>
@@ -424,6 +468,8 @@ const ClientList = () => {
         onRowClick={handleRowClick}
         onSelectionChange={handleSelectionChange}
         loading={loading}
+        deletableAction={canDeleteClient}
+        editableAction={canManageClient}
         emptyMessage="No clients found"
         // Pagination props
         pagination={true}

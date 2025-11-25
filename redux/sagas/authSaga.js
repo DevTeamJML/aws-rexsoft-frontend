@@ -19,9 +19,6 @@ import {
   logOut,
   resetPassword,
   resetPasswordSuccess,
-  resetPasswordError,
-  inviteUserToCompany,
-  inviteUserToCompanySuccess,
 } from "../slices/authSlice";
 import { auth } from "@/config/firebaseConfig";
 import { API } from "@/service/api";
@@ -46,9 +43,10 @@ import {
   setSelectedClientGroupIdSuccess,
   setSelectedClientGroupSuccess,
 } from "../slices/clientSlice";
+import { getUserRoles } from "../slices/roleAuthSlice";
 
 function* loadUserData(user, setAuthLoading) {
-  if(setAuthLoading) setAuthLoading(true);
+  if (setAuthLoading) setAuthLoading(true);
   const storedCompanyId = getFromLocalStorage(process.env.CURR_COMPANY_ID);
   const storedSelectedClientGroupId = getFromLocalStorage(
     process.env.CURR_SELECTED_GROUP_ID
@@ -113,17 +111,24 @@ function* loadUserData(user, setAuthLoading) {
         params: { company_id: selectedCompanyId },
       }
     );
-    
-    yield put(getAllCompanyUsersSuccess(handlerResponse.data || []));
 
+    yield put(
+      getAllCompanyUsersSuccess({
+        list: handlerResponse.data || [],
+        currentUserId: user?.uid,
+      })
+    );
+    yield put(
+      getUserRoles({ company_id: selectedCompanyId, user_id: user?.uid })
+    );
   }
   // yield put(signInSuccess(userData));
   yield put(getAllCompaniesSuccess(companies));
-  
+
   if (selectedCompany) {
     yield put(switchCompanySuccess(selectedCompany));
   }
-  if(setAuthLoading) setAuthLoading(false);
+  if (setAuthLoading) setAuthLoading(false);
 }
 
 function* refreshSignInSaga({ payload }) {
@@ -154,7 +159,6 @@ function* signInSaga({ payload }) {
       email,
       password
     );
-    console.log(user)
     yield call(loadUserData, user);
     yield put(signInSuccess(user));
     yield put(
