@@ -25,6 +25,10 @@ const initialState = {
   bulkUpdateClientLoading: false,
   deleteClientLoading: false,
   bulkDeleteClientLoading: false,
+  restoreClientLoading: false,
+  bulkRestoreClientLoading: false,
+  archiveClientLoading: false,
+  bulkArchiveClientLoading: false,
   getClientDataByClientIdLoading: false,
   getAllClientsCountLoading: false,
 
@@ -159,6 +163,55 @@ const clientSlice = createSlice({
       state.dupResult = null;
       state.dupError = null;
     },
+
+    archiveClient(state) {
+      state.archiveClientLoading = true;
+    },
+    archiveClientSuccess(state, { payload }) {
+      const targetClientId = payload;
+      const currClients = state.allClients;
+      const updatedList = currClients.filter(
+        (client) => client.client_id !== targetClientId
+      );
+      state.allClients = updatedList;
+      state.archiveClientLoading = false;
+    },
+    bulkArchiveClient(state) {
+      state.bulkArchiveClientLoading = true;
+    },
+    bulkArchiveClientSuccess(state, { payload }) {
+      const targetClientIdList = payload;
+      const currClients = state.allClients;
+      const updatedList = currClients.filter(
+        (client) => !targetClientIdList.includes(client.client_id)
+      );
+      state.allClients = updatedList;
+      state.bulkArchiveClientLoading = false;
+    },
+    restoreClient(state) {
+      state.restoreClientLoading = true;
+    },
+    restoreClientSuccess(state, { payload }) {
+      const targetClientId = payload;
+      const currClients = state.allClients;
+      const updatedList = currClients.filter(
+        (client) => client.client_id !== targetClientId
+      );
+      state.allClients = updatedList;
+      state.restoreClientLoading = false;
+    },
+    bulkRestoreClient(state) {
+      state.bulkRestoreClientLoading = true;
+    },
+    bulkRestoreClientSuccess(state, { payload }) {
+      const targetClientIdList = payload;
+      const currClients = state.allClients;
+      const updatedList = currClients.filter(
+        (client) => !targetClientIdList.includes(client.client_id)
+      );
+      state.allClients = updatedList;
+      state.bulkRestoreClientLoading = false;
+    },
   },
 });
 
@@ -194,6 +247,14 @@ export const {
   duplicateCheckSuccess,
   duplicateCheckFailure,
   clearDuplicateState,
+  archiveClient,
+  archiveClientSuccess,
+  bulkArchiveClient,
+  bulkArchiveClientSuccess,
+  restoreClient,
+  restoreClientSuccess,
+  bulkRestoreClient,
+  bulkRestoreClientSuccess
 } = clientSlice.actions;
 
 export const useSelectAllClients = () =>

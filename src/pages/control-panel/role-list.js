@@ -10,7 +10,7 @@ import ConfirmModal from "@/components/Misc/ConfirmModal";
 import { ActionButton } from "@/components/Misc/ActionButton";
 
 import { useSelectCurrCompanyId } from "../../../redux/slices/companySlice";
-import { getAllRoles, useSelectAllRoles, useSelectRoleListLoading } from "../../../redux/slices/roleSlice";
+import { deleteRole, getAllRoles, useSelectAllRoles, useSelectRoleListLoading } from "../../../redux/slices/roleSlice";
 
 /**
  * Role list page (wired to redux)
@@ -87,8 +87,7 @@ const RoleList = () => {
     } else {
       if (selectedData) {
         console.log("Deleting role (demo):", selectedData.id);
-        // TODO: dispatch delete role action (not implemented)
-        // e.g. dispatch(removeRole({ role_id: selectedData.id, company_id: companyId }))
+        dispatch(deleteRole({role_id : selectedData.id}));
         setShowModal(false);
         setTargetRoleId(null);
       }

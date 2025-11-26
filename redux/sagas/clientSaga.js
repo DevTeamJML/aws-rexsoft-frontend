@@ -1,9 +1,15 @@
 import { call, delay, put, takeLatest } from "redux-saga/effects";
 import {
+  archiveClient,
+  archiveClientSuccess,
+  bulkArchiveClient,
+  bulkArchiveClientSuccess,
   bulkCreateClient,
   bulkCreateClientSuccess,
   bulkDeleteClient,
   bulkDeleteClientSuccess,
+  bulkRestoreClient,
+  bulkRestoreClientSuccess,
   bulkUpdateClient,
   createClient,
   deleteClient,
@@ -18,6 +24,8 @@ import {
   getClientDataByClientId,
   getClientDataByClientIdSuccess,
   handleOnChangeClientGroup,
+  restoreClient,
+  restoreClientSuccess,
   setSelectedClientGroupIdSuccess,
   setSelectedClientGroupSuccess,
   setSelectedClientIds,
@@ -213,11 +221,10 @@ function* handleDuplicateCheckSaga(action) {
     // call API (returns { isDuplicate: boolean })
     const result = yield call(API.get, ApiRoute.client.checkDuplicate, {
       params: {
-        ...request
-      }
+        ...request,
+      },
     });
 
-    console.log(result)
     // put result into store
     yield put(duplicateCheckSuccess(result));
 
@@ -229,6 +236,83 @@ function* handleDuplicateCheckSaga(action) {
     if (action.payload && typeof action.payload.cb === "function") {
       action.payload.cb(error, null);
     }
+  }
+}
+
+function* archiveClientSaga({ payload }) {
+  try {
+    const { client_id, client_group_id } = payload;
+    yield call(API.post, ApiRoute.client.archive, {
+      client_id,
+      client_group_id,
+    });
+    yield put(archiveClientSuccess(client_id));
+    yield put(setShowModal(false));
+    yield put(
+      showToast({
+        message: "Archive client successfully !",
+        status: "success",
+      })
+    );
+    yield delay(3000);
+    yield put(hideToast());
+    // router.push("/client/client-list");
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+function* bulkArchiveClientSaga({ payload }) {
+  try {
+    const { client_id_list, client_group_id } = payload;
+    yield call(API.post, ApiRoute.client.bulkArchive, payload);
+    yield put(bulkArchiveClientSuccess(client_id_list));
+    yield put(setShowModal(false));
+    // router.push("/client/client-list");
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+function* restoreClientSaga({ payload }) {
+  try {
+    const { client_id, client_group_id } = payload;
+    yield call(API.post, ApiRoute.client.restore, {
+      client_id,
+      client_group_id,
+    });
+    yield put(restoreClientSuccess(client_id));
+    yield put(setShowModal(false));
+    yield put(
+      showToast({
+        message: "Restore client successfully !",
+        status: "success",
+      })
+    );
+    yield delay(3000);
+    yield put(hideToast());
+    // router.push("/client/client-list");
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+function* bulkRestoreClientSaga({ payload }) {
+  try {
+    const { client_id_list, client_group_id } = payload;
+    yield call(API.post, ApiRoute.client.bulkRestore, payload);
+    yield put(bulkRestoreClientSuccess(client_id_list));
+    yield put(
+      showToast({
+        message: "Restore client successfully !",
+        status: "success",
+      })
+    );
+    yield delay(3000);
+    yield put(hideToast());
+    // router.push("/client/client-list");
+  } catch (error) {
+    console.log(error);
   }
 }
 
@@ -246,6 +330,11 @@ function* clientSaga() {
   yield takeLatest(bulkUpdateClient.type, bulkUpdateClientSaga);
   yield takeLatest(deleteClient.type, deleteClientSaga);
   yield takeLatest(bulkDeleteClient.type, bulkDeleteClientSaga);
+  yield takeLatest(archiveClient.type, archiveClientSaga);
+  yield takeLatest(bulkArchiveClient.type, bulkArchiveClientSaga);
+  yield takeLatest(restoreClient.type, restoreClientSaga);
+  yield takeLatest(bulkRestoreClient.type, bulkRestoreClientSaga);
+
   yield takeLatest(getClientDataByClientId.type, getClientDataByClientIdSaga);
   yield takeLatest(getAllClientsCount.type, getAllClientsCountSaga);
   yield takeLatest(duplicateCheckRequest.type, handleDuplicateCheckSaga);

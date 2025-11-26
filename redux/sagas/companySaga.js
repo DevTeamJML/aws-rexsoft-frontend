@@ -13,6 +13,9 @@ import { toggleNewCompanyModal } from "../slices/companyModalSlice";
 import { yellow } from "@mui/material/colors";
 import { addToLocalStorage } from "@/utils/localStorage";
 import { getAllClientGroups } from "../slices/clientGroupSlice";
+import { defaultPermissions } from "@/constants/permissions";
+import { createRole } from "../slices/roleSlice";
+import { flattenPermissions } from "@/utils/format";
 
 function* switchCompanySaga({ payload }) {
   try {
@@ -67,6 +70,40 @@ function* createCompanySaga({ payload }) {
         status: "success",
       })
     );
+
+    const rolePayload = {
+      company_id : payload.company_id,
+      name : "Default",
+      color : "#CCCCCC",
+      is_system: true,
+      description : "Default role",
+      permissions:  flattenPermissions(defaultPermissions)  
+    }
+
+    yield put(createRole({...rolePayload}));
+
+    // {
+    //   graph: { view_graph: false, manage_graph: false, publish_graph: false },
+    //   logs: { view_all: false },
+    //   client: {
+    //     manage_client: false,
+    //     export_client: false,
+    //     delete_client: false,
+    //     manage_handler: false,
+    //   },
+    //   client_group: {
+    //     manage_client_group: false,
+    //   },
+    //   kpi: { view_kpi: false, manage_kpi: false, delete_kpi: false },
+    //   form: {
+    //     view_form: false,
+    //     manage_form: false,
+    //     delete_form: false,
+    //     approval: false,
+    //   },
+    //   appointment: { view_all_appointment: false, manage_appointment: false },
+    //   control_panel: { manage_roles: false, company_profile: false },
+    // }
     yield put(toggleNewCompanyModal(false));
     addToLocalStorage(process.env.CURR_COMPANY_ID, payload.company_id);
     yield put(switchCompany(payload));

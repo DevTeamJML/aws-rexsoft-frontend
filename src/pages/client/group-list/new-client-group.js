@@ -33,6 +33,7 @@ export default function NewClientGroupPage({ params }) {
       width: "100",
       is_required: false,
       allow_duplicate: true,
+      is_system : true,
       options: [],
     },
   ]);
@@ -51,7 +52,7 @@ export default function NewClientGroupPage({ params }) {
     { label: "Short Text", value: "short_text" },
     { label: "Date", value: "date" },
     { label: "Multiline", value: "multiline" },
-    { label: "Rich Text", value: "rich_text" },
+    // { label: "Rich Text", value: "rich_text" },
     { label: "Dropdown", value: "dropdown" },
     { label: "Alert", value: "alert" },
     { label: "Number", value: "number" },
@@ -289,7 +290,7 @@ export default function NewClientGroupPage({ params }) {
                   >
                     {field.label}
                   </div>
-                  {field.label !== "Client Name" ? (
+                  {!field.is_system ? (
                     <div
                       className="delete-overlay"
                       onClick={() => handleDeleteField(field.column_id)}
@@ -324,7 +325,7 @@ export default function NewClientGroupPage({ params }) {
                 <div className="input-group">
                   <label>Name</label>
                   <PlainTextField
-                    disable={newField.label === "Client Name"}
+                    disable={newField.is_system}
                     type={"text"}
                     value={newField.label}
                     placeholder="Enter field name"

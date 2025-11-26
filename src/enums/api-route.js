@@ -28,9 +28,13 @@ export const ApiRoute = {
     bulkUpdate: "/client/bulkUpdate",
     delete: "/client/delete",
     bulkDelete: "/client/bulkDelete",
+    archive: "/client/archive",
+    bulkArchive: "/client/bulkArchive",
+    restore: "/client/restore",
+    bulkRestore: "/client/bulkRestore",
     getClientDataByClientId: "/client/getClientDataByClientId",
     getAllClientsCount: "/client/getAllClientsCount",
-    checkDuplicate: "/client/checkDuplicate"
+    checkDuplicate: "/client/checkDuplicate",
   },
   invitation: {
     getInvitationById: "/invitation/getInvitationById",
@@ -66,6 +70,7 @@ export const ApiRoute = {
     getRole: "/roles/get-role",
     createRole: "/roles/create",
     updateRole: "/roles/update",
+    deleteRole: "/roles/delete",
     getUserRoles: "/roles/get-user-role",
   },
   logs: {

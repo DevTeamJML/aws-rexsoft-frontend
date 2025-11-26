@@ -166,7 +166,7 @@
     
     .column-label {
       color: #6c757d;
-      text-decoration: line-through;
+      // text-decoration: line-through;
     }
 
     .toggle-dot {
@@ -266,8 +266,8 @@
     }
     
     &.hidden {
-      background: #dc3545;
-      box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
+      background: #ccc;
+      // box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
     }
   }
 }

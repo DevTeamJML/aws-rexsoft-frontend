@@ -23,6 +23,8 @@ import { useDispatch } from "react-redux";
 import { DateField } from "@/components/FormComponents/DateField";
 import { renderClientInputField } from "@/utils/renderField";
 import { useSelectUserPermissions } from "../../../../redux/slices/roleAuthSlice";
+import { onValue, ref } from "firebase/database";
+import { db } from "@/config/firebaseConfig";
 
 export default function BulkUpdateClient() {
   const dispatch = useDispatch();
@@ -45,6 +47,36 @@ export default function BulkUpdateClient() {
 
   const { client_group_id } = router.query;
 
+  const [userSortingArray, setUserSortingArray] = useState(null);
+  const [columnSortingArray, setColumnSortingArray] = useState(null);
+
+  useEffect(() => {
+    if (!currSelectedGroupId) return;
+    if (!user) return;
+
+    const userRef = ref(
+      db,
+      `UserColumnSorting/${user?.uid}/${currSelectedGroupId}`
+    );
+    const unsubUser = onValue(userRef, (snap) => {
+      const val = snap.val();
+      const arr = Array.isArray(val) ? val : val?.columnsOrder;
+      setUserSortingArray(Array.isArray(arr) ? arr : null);
+    });
+
+    const groupRef = ref(db, `ColumnSorting/${currSelectedGroupId}`);
+    const unsubGroup = onValue(groupRef, (snap) => {
+      const arr = snap.val();
+      setColumnSortingArray(Array.isArray(arr) ? arr : null);
+    });
+
+    // Cleanup listeners when unmounting or group changes
+    return () => {
+      unsubUser();
+      unsubGroup();
+    };
+  }, [user, currSelectedGroupId]);
+
   const clientColumns = useMemo(() => {
     if (currSelectedGroup) {
       return currSelectedGroup?.columns.map((c) => {
@@ -57,6 +89,42 @@ export default function BulkUpdateClient() {
       return [];
     }
   }, [currSelectedGroup]);
+
+  const sortedColumns = useMemo(() => {
+    if (!clientColumns) return [];
+
+    const FIXED = ["handler", "created_at", "serial_number"];
+    const getId = (c) => c.id ?? c.column_id;
+
+    const orderIds =
+      (Array.isArray(userSortingArray) &&
+        userSortingArray.length > 0 &&
+        userSortingArray) ||
+      (Array.isArray(columnSortingArray) &&
+        columnSortingArray.length > 0 &&
+        columnSortingArray) ||
+      null;
+
+    const fixed = clientColumns.filter((c) => FIXED.includes(getId(c)));
+    const dynamic = clientColumns.filter((c) => !FIXED.includes(getId(c)));
+
+    if (!orderIds) {
+      return [...fixed, ...dynamic];
+    }
+
+    const idToCol = new Map(dynamic.map((c) => [getId(c), c]));
+
+    const ordered = orderIds.map((id) => idToCol.get(id)).filter(Boolean);
+
+    const remaining = dynamic.filter((c) => !orderIds.includes(getId(c)));
+
+    return [...fixed, ...ordered, ...remaining];
+  }, [clientColumns, userSortingArray, columnSortingArray]);
+
+  const visibleColumns = useMemo(() => {
+    if (isAdmin) return sortedColumns; // admin sees all columns (including not_viewable)
+    return sortedColumns.filter((c) => c.permission !== "not_viewable");
+  }, [sortedColumns, isAdmin]);
 
   useEffect(() => {
     if (!currSelectedGroup && client_group_id) {
@@ -342,7 +410,7 @@ export default function BulkUpdateClient() {
             ) : null}
 
             {/* Regular columns */}
-            {clientColumns.map((column) => (
+            {visibleColumns.map((column) => (
               <div
                 key={column.column_id}
                 className="input-group"

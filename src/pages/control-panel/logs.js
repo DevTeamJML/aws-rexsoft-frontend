@@ -288,59 +288,61 @@ export default function LogsPage() {
         ))}
       </div>
 
-      <div className="cardsWrap" role="list">
-        {loading && (!logs || logs.length === 0) ? (
-          <div className="loading">Loading...</div>
-        ) : logs && logs.length > 0 ? (
-          logs.map((log, idx) => {
-            const sec = log.section ?? "Unknown";
-            const color = SECTION_MAP[sec] ?? "#9b9b9b";
-            const key =
-              log.log_id ?? log.id ?? `${log.created_at ?? ""}-${idx}`;
+      <div className="logs-container">
+        <div className="cardsWrap" role="list">
+          {loading && (!logs || logs.length === 0) ? (
+            <div className="loading">Loading...</div>
+          ) : logs && logs.length > 0 ? (
+            logs.map((log, idx) => {
+              const sec = log.section ?? "Unknown";
+              const color = SECTION_MAP[sec] ?? "#9b9b9b";
+              const key =
+                log.log_id ?? log.id ?? `${log.created_at ?? ""}-${idx}`;
 
-            return (
-              <article
-                key={key}
-                className="card"
-                role="listitem"
-                aria-label={`Log ${log.action ?? ""}`}
-                onClick={() => {
-                  setSelectedLog(log);
-                  setOpenModal(true);
-                }}
-              >
-                <div className="cardHeader">
-                  <div className="cardTitle" style={{ color }}>
-                    {log.action ?? "action"}
-                  </div>
-                </div>
-
-                <div className="cardBody">
-                  <div className="cardText">
-                    {log.text ?? log.message ?? "-"}
+              return (
+                <article
+                  key={key}
+                  className="card"
+                  role="listitem"
+                  aria-label={`Log ${log.action ?? ""}`}
+                  onClick={() => {
+                    setSelectedLog(log);
+                    setOpenModal(true);
+                  }}
+                >
+                  <div className="cardHeader">
+                    <div className="cardTitle" style={{ color }}>
+                      {log.action ?? "action"}
+                    </div>
                   </div>
 
-                  <div className="cardMeta">
-                    <span>{localeDate(log.created_at ?? log.createdAt)}</span>
-                  </div>
-                </div>
+                  <div className="cardBody">
+                    <div className="cardText">
+                      {log.text ?? log.message ?? "-"}
+                    </div>
 
-                <div className="corner" style={{ borderRightColor: color }} />
-              </article>
-            );
-          })
-        ) : (
-          <div className="empty">No logs found.</div>
-        )}
+                    <div className="cardMeta">
+                      <span>{localeDate(log.created_at ?? log.createdAt)}</span>
+                    </div>
+                  </div>
+
+                  <div className="corner" style={{ borderRightColor: color }} />
+                </article>
+              );
+            })
+          ) : (
+            <div className="empty">No logs found.</div>
+          )}
+        </div>
       </div>
 
-      <div className="actions">
+      {/* <div className="actions">
         <ActionButton
           label="Load more"
           onClick={handleLoadMore}
           disabled={!canLoadMore}
         />
-      </div>
+      </div> */}
 
       {/* Modal: show metadata when selectedLog is set */}
       {openModal && (
@@ -390,7 +392,6 @@ export default function LogsPage() {
                     <span>{selectedLog.metadata.serial_number}</span>
                   </div>
                 )}
-                 
               </div>
 
               {selectedLog.metadata?.changes?.length > 0 && (

@@ -108,7 +108,6 @@ const ClientGroupList = () => {
         fixedColumns={fixedColumns}
         dynamicColumns={[]}
         sortable={true}
-        resizable={true}
         selectable={true}
         onAction={handleAction}
         onSort={handleSort}

@@ -14,6 +14,9 @@ import {
   updateRole,
   updateRoleSuccess,
   updateRoleError,
+  deleteRoleSuccess,
+  deleteRole,
+  deleteRoleError,
 } from "../slices/roleSlice";
 import { ApiRoute } from "@/enums/api-route";
 
@@ -28,8 +31,11 @@ function buildParams(payload) {
  */
 function* getAllRolesSaga({ payload }) {
   try {
-    const res = yield call(API.get, ApiRoute.role.getAllRoles, buildParams(payload));
-    console.log(res)
+    const res = yield call(
+      API.get,
+      ApiRoute.role.getAllRoles,
+      buildParams(payload)
+    );
     // depending on API client, res may be response.data; follow your API pattern:
     const data = res?.data ?? res;
     yield put(getAllRolesSuccess(data));
@@ -46,8 +52,12 @@ function* getAllRolesSaga({ payload }) {
  */
 function* getRoleSaga({ payload }) {
   try {
-    console.log(payload)
-    const res = yield call(API.get, ApiRoute.role.getRole, buildParams(payload));
+    console.log(payload);
+    const res = yield call(
+      API.get,
+      ApiRoute.role.getRole,
+      buildParams(payload)
+    );
     const data = res?.data ?? res;
     yield put(getRoleSuccess(data));
   } catch (error) {
@@ -62,7 +72,7 @@ function* getRoleSaga({ payload }) {
  */
 function* createRoleSaga({ payload }) {
   try {
-    console.log(payload)
+    console.log(payload);
     const res = yield call(API.post, ApiRoute.role.createRole, payload);
     const data = res?.data ?? res;
     yield put(createRoleSuccess(data));
@@ -87,9 +97,23 @@ function* updateRoleSaga({ payload }) {
   }
 }
 
+function* handleDeleteRole({ payload }) {
+  try {
+    // API call
+    const result = yield call(API.post, ApiRoute.role.deleteRole, payload);
+    // success
+    yield put(deleteRoleSuccess(payload));
+  } catch (err) {
+    const message =
+      err?.response?.data?.message || err?.message || "Failed to delete role";
+    yield put(deleteRoleError(message));
+  }
+}
+
 export function* roleSaga() {
   yield takeLatest(getAllRoles.type, getAllRolesSaga);
   yield takeLatest(getRole.type, getRoleSaga);
   yield takeLatest(createRole.type, createRoleSaga);
   yield takeLatest(updateRole.type, updateRoleSaga);
+  yield takeLatest(deleteRole.type, handleDeleteRole);
 }

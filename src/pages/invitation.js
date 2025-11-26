@@ -21,8 +21,7 @@ export default function InvitationPage() {
   const invitationLoading = selectRetrieveInvitationLoading();
   const invitationError = selectRetrieveInvitationError();
   const invitation_id = searchParams.get("invitation_id");
-
-  console.log(invitation);
+  const role_id = searchParams.get("role_id");
 
   useEffect(() => {
     if (invitation_id) {
@@ -50,9 +49,9 @@ export default function InvitationPage() {
     }
 
     if (invitation.user_exists) {
-      return <AcceptInvitationForm invitation={invitation} />;
+      return <AcceptInvitationForm invitation={invitation} role_id={role_id}/>;
     } else {
-      return <RegistrationForm invitation={invitation} />;
+      return <RegistrationForm invitation={invitation} role_id={role_id} />;
     }
   };
 

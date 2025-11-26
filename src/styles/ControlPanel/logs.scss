@@ -137,6 +137,10 @@
     }
   }
 
+  .logs-container{
+    height: 70vh;
+    overflow: scroll;
+  }
   .cardsWrap {
     display: flex;
     flex-direction: column;

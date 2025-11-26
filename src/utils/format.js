@@ -2,19 +2,19 @@ import moment from "moment";
 
 /**
  * Date format by DD/MM/YYYY
- * @param {*} dateStr 
- * @returns 
+ * @param {*} dateStr
+ * @returns
  */
 export function formatDateOrDefault(dateStr) {
   const date = moment(dateStr);
   // console.log(dateStr)
   return date.isValid() ? date.format("DD/MM/YYYY") : "00/00/0000";
-};
+}
 
 /**
  * Format url by putting https://
- * @param {*} url 
- * @returns 
+ * @param {*} url
+ * @returns
  */
 export function formatUrl(url) {
   if (!url) return "";
@@ -22,12 +22,12 @@ export function formatUrl(url) {
     return "https://" + url;
   }
   return url;
-};
+}
 
 /**
  * Format number with comma separation
- * @param {*} url 
- * @returns 
+ * @param {*} url
+ * @returns
  */
 export function formatNumber(str) {
   if (str === "") return "";
@@ -41,17 +41,17 @@ export function formatNumber(str) {
 
 /**
  * Remove comma separation number format
- * @param {*} url 
- * @returns 
+ * @param {*} url
+ * @returns
  */
 export function unformatNumber(str) {
   return str.replace(/,/g, "");
-};
+}
 
 /**
  * Convert to 12 hours format
- * @param {*} url 
- * @returns 
+ * @param {*} url
+ * @returns
  */
 
 export function convertTo12Hour(timeStr) {
@@ -65,4 +65,29 @@ export function convertTo12Hour(timeStr) {
   hour = hour % 12 || 12; // convert 0 or 12 to 12
 
   return `${hour}:${minute} ${ampm}`;
+}
+
+// Convert nested boolean permission object -> array of keys that are true
+export function flattenPermissions(nested) {
+  const keys = [];
+  for (const moduleKey in nested) {
+    const module = nested[moduleKey];
+    for (const permKey in module) {
+      if (module[permKey]) keys.push(permKey);
+    }
+  }
+  return keys;
+}
+
+// Convert array of permission keys -> nested boolean object based on defaultPermissions shape
+export function expandPermissions(keysArr, defaultPermissions) {
+  const next = structuredClone(defaultPermissions);
+  if (!Array.isArray(keysArr)) return next;
+  const set = new Set(keysArr);
+  for (const moduleKey in next) {
+    for (const permKey in next[moduleKey]) {
+      next[moduleKey][permKey] = set.has(permKey);
+    }
+  }
+  return next;
 }

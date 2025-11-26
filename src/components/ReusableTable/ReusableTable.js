@@ -21,7 +21,7 @@ const ReusableTable = ({
   fixedColumns = [],
   dynamicColumns = [],
   sortable = true,
-  resizable = true,
+  resizable = false,
   selectable = false,
   actionable = true,
   deletableAction = true,
@@ -30,6 +30,7 @@ const ReusableTable = ({
   onAction,
   onRowClick,
   onSelectionChange,
+  onSelectionCountChange, // optional callback to notify parent with the count
   loading = false,
   emptyMessage = "No data found",
 
@@ -42,7 +43,12 @@ const ReusableTable = ({
   onPageChange,
 
   // Sorting props from parent
-  sortConfig = {}, // { columnId: 'created_at', order: 'asc' }
+  sortConfig = {}, // { id: 'created_at', order: 'asc' }
+  columnSortingArray,
+  userSortingArray,
+  columnVisibility,
+  columnWidths = {},
+  setColumnWidths = () => {}
 }) => {
   const dispatch = useDispatch();
   const [resizing, setResizing] = useState(null);
@@ -50,10 +56,17 @@ const ReusableTable = ({
   const [startWidth, setStartWidth] = useState(200);
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [isAllSelected, setIsAllSelected] = useState(false);
-  const [columnWidths, setColumnWidths] = useState({}); // Local state for resized widths
 
-  // Use parent sortConfig
-  const currentSortConfig = sortConfig;
+  // Keep consistent naming for sort config
+  const currentSortConfig = sortConfig || {};
+
+  // effective total items: prefer server-provided totalItems (for server-side pagination),
+  // otherwise fall back to local data length (client-side).
+  const effectiveTotalItems =
+    typeof totalItems === "number" && totalItems > 0 ? totalItems : data.length;
+
+  // number of selected rows
+  const selectedCount = selectedRows.size;
 
   // Combine fixed and dynamic columns
   const allColumns = useMemo(() => {
@@ -90,7 +103,51 @@ const ReusableTable = ({
     }
 
     return resultColumns;
-  }, [fixedColumns, dynamicColumns, selectable, actionable]);
+  }, [fixedColumns, dynamicColumns, selectable, actionable, deletableAction, editableAction]);
+
+  const sortedAllColumns = useMemo(() => {
+    const cols = Array.isArray(allColumns) ? allColumns : [];
+    const getId = (c) => c?.id ?? c?.column_id;
+
+    const checkboxCol = cols.find((c) => getId(c) === "_checkbox");
+
+    const otherCols = cols.filter((c) => getId(c) !== "_checkbox");
+
+    const orderIds =
+      (Array.isArray(userSortingArray) &&
+        userSortingArray.length > 0 &&
+        userSortingArray) ||
+      (Array.isArray(columnSortingArray) &&
+        columnSortingArray.length > 0 &&
+        columnSortingArray) ||
+      null;
+
+    if (!orderIds) {
+      return checkboxCol ? [checkboxCol, ...otherCols] : otherCols;
+    }
+
+    const idToCol = new Map(otherCols.map((c) => [getId(c), c]));
+
+    const ordered = orderIds.map((id) => idToCol.get(id)).filter(Boolean);
+
+    const remaining = otherCols.filter((c) => !orderIds.includes(getId(c)));
+
+    return checkboxCol
+      ? [checkboxCol, ...ordered, ...remaining]
+      : [...ordered, ...remaining];
+  }, [allColumns, userSortingArray, columnSortingArray]);
+
+  const visibleSortedColumns = useMemo(() => {
+    if (!Array.isArray(columnVisibility) || columnVisibility.length === 0) {
+      return sortedAllColumns;
+    }
+    const getId = (c) => c?.id ?? c?.column_id;
+    return sortedAllColumns.filter((col) => {
+      const id = getId(col);
+      if (id === "_checkbox" || id === "actions") return true; // always keep
+      return columnVisibility.includes(id);
+    });
+  }, [sortedAllColumns, columnVisibility]);
 
   // Add this row styling function
   const getRowStyle = useMemo(() => {
@@ -142,7 +199,7 @@ const ReusableTable = ({
           })();
       return { backgroundColor: fillColor };
     };
-  }, [allColumns]);
+  }, [dynamicColumns]);
 
   const getColumnWidth = (columnId) => {
     return columnId === "_checkbox" ? 100 : columnWidths[columnId] || 200; // default width
@@ -159,13 +216,16 @@ const ReusableTable = ({
       newSelectedRows = new Set();
       setIsAllSelected(false);
     } else {
-      // Select all visible rows
+      // Select all visible rows (current page)
       newSelectedRows = new Set(data.map((row) => row.id));
       setIsAllSelected(true);
     }
 
     setSelectedRows(newSelectedRows);
     onSelectionChange && onSelectionChange(Array.from(newSelectedRows));
+    if (typeof onSelectionCountChange === "function") {
+      onSelectionCountChange(newSelectedRows.size);
+    }
   };
 
   // Handle individual row selection
@@ -190,10 +250,14 @@ const ReusableTable = ({
     }
 
     onSelectionChange && onSelectionChange(Array.from(newSelectedRows));
+    if (typeof onSelectionCountChange === "function") {
+      onSelectionCountChange(newSelectedRows.size);
+    }
   };
 
   // Handle sort click
   const handleSort = (column) => {
+    if (!sortable) return;
     const columnIdentifier = column.column_id || column.id;
 
     const newOrder =
@@ -223,8 +287,8 @@ const ReusableTable = ({
     const currentWidth = startWidth + (e.clientX - startX);
     const column = allColumns.find((col) => col.id === resizing);
 
-    const minWidth = column.minWidth || 80;
-    const maxWidth = column.maxWidth || 500;
+    const minWidth = column?.minWidth || 80;
+    const maxWidth = column?.maxWidth || 500;
     const newWidth = Math.max(minWidth, Math.min(maxWidth, currentWidth));
 
     // Update local state with new width
@@ -244,7 +308,7 @@ const ReusableTable = ({
   const renderSortIcon = (column) => {
     const columnIdentifier = column.column_id || column.id;
 
-    if (currentSortConfig.columnId === columnIdentifier) {
+    if (currentSortConfig.id === columnIdentifier) {
       return currentSortConfig.order === "asc" ? <FaSortUp /> : <FaSortDown />;
     }
     return <FaSort />;
@@ -414,6 +478,9 @@ const ReusableTable = ({
   useEffect(() => {
     setSelectedRows(new Set());
     setIsAllSelected(false);
+    if (typeof onSelectionCountChange === "function") {
+      onSelectionCountChange(0);
+    }
   }, [data]);
 
   if (loading) {
@@ -472,15 +539,28 @@ const ReusableTable = ({
   return (
     <Fragment>
       <div className="reusable-table-container">
+        {/* Optional selection summary above table */}
+        {selectable && (
+          <div className="table-selection-summary">
+            {selectedCount > 0 ? (
+              <span>
+                Selected {selectedCount} {selectedCount === 1 ? "item" : "items"} of {effectiveTotalItems}
+              </span>
+            ) : (
+              <span>{`No items selected (${effectiveTotalItems} items)`}</span>
+            )}
+          </div>
+        )}
+
         <div className="table-scroll-container">
           <div className="table-header-wrapper">
             <table className="reusable-table">
               <thead>
                 <tr>
-                  {allColumns.map((column, index) => (
+                  {visibleSortedColumns.map((column, index) => (
                     <th
                       key={column.id}
-                      className={`table-header ${"sortable"} ${
+                      className={`table-header ${sortable ? "sortable" : ""} ${
                         column.fixed ? "fixed-column" : ""
                       }`}
                       style={{
@@ -488,9 +568,9 @@ const ReusableTable = ({
                       }}
                       data-fixed={column.fixedPosition}
                       onClick={() => {
-                        column.id !== "_checkbox" &&
-                          column.id !== "actions" &&
+                        if (column.id !== "_checkbox" && column.id !== "actions") {
                           handleSort(column);
+                        }
                       }}
                     >
                       <div className="header-content">
@@ -499,7 +579,7 @@ const ReusableTable = ({
                         ) : (
                           <>
                             <span className="header-label">{column.label}</span>
-                            {renderSortIcon(column)}
+                            {sortable && renderSortIcon(column)}
                           </>
                         )}
                       </div>
@@ -522,7 +602,10 @@ const ReusableTable = ({
               <tbody>
                 {data.length === 0 ? (
                   <tr>
-                    <td colSpan={allColumns.length} className="empty-message">
+                    <td
+                      colSpan={visibleSortedColumns.length}
+                      className="empty-message"
+                    >
                       {emptyMessage}
                     </td>
                   </tr>
@@ -538,7 +621,7 @@ const ReusableTable = ({
                         style={rowStyle}
                         onClick={() => onRowClick && onRowClick(row)}
                       >
-                        {allColumns.map((column, colIndex) => {
+                        {visibleSortedColumns.map((column, colIndex) => {
                           return (
                             <td
                               key={column.id}
@@ -568,8 +651,14 @@ const ReusableTable = ({
       {pagination && totalPages > 1 && (
         <div className="table-pagination">
           <div className="pagination-info">
+            {selectable && selectedCount > 0 ? (
+              <span className="selected-info" style={{ marginRight: 8 }}>
+                Selected {selectedCount} {selectedCount === 1 ? "client" : "clients"} —
+              </span>
+            ) : null}
+
             Showing {(currentPage - 1) * pageSize + 1} to{" "}
-            {Math.min(currentPage * pageSize, totalItems)} of {totalItems}{" "}
+            {Math.min(currentPage * pageSize, effectiveTotalItems)} of {effectiveTotalItems}{" "}
             entries
           </div>
           <div className="pagination-controls">

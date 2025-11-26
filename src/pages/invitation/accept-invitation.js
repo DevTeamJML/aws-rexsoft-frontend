@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { acceptInvitation, selectAcceptInvitationLoading } from "../../../redux/slices/invitationSlice";
 
 
-export default function AcceptInvitationForm({ invitation }) {
+export default function AcceptInvitationForm({ invitation, role_id }) {
   const dispatch = useDispatch();
   const loading = selectAcceptInvitationLoading();
 
@@ -14,7 +14,7 @@ export default function AcceptInvitationForm({ invitation }) {
       invitation_id: invitation.invitation_id,
       company_id: invitation.company_id,
       is_owner: 0,
-      role_id: "",
+      role_id: role_id,
       user_id: invitation.user_id,
     };
     dispatch(acceptInvitation(data));

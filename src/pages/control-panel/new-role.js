@@ -21,6 +21,8 @@ import {
 } from "../../../redux/slices/roleSlice";
 
 import { useSelectAllCompanyUsers } from "../../../redux/slices/companySlice";
+import { defaultPermissions, PERMISSION_DEFINITIONS } from "@/constants/permissions";
+import { expandPermissions, flattenPermissions } from "@/utils/format";
 
 /* -------------------------
    Helper functions
@@ -31,31 +33,6 @@ function formatTitle(key) {
     .split("_") // split snake_case → ["control", "panel"]
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize
     .join(" "); // join → "Control Panel"
-}
-
-// Convert nested boolean permission object -> array of keys that are true
-function flattenPermissions(nested) {
-  const keys = [];
-  for (const moduleKey in nested) {
-    const module = nested[moduleKey];
-    for (const permKey in module) {
-      if (module[permKey]) keys.push(permKey);
-    }
-  }
-  return keys;
-}
-
-// Convert array of permission keys -> nested boolean object based on defaultPermissions shape
-function expandPermissions(keysArr, defaultPermissions) {
-  const next = structuredClone(defaultPermissions);
-  if (!Array.isArray(keysArr)) return next;
-  const set = new Set(keysArr);
-  for (const moduleKey in next) {
-    for (const permKey in next[moduleKey]) {
-      next[moduleKey][permKey] = set.has(permKey);
-    }
-  }
-  return next;
 }
 
 // small hook to track previous value
@@ -90,154 +67,31 @@ export default function NewRoleWithMembers({ onCreate }) {
   const prevUpdating = usePrevious(updating);
 
   // === Permissions metadata / defaults (kept same as your earlier) ===
-  const defaultPermissions = useMemo(
-    () => ({
-      graph: { view_graph: false, manage_graph: false, publish_graph: false },
-      logs: { view_all: false },
-      client: {
-        manage_client: false,
-        export_client: false,
-        delete_client: false,
-        manage_handler: false,
-      },
-      client_group: {
-        manage_client_group: false,
-      },
-      kpi: { view_kpi: false, manage_kpi: false, delete_kpi: false },
-      form: {
-        view_form: false,
-        manage_form: false,
-        delete_form: false,
-        approval: false,
-      },
-      appointment: { view_all_appointment: false, manage_appointment: false },
-      control_panel: { manage_roles: false, company_profile: false },
-    }),
-    []
-  );
-
-  const PERMISSION_DEFINITIONS = useMemo(
-    () => ({
-      graph: [
-        {
-          key: "view_graph",
-          label: "View Analytics",
-          desc: "Allows user to view analytics graphs.", // ⬅ NEW
-        },
-        {
-          key: "manage_graph",
-          label: "Manage Analytics",
-          desc: "Allows user to generate, publish and delete analytics (full management).",
-        },
-        {
-          key: "publish_graph",
-          label: "Publish Analytics",
-          desc: "Allows user to publish analytics for others to view.",
-        },
-      ],
-      logs: [
-        {
-          key: "view_all",
-          label: "View Logs",
-          desc: "Allows user to view application logs and audit trails.",
-        },
-      ],
-      client: [
-        {
-          key: "manage_client",
-          label: "Manage Client",
-          desc: "Create, edit and import clients.",
-        },
-        {
-          key: "export_client",
-          label: "Export Client",
-          desc: "Export client data to CSV/Excel.",
-        },
-        {
-          key: "delete_client",
-          label: "Delete Client",
-          desc: "Delete client records permanently.",
-        },
-        {
-          key: "manage_handler",
-          label: "Manage Handler",
-          desc: "Allows user to manage handler records inside Client module.",
-        },
-      ],
-      client_group: [
-        {
-          key: "manage_client_group",
-          label: "Manage Client Group",
-          desc: "Allows user to create, edit, or delete client groups.",
-        },
-      ],
-
-      kpi: [
-        {
-          key: "view_kpi",
-          label: "View KPI",
-          desc: "Allows user to view KPI dashboards and analytics.", // ⬅ NEW
-        },
-        {
-          key: "manage_kpi",
-          label: "Manage KPI",
-          desc: "Create and edit KPIs.",
-        },
-        {
-          key: "delete_kpi",
-          label: "Delete KPI",
-          desc: "Delete KPIs permanently.",
-        },
-      ],
-      form: [
-        {
-          key: "view_form",
-          label: "View Form",
-          desc: "View form content and submissions.",
-        },
-        {
-          key: "manage_form",
-          label: "Manage Form",
-          desc: "Create/edit form templates.",
-        },
-        {
-          key: "delete_form",
-          label: "Delete Form",
-          desc: "Delete form templates.",
-        },
-        {
-          key: "approval",
-          label: "Approval Flow",
-          desc: "Approve or reject form submissions.",
-        },
-      ],
-      appointment: [
-        {
-          key: "view_all_appointment",
-          label: "View Appointments",
-          desc: "Allows user to view all appointments.",
-        },
-        {
-          key: "manage_appointment",
-          label: "Manage Appointments",
-          desc: "Create/edit appointments.",
-        },
-      ],
-      control_panel: [
-        {
-          key: "manage_roles",
-          label: "Manage Roles",
-          desc: "Create and edit role permissions.",
-        },
-        {
-          key: "company_profile",
-          label: "Company Profile",
-          desc: "Edit company profile settings.",
-        },
-      ],
-    }),
-    []
-  );
+  // const defaultPermissions = useMemo(
+  //   () => ({
+  //     graph: { view_graph: false, manage_graph: false, publish_graph: false },
+  //     logs: { view_all: false },
+  //     client: {
+  //       manage_client: false,
+  //       export_client: false,
+  //       delete_client: false,
+  //       manage_handler: false,
+  //     },
+  //     client_group: {
+  //       manage_client_group: false,
+  //     },
+  //     kpi: { view_kpi: false, manage_kpi: false, delete_kpi: false },
+  //     form: {
+  //       view_form: false,
+  //       manage_form: false,
+  //       delete_form: false,
+  //       approval: false,
+  //     },
+  //     appointment: { view_all_appointment: false, manage_appointment: false },
+  //     control_panel: { manage_roles: false, company_profile: false },
+  //   }),
+  //   []
+  // );
 
   // Normalize different member shapes to { id, name, email }
   function normalizeMember(u) {

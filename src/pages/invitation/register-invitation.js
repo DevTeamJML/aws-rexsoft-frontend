@@ -7,7 +7,7 @@ import {
 } from "../../../redux/slices/invitationSlice";
 import { PlainTextField } from "@/components/FormComponents/PlainTextField";
 
-export default function RegistrationForm({ invitation }) {
+export default function RegistrationForm({ invitation, role_id }) {
   const dispatch = useDispatch();
   const loading = selectRegisterAndAcceptInvitationLoading();
 
@@ -67,7 +67,7 @@ export default function RegistrationForm({ invitation }) {
       password: form.password,
       company_id: invitation.company_id,
       invitation_id: invitation.invitation_id,
-      role_id: "",
+      role_id: role_id,
       is_owner: 0,
     };
 

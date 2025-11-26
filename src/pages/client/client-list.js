@@ -1,5 +1,5 @@
 // pages/client/client-list.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ReusableTable from "@/components/ReusableTable/ReusableTable";
 import { getColumnsForPage } from "@/constants/tableColumns";
@@ -19,7 +19,10 @@ import {
 import { getFromLocalStorage } from "@/utils/localStorage";
 import { DropdownField } from "@/components/FormComponents/DropdownField";
 import {
+  archiveClient,
+  bulkArchiveClient,
   bulkDeleteClient,
+  bulkRestoreClient,
   deleteClient,
   getAllClients,
   handleOnChangeClientGroup,
@@ -38,19 +41,20 @@ import ConfirmModal from "@/components/Misc/ConfirmModal";
 import {
   FaSearch,
   FaTrash,
-  FaFilter,
   FaColumns,
-  FaSort,
-  FaTable,
-  FaEye,
-  FaEyeSlash,
   FaSlidersH,
   FaEdit,
+  FaRedo,
 } from "react-icons/fa";
 import FilterDrawer from "@/components/Misc/FilterDrawer";
 import ColumnOrderDrawer from "@/components/Misc/ColumnOrderDrawer";
 import { useSelectUserPermissions } from "../../../redux/slices/roleAuthSlice";
 import { useSelectUser } from "../../../redux/slices/authSlice";
+import SwitchField from "@/components/FormComponents/SwitchField";
+import { showToast } from "../../../redux/slices/toastSlice";
+import { onValue, ref, set } from "firebase/database";
+import { db } from "@/config/firebaseConfig";
+import { debounce } from "lodash";
 
 const ClientList = () => {
   const dispatch = useDispatch();
@@ -63,12 +67,6 @@ const ClientList = () => {
   const clients = useSelectAllClients();
   const pagination = useSelectClientPagination();
   const user = useSelectUser();
-  // const [pagination, setPagination] = useState({
-  //   pageIndex: 0,
-  //   pageSize: 200,
-  //   currentPage: 1,
-  //   totalPages: 0,
-  // });
 
   const [modalType, setModalType] = useState("");
 
@@ -80,10 +78,11 @@ const ClientList = () => {
   const [sortAscending, setSortAscending] = useState(true);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isColumnDrawerOpen, setIsColumnDrawerOpen] = useState(false);
-  const [columnVisibility, setColumnVisibility] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState([]);
   const [columnOrder, setColumnOrder] = useState([]);
   const [filters, setFilters] = useState([]);
   const [sortConfig, setSortConfig] = useState({});
+  const [isArchivedPage, setIsArchivedPage] = useState(false);
 
   const fixedColumns = getColumnsForPage("client-list");
   const userPermissions = useSelectUserPermissions();
@@ -103,7 +102,57 @@ const ClientList = () => {
   };
 
   const loading = false;
-  const clientCustomFields = [];
+  const [columnWidths, setColumnWidths] = useState({});
+
+  const [userSortingArray, setUserSortingArray] = useState(null);
+  const [columnSortingArray, setColumnSortingArray] = useState(null);
+
+  useEffect(() => {
+    if (!currSelectedGroupId) return;
+    if (!user) return;
+
+    const widthRef = ref(
+      db,
+      `ClientColumnWidths/${user?.uid}/${currSelectedGroupId}`
+    );
+    const unsubWidth = onValue(widthRef, (snap) => {
+      const val = snap.val();
+      setColumnWidths(val);
+    });
+
+    const userRef = ref(
+      db,
+      `UserColumnSorting/${user?.uid}/${currSelectedGroupId}`
+    );
+    const unsubUser = onValue(userRef, (snap) => {
+      const val = snap.val();
+      const arr = Array.isArray(val) ? val : val?.columnsOrder;
+      setUserSortingArray(Array.isArray(arr) ? arr : null);
+    });
+
+    const groupRef = ref(db, `ColumnSorting/${currSelectedGroupId}`);
+    const unsubGroup = onValue(groupRef, (snap) => {
+      const arr = snap.val();
+      setColumnSortingArray(Array.isArray(arr) ? arr : null);
+    });
+
+    const viewRef = ref(
+      db,
+      `ViewableClientColumn//${user?.uid}/${currSelectedGroupId}`
+    );
+    const unsubView = onValue(viewRef, (snap) => {
+      const arr = snap.val();
+      setColumnVisibility(Array.isArray(arr) ? arr : null);
+    });
+
+    // Cleanup listeners when unmounting or group changes
+    return () => {
+      unsubWidth();
+      unsubUser();
+      unsubGroup();
+      unsubView();
+    };
+  }, [user, currSelectedGroupId]);
 
   useEffect(() => {
     if (!currSelectedGroup) return;
@@ -117,10 +166,11 @@ const ClientList = () => {
         fixedColumns,
         user_id: user?.uid,
         isAdmin,
+        isArchivedPage,
         hasPermission: canManageHandler,
       })
     );
-  }, [currSelectedGroup]);
+  }, [currSelectedGroup, isArchivedPage]);
 
   useEffect(() => {
     if (currSelectedGroup === null) return;
@@ -135,6 +185,7 @@ const ClientList = () => {
           searchText: searchText,
           user_id: user?.uid,
           isAdmin,
+          isArchivedPage,
           hasPermission: canManageHandler,
         })
       );
@@ -206,6 +257,7 @@ const ClientList = () => {
         searchText: searchText,
         user_id: user?.uid,
         isAdmin,
+        isArchivedPage,
         hasPermission: canManageHandler,
       })
     );
@@ -241,6 +293,7 @@ const ClientList = () => {
         fixedColumns,
         user_id: user?.uid,
         isAdmin,
+        isArchivedPage,
         hasPermission: canManageHandler,
       })
     );
@@ -262,19 +315,37 @@ const ClientList = () => {
 
   const onHandleDeleteClient = () => {
     if (targetClientId) {
-      dispatch(
-        deleteClient({
-          client_id: targetClientId,
-          client_group_id: currSelectedGroupId,
-        })
-      );
+      if (isArchivedPage) {
+        dispatch(
+          deleteClient({
+            client_id: targetClientId,
+            client_group_id: currSelectedGroupId,
+          })
+        );
+      } else {
+        dispatch(
+          archiveClient({
+            client_id: targetClientId,
+            client_group_id: currSelectedGroupId,
+          })
+        );
+      }
     }
   };
 
   const handleBulkUpdate = () => {
-    if (rowSelectedIds.length < 1) return;
-    const clientIds = rowSelectedIds;
-    dispatch(setSelectedClientIds({ router, data: clientIds }));
+    if (rowSelectedIds.length < 2) {
+      dispatch(
+        showToast({
+          message: "At least 2 client must be selected for bulk update !",
+          status: "error",
+        })
+      );
+      return;
+    } else {
+      const clientIds = rowSelectedIds;
+      dispatch(setSelectedClientIds({ router, data: clientIds }));
+    }
   };
 
   const handleShowBulkDeleteModal = () => {
@@ -285,12 +356,22 @@ const ClientList = () => {
 
   const handleBulkDelete = () => {
     const client_id_list = rowSelectedIds;
-    dispatch(
-      bulkDeleteClient({
-        client_group_id: currSelectedGroupId,
-        client_id_list: client_id_list,
-      })
-    );
+    if (isArchivedPage) {
+      dispatch(
+        bulkDeleteClient({
+          client_group_id: currSelectedGroupId,
+          client_id_list: client_id_list,
+        })
+      );
+    } else {
+      dispatch(
+        bulkArchiveClient({
+          client_group_id: currSelectedGroupId,
+          client_id_list: client_id_list,
+        })
+      );
+    }
+
     dispatch(setSelectedClientIdsSuccess([]));
   };
 
@@ -305,6 +386,7 @@ const ClientList = () => {
         fixedColumns,
         user_id: user?.uid,
         isAdmin,
+        isArchivedPage,
         hasPermission: canManageHandler,
       })
     );
@@ -321,21 +403,62 @@ const ClientList = () => {
         searchText: searchText,
         user_id: user?.uid,
         isAdmin,
+        isArchivedPage,
         hasPermission: canManageHandler,
       })
     );
   };
 
-  const handleColumnVisibilityChange = (visibilityUpdates) => {
-    setColumnVisibility(visibilityUpdates);
-    console.log(visibilityUpdates);
-    // Apply visibility changes to your table
+  const handleColumnVisibilityChange = async (visibilityUpdates) => {
+    if (!user || !currSelectedGroupId) return;
+
+    const path = `ViewableClientColumn/${user?.uid}/${currSelectedGroupId}`;
+    await set(ref(db, path), visibilityUpdates);
   };
 
-  const handleColumnOrderChange = (newOrder) => {
+  const handleColumnOrderChange = async (newOrder) => {
     setColumnOrder(newOrder);
-    // Apply new column order to your table
+    if (user?.uid && currSelectedGroupId) {
+      await set(
+        ref(db, `UserColumnSorting/${user?.uid}/${currSelectedGroupId}`),
+        newOrder
+      );
+    }
+    dispatch(
+      showToast({
+        message: "Save column position successfully !",
+        status: "success",
+      })
+    );
   };
+
+  const handleBulkRestore = () => {
+    if (rowSelectedIds.length < 1) return;
+    const clientIds = rowSelectedIds;
+    dispatch(
+      bulkRestoreClient({
+        client_id_list: clientIds,
+        client_group_id: currSelectedGroupId,
+      })
+    );
+  };
+
+  const saveWidths = useCallback(
+    debounce(async (widths, userId, clientGroupId) => {
+      try {
+        const path = `ClientColumnWidths/${userId}/${clientGroupId}`;
+        await set(ref(db, path), widths);
+      } catch (err) {
+        console.error("Error saving widths:", err);
+      }
+    }, 2000),
+    []
+  );
+
+  useEffect(() => {
+    if (!user || !currSelectedGroupId) return;
+    saveWidths(columnWidths, user?.uid, currSelectedGroupId);
+  }, [columnWidths, user, currSelectedGroupId]);
 
   return (
     <div className="page-container">
@@ -346,6 +469,10 @@ const ClientList = () => {
         dynamicColumns={dynamicColumns}
         onColumnVisibilityChange={handleColumnVisibilityChange}
         onColumnOrderChange={handleColumnOrderChange}
+        columnSortingArray={columnSortingArray}
+        userSortingArray={userSortingArray}
+        columnVisibility={columnVisibility}
+        setColumnVisibility={setColumnVisibility}
       />
       <FilterDrawer
         open={isFilterOpen}
@@ -368,15 +495,20 @@ const ClientList = () => {
         }}
       />
       <div className="title-container">
-        <h1>Client List</h1>
+        <h1>{isArchivedPage ? "Archived List" : "Client List"}</h1>
         <div className="title-actions">
+          <label>{"Show Archived"}</label>
+          <SwitchField
+            checked={isArchivedPage}
+            onChange={(e) => setIsArchivedPage(!isArchivedPage)}
+          />
           <DropdownField
             value={currSelectedGroupId ?? ""}
             dropdownList={groupOptionList}
             onChange={(value) => handleOnChangeGroup(value)}
             width={"200px"}
           />
-          {canManageClient ? (
+          {canManageClient && !isArchivedPage ? (
             <ActionButton
               label={"Import Client"}
               type="primary"
@@ -388,7 +520,7 @@ const ClientList = () => {
             />
           ) : null}
 
-          {canManageClient ? (
+          {canManageClient && !isArchivedPage ? (
             <ActionButton
               label={"+ New Client"}
               type="primary"
@@ -424,8 +556,13 @@ const ClientList = () => {
 
         {/* Icons Section */}
         <div className="icons-section">
+          {isArchivedPage ? (
+            <div className="icon-group" onClick={() => handleBulkRestore()}>
+              <FaRedo className="icon" />
+            </div>
+          ) : null}
           {/* Bulk Update Icon */}
-          {canManageClient ? (
+          {canManageClient && !isArchivedPage ? (
             <div className="icon-group" onClick={() => handleBulkUpdate()}>
               <FaEdit className="icon" />
             </div>
@@ -469,7 +606,7 @@ const ClientList = () => {
         onSelectionChange={handleSelectionChange}
         loading={loading}
         deletableAction={canDeleteClient}
-        editableAction={canManageClient}
+        editableAction={canManageClient && !isArchivedPage}
         emptyMessage="No clients found"
         // Pagination props
         pagination={true}
@@ -478,6 +615,11 @@ const ClientList = () => {
         totalItems={pagination.totalItems}
         pageSize={pagination.pageSize}
         onPageChange={handlePageChange}
+        columnSortingArray={columnSortingArray}
+        userSortingArray={userSortingArray}
+        columnVisibility={columnVisibility}
+        columnWidths={columnWidths}
+        setColumnWidths={setColumnWidths}
       />
     </div>
   );

@@ -49,10 +49,10 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const userPermissions = useSelectUserPermissions();
   const role = useSelectUserRoles();
   const isAdmin = useSelectIsAdmin();
-  console.log("ADMIN ? : ", isAdmin);
+  // console.log("ADMIN ? : ", isAdmin);
 
-  console.log("USER ROLE : ", role);
-  console.log("USER PERM : ", userPermissions);
+  // console.log("USER ROLE : ", role);
+  // console.log("USER PERM : ", userPermissions);
 
   //   [
   //     "approval",

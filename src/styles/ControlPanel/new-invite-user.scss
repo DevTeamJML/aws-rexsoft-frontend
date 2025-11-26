@@ -40,22 +40,21 @@
     flex: 1 1 100%;
   }
 
-  .field-label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: variables.$font-s;
-    color: variables.$grey-text-color;
-  }
+  // .field-label {
+  //   display: block;
+  //   margin-bottom: 8px;
+  //   font-size: variables.$font-s;
+  // }
 
-  .select {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid variables.$input-stroke;
-    background: variables.$input-bg;
-    border-radius: 6px;
-    font-size: variables.$font-s;
-    color: variables.$text-primary;
-  }
+  // .select {
+  //   width: 100%;
+  //   padding: 8px 10px;
+  //   border: 1px solid variables.$input-stroke;
+  //   background: variables.$input-bg;
+  //   border-radius: 6px;
+  //   font-size: variables.$font-s;
+  //   color: variables.$text-primary;
+  // }
 
   /* Permissions wrapper now scrollable; all sections visible by default */
   .permissions {

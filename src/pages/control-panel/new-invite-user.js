@@ -1,21 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/router";
 import { v4 } from "uuid";
 
 import { PlainTextField } from "@/components/FormComponents/PlainTextField";
-import { useSelectCurrCompany } from "../../../redux/slices/companySlice";
+import {
+  useSelectCurrCompany,
+  useSelectCurrCompanyId,
+} from "../../../redux/slices/companySlice";
 import { useSelectUser } from "../../../redux/slices/authSlice";
 import { inviteUserToCompany } from "../../../redux/slices/invitationSlice";
 import { ActionButton } from "@/components/Misc/ActionButton";
+import {
+  getAllRoles,
+  useSelectAllRoles,
+} from "../../../redux/slices/roleSlice";
+import { DropdownField } from "@/components/FormComponents/DropdownField";
+import { showToast } from "../../../redux/slices/toastSlice";
 
 export default function NewInviteUser() {
   const dispatch = useDispatch();
   const router = useRouter();
   const company = useSelectCurrCompany();
   const user = useSelectUser();
+  const currCompanyId = useSelectCurrCompanyId();
 
   /** ---------------------------
    * Permissions (boolean version)
@@ -42,10 +52,24 @@ export default function NewInviteUser() {
   /** Form Inputs */
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("USER");
+  const [role, setRole] = useState("");
+  const [adminRole, setAdminRole] = useState("USER");
+  const allRoles = useSelectAllRoles();
+
   // const [permissions, setPermissions] = useState(defaultPermissions);
 
   const [errors, setErrors] = useState({});
+
+  const roles = useMemo(() => {
+    if (!allRoles || !Array.isArray(allRoles)) return [];
+
+    return allRoles.map((r) => {
+        return {
+          label: r.role_name,
+          value: r.role_id
+        }
+    });
+  }, [allRoles]);
 
   /** Validate fields */
   const validate = () => {
@@ -63,11 +87,19 @@ export default function NewInviteUser() {
     ev.preventDefault();
     if (!validate()) return;
 
+    if(adminRole === "" || role === ""){
+      dispatch(showToast({
+        message : "You must assign privilege and role to the user",
+        status : "error"
+      }))
+      return;
+    }
     const body = {
       invitation_id: v4(),
       first_name: firstName.trim(),
       email: email.trim(),
-      is_admin: role,
+      is_admin: adminRole,
+      role_id: role,
       company_name: company?.company_name,
       company_id: company?.company_id,
       inviterName: `${user?.first_name || ""} ${user?.last_name || ""}`.trim(),
@@ -77,8 +109,14 @@ export default function NewInviteUser() {
       dispatch(inviteUserToCompany({ router, body }));
     } catch (err) {
       console.error("Invite failed", err);
-    } 
+    }
   };
+
+  useEffect(() => {
+    if (currCompanyId) {
+      dispatch(getAllRoles({ company_id: currCompanyId }));
+    }
+  }, [currCompanyId]);
 
   /** Update nested boolean permission */
   // const setNestedPermission = (path, value) => {
@@ -125,6 +163,7 @@ export default function NewInviteUser() {
     router.back();
   };
 
+
   return (
     <div className="new-invite-user-container">
       <header className="page-header">
@@ -163,6 +202,30 @@ export default function NewInviteUser() {
         <div className="form-row">
           <div className="form-col-full">
             <label className="field-label">Admin/User</label>
+            {/* <select
+              className="select"
+              value={adminRole}
+              onChange={(e) => setAdminRole(e.target.value)}
+            >
+              {roleOptions.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </select> */}
+
+            <DropdownField
+              value={adminRole ?? ""}
+              dropdownList={roleOptions}
+              onChange={(value) => setAdminRole(value)}
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-col-full">
+            <label className="field-label">User Role</label>
+            {/* <label className="field-label">Role</label>
             <select
               className="select"
               value={role}
@@ -173,7 +236,12 @@ export default function NewInviteUser() {
                   {r.label}
                 </option>
               ))}
-            </select>
+            </select> */}
+            <DropdownField
+              value={role ?? ""}
+              dropdownList={roles}
+              onChange={(value) => setRole(value)}
+            />
           </div>
         </div>
 
@@ -195,11 +263,7 @@ export default function NewInviteUser() {
         {/* Submit Button */}
         <div className="form-actions">
           <ActionButton type="outlined" label="Cancel" onClick={handleCancel} />
-          <ActionButton
-            type="primary"
-            label="Create Role"
-            onClick={handleInvite}
-          />
+          <ActionButton type="primary" label="Invite" onClick={handleInvite} />
         </div>
       </form>
     </div>

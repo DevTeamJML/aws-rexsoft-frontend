@@ -16,6 +16,8 @@ import React, { useEffect, useState } from "react";
 import { FaGripVertical, FaTrash } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { v4 } from "uuid";
+import { db } from "@/config/firebaseConfig";
+import { onValue, ref } from "firebase/database";
 
 // Main Component
 export default function EditClientGroupPage({ params }) {
@@ -40,6 +42,7 @@ export default function EditClientGroupPage({ params }) {
       width: "100",
       is_required: false,
       allow_duplicate: true,
+      is_system: true,
       options: [],
     },
   ]);
@@ -58,7 +61,7 @@ export default function EditClientGroupPage({ params }) {
     { label: "Short Text", value: "short_text" },
     { label: "Date", value: "date" },
     { label: "Multiline", value: "multiline" },
-    { label: "Rich Text", value: "rich_text" },
+    // { label: "Rich Text", value: "rich_text" },
     { label: "Dropdown", value: "dropdown" },
     { label: "Alert", value: "alert" },
     { label: "Number", value: "number" },
@@ -97,12 +100,70 @@ export default function EditClientGroupPage({ params }) {
     }
   }, [client_group_id]);
 
-  useEffect(()=> {
-    if(currGroup){
-      setGroupName(currGroup?.client_group_name);
-      setFields(currGroup?.columns)
-    }
-  }, [currGroup])
+  useEffect(() => {
+    if (!currGroup) return;
+    const groupId = currGroup.client_group_id;
+    setGroupName(currGroup.client_group_name);
+
+    const sortRef = ref(db, `ColumnSorting/${groupId}`);
+
+    const unsubscribe = onValue(
+      sortRef,
+      (snap) => {
+        const sortOrder = snap.val(); 
+
+        const getId = (col) =>
+          col?.id ?? col?.column_id ?? col?.key;
+
+        // if no saved sortOrder, just use original columns
+        if (!Array.isArray(sortOrder) || sortOrder.length === 0) {
+          setFields(Array.isArray(currGroup.columns) ? currGroup.columns : []);
+          return;
+        }
+
+        // make map: id -> index in sortOrder (for fast lookup)
+        const indexMap = new Map();
+        sortOrder.forEach((id, idx) => indexMap.set(id, idx));
+
+        // split columns into two groups:
+        // 1) known — those whose id exists in indexMap (and will be sorted by index)
+        // 2) unknown — those not in indexMap (kept in original relative order and appended)
+        const originalCols = Array.isArray(currGroup.columns)
+          ? currGroup.columns
+          : [];
+
+        const known = [];
+        const unknown = [];
+
+        for (let i = 0; i < originalCols.length; i++) {
+          const col = originalCols[i];
+          const id = getId(col);
+          if (id && indexMap.has(id)) known.push(col);
+          else unknown.push(col);
+        }
+        
+        known.sort((a, b) => {
+          const ai = indexMap.get(getId(a));
+          const bi = indexMap.get(getId(b));
+          return ai - bi;
+        });
+
+        const finalOrder = [...known, ...unknown];
+
+        setFields(finalOrder);
+      },
+      (err) => {
+        console.error("ColumnSorting listener error:", err);
+        setFields(Array.isArray(currGroup.columns) ? currGroup.columns : []);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [
+    currGroup?.client_group_id,
+    currGroup?.client_group_name,
+    currGroup?.columns,
+  ]);
 
   // Drag and Drop Handlers
   const handleDragStart = (e, index) => {
@@ -302,7 +363,9 @@ export default function EditClientGroupPage({ params }) {
                 {/* <div className="drag-handle" title="Drag to reorder">
                   ⋮⋮
                 </div> */}
-                  <div className="drag-handle"><FaGripVertical /></div>
+                <div className="drag-handle">
+                  <FaGripVertical />
+                </div>
                 <div className="field-input-container">
                   <div
                     className="text-box"
@@ -310,12 +373,14 @@ export default function EditClientGroupPage({ params }) {
                   >
                     {field.label}
                   </div>
-                  <div
-                    className="delete-overlay"
-                    onClick={() => handleDeleteField(field.column_id)}
-                  >
-                    <FaTrash size={10} />
-                  </div>
+                  {!field.is_system ? (
+                    <div
+                      className="delete-overlay"
+                      onClick={() => handleDeleteField(field.column_id)}
+                    >
+                      <FaTrash size={10} />
+                    </div>
+                  ) : null}
                 </div>
               </div>
             );
@@ -343,6 +408,7 @@ export default function EditClientGroupPage({ params }) {
                 <div className="input-group">
                   <label>Name</label>
                   <PlainTextField
+                    disable={newField.is_system}
                     type={"text"}
                     value={newField.label}
                     placeholder="Enter field name"

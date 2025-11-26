@@ -3,15 +3,17 @@ import { createSlice } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 
 const initialState = {
-  list: [],              // role list (for role-list)
-  current: null,         // single role detail (getRoleById)
-  loading: false,        // generic loading flag
-  listLoading: false,    // loading for list
-  creating: false,       // create role loading
-  updating: false,       // update role loading
-  error: "",             // generic error
-  listError: "",         // list error
-  detailError: "",       // single role error
+  list: [], // role list (for role-list)
+  current: null, // single role detail (getRoleById)
+  loading: false, // generic loading flag
+  listLoading: false, // loading for list
+  creating: false, // create role loading
+  updating: false, // update role loading
+  error: "", // generic error
+  listError: "", // list error
+  detailError: "", // single role error
+  deleteRoleLoading: false,
+  deleteRoleError: "",
 };
 
 const roleSlice = createSlice({
@@ -74,7 +76,9 @@ const roleSlice = createSlice({
       state.updating = false;
       // update list and current if present
       if (payload && payload.role_id) {
-        state.list = state.list.map((r) => (r.role_id === payload.role_id ? payload : r));
+        state.list = state.list.map((r) =>
+          r.role_id === payload.role_id ? payload : r
+        );
         if (state.current && state.current.role_id === payload.role_id) {
           state.current = payload;
         }
@@ -89,6 +93,22 @@ const roleSlice = createSlice({
     resetCurrentRole(state) {
       state.current = null;
       state.detailError = "";
+    },
+
+    deleteRole(state) {
+      state.deleteRoleLoading = true;
+      state.deleteRoleError = "";
+    },
+    deleteRoleSuccess(state, { payload }) {
+      state.deleteRoleLoading = false;
+      state.deleteRoleError = "";
+      // optionally remove from list:
+      const roleId = payload.role_id;
+      state.list = state.list?.filter((r) => r.role_id !== roleId);
+    },
+    deleteRoleError(state, action) {
+      state.deleteRoleLoading = false;
+      state.deleteRoleError = action.payload;
     },
   },
 });
@@ -107,16 +127,25 @@ export const {
   updateRoleSuccess,
   updateRoleError,
   resetCurrentRole,
+  deleteRole,
+  deleteRoleError,
+  deleteRoleSuccess,
 } = roleSlice.actions;
 
 // Selectors as hooks (same pattern as your graph slice)
 export const useSelectAllRoles = () => useSelector((state) => state.role.list);
-export const useSelectRoleListLoading = () => useSelector((state) => state.role.listLoading);
-export const useSelectRoleCreating = () => useSelector((state) => state.role.creating);
-export const useSelectRoleUpdating = () => useSelector((state) => state.role.updating);
-export const useSelectRoleCurrent = () => useSelector((state) => state.role.current);
-export const useSelectRoleLoading = () => useSelector((state) => state.role.loading);
-export const useSelectRoleError = () => useSelector((state) => state.role.error);
+export const useSelectRoleListLoading = () =>
+  useSelector((state) => state.role.listLoading);
+export const useSelectRoleCreating = () =>
+  useSelector((state) => state.role.creating);
+export const useSelectRoleUpdating = () =>
+  useSelector((state) => state.role.updating);
+export const useSelectRoleCurrent = () =>
+  useSelector((state) => state.role.current);
+export const useSelectRoleLoading = () =>
+  useSelector((state) => state.role.loading);
+export const useSelectRoleError = () =>
+  useSelector((state) => state.role.error);
 
 const roleReducer = roleSlice.reducer;
 

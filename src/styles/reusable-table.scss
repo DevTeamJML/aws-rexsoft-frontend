@@ -62,9 +62,16 @@
   border-radius: 8px;
   overflow: hidden;
   position: relative;
-  padding-inline: 1rem;
+  padding-left: 1rem;
+  padding-right: 2rem;
 }
 
+.table-selection-summary{
+  // // padding-inline: 1rem;
+  // display: flex;
+  // justify-content: space-between;
+  padding-bottom: 0.5rem;
+}
 // Single scroll container for both header and body
 .table-scroll-container {
   flex: 1;
@@ -187,6 +194,7 @@
     .table-cell {
       padding: 12px 16px;
       border-bottom: 1px solid #e0e0e0;
+      text-align: left;
 
       // Fixed columns in body
       &.fixed-column {
@@ -194,6 +202,7 @@
         position: sticky;
         z-index: 40;
         background-color: white;
+        text-align: center !important;
 
         &[data-fixed="left"] {
           left: 0;
