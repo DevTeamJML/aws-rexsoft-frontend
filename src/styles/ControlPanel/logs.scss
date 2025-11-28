@@ -1,4 +1,5 @@
 @use "../_variables.scss";
+
 .logs-page-container {
   padding: 24px;
   box-sizing: border-box;
@@ -18,12 +19,6 @@
     &:hover {
       border-color: #c0c0c0;
     }
-
-    &:focus-within {
-      border-color: variables.$primary-color;
-      box-shadow: 0 0 0 2px rgba(variables.$primary-color, 0.1);
-    }
-
     .search-icon {
       display: flex;
       align-items: center;
@@ -137,9 +132,9 @@
     }
   }
 
-  .logs-container{
+  .logs-container {
     height: 70vh;
-    overflow: scroll;
+    overflow: auto;
   }
   .cardsWrap {
     display: flex;
@@ -232,14 +227,14 @@
   }
 
   .logModal {
-    width: 720px;
+    min-width: 80vw;
     max-width: calc(100% - 48px);
     max-height: calc(100vh - 80px);
     overflow: auto;
     background: #fff;
     border-radius: 10px;
     box-shadow: 0 18px 60px rgba(12, 12, 12, 0.35);
-    padding: 18px;
+    padding: 2rem 3rem;
     position: relative;
   }
 
@@ -264,9 +259,133 @@
   }
 
   .logModalBody {
+    /* Insert under .logModalBody or at bottom of file */
+
+    .modalFieldsTouched {
+      margin-top: 12px;
+
+      h4 {
+        margin: 6px 0 10px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .fieldsGrid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .fieldRowTwoCol {
+        display: grid;
+        grid-template-columns: 220px 1fr; // label fixed, value flexible
+        gap: 12px;
+        align-items: center;
+        padding: 10px;
+        border-radius: 8px;
+        background: #fbfdff;
+        border: 2px solid #eef6ff;
+      }
+
+      .fieldLabelTwoCol {
+        font-weight: 700;
+        color: #0b2545;
+        font-size: 13px;
+      }
+
+      .fieldValueTwoCol {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        min-height: 1.4em;
+      }
+
+      .fieldText {
+        color: #0b2545;
+        font-size: 13px;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .fieldPre {
+        margin: 0;
+        padding: 8px;
+        font-size: 12px;
+        line-height: 1.25;
+        background: #ffffff;
+        border-radius: 6px;
+        border: 2px solid #e9f1ff;
+        color: #0b2545;
+        max-height: 140px;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+    }
+
+    /* Affected grid */
+    .modalAffected {
+      margin-top: 14px;
+
+      .affectedGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 8px;
+        margin-top: 10px;
+        max-height: 260px;
+        overflow: auto;
+        padding-right: 6px;
+      }
+
+      .affectedItem {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 10px;
+        background: #f3f3f3;
+        border-radius: 8px;
+        border: 2px solid #f0f4f8;
+      }
+
+      .affectedSerial {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono",
+          monospace;
+        color: #0b2545;
+        font-weight: 700;
+        margin-right: 8px;
+      }
+
+      .affectedId {
+        color: #444;
+        font-size: 13px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .affectedFooter {
+        margin-top: 8px;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .showMoreBtn {
+        border: 1px solid #ddd;
+        background: transparent;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #333;
+      }
+    }
+
     .modalMainText {
       margin-bottom: 12px;
-      color: #222;
+      color: #3b82f6;
       font-size: 14px;
     }
 
@@ -280,11 +399,12 @@
         strong {
           color: #333;
           margin-right: 6px;
-          font-weight: 600;
+          font-weight: bold;
         }
       }
     }
 
+    /* Single-update changes styling (kept similar to your design) */
     .modalChanges {
       h4 {
         margin: 6px 0 8px;
@@ -326,6 +446,99 @@
         }
       }
     }
+
+    /* --- New: Bulk update metadata styles --- */
+    .modalFieldsTouched {
+      margin-top: 8px;
+      h4 {
+        margin: 6px 0 8px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .fieldRow {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px;
+        border-radius: 6px;
+        background: #f8fbff;
+        border: 1px solid #eef6ff;
+        margin-bottom: 6px;
+
+        .fieldLabel {
+          font-weight: 600;
+          color: #0b2545;
+        }
+        .fieldValue {
+          color: #333;
+          max-width: 60%;
+          text-align: right;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+
+    .modalAffected {
+      margin-top: 12px;
+
+      h4 {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .affectedList {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 240px;
+        overflow: auto;
+        padding-right: 6px;
+        margin-top: 8px;
+      }
+
+      .affectedRow {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px;
+        background: #fff;
+        border-radius: 6px;
+        border: 2px solid #f0f4f8;
+      }
+
+      .affectedId {
+        font-family: monospace;
+        font-size: 13px;
+        color: #111;
+      }
+
+      .affectedName {
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 13px;
+        color: #666;
+      }
+
+      .affectedFooter {
+        margin-top: 8px;
+        display: flex;
+        justify-content: flex-end;
+
+        .showMoreBtn {
+          border: 1px solid #ddd;
+          background: transparent;
+          padding: 6px 10px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 13px;
+          color: #333;
+        }
+      }
+    }
   }
 
   .logModalFooter {
@@ -336,6 +549,11 @@
   @media (max-width: 760px) {
     .cardsWrap {
       grid-template-columns: 1fr; // single column on small screens
+    }
+
+    .logModal {
+      width: calc(100% - 32px);
+      padding: 12px;
     }
   }
 }

@@ -52,7 +52,6 @@ function* getAllRolesSaga({ payload }) {
  */
 function* getRoleSaga({ payload }) {
   try {
-    console.log(payload);
     const res = yield call(
       API.get,
       ApiRoute.role.getRole,

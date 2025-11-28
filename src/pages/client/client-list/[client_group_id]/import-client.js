@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useDispatch } from "react-redux";
@@ -13,12 +12,18 @@ import {
   useSelectCurrSelectedGroup,
   useSelectCurrSelectedGroupId,
 } from "../../../../../redux/slices/clientSlice";
-import { useSelectAllCompanyUsers } from "../../../../../redux/slices/companySlice";
+import {
+  useSelectAllCompanyUsers,
+  useSelectCurrCompanyId,
+  useSelectIsAdmin,
+} from "../../../../../redux/slices/companySlice";
 import { useSelectUser } from "../../../../../redux/slices/authSlice";
 import { hideToast, showToast } from "../../../../../redux/slices/toastSlice";
 import { ActionButton } from "@/components/Misc/ActionButton";
 import ReusableTable from "@/components/ReusableTable/ReusableTable";
 import SimpleImportTable from "@/components/Misc/SimpleImportTable";
+import { validateHeader } from "@/utils/clientImportChecker";
+import { useSelectUserPermissions } from "../../../../../redux/slices/roleAuthSlice";
 
 // Dynamic imports
 const CloudUploadOutlinedIcon = dynamic(
@@ -42,11 +47,22 @@ export default function ClientImportForm() {
   const currGroupId = useSelectCurrSelectedGroupId();
   const allCompanyUsers = useSelectAllCompanyUsers();
   const user = useSelectUser();
+  const isAdmin = useSelectIsAdmin();
+  const userPermissions = useSelectUserPermissions();
 
   const [loading, setLoading] = useState(false);
   const [rawImportedData, setRawImportedData] = useState(null);
   const [importedData, setImportedData] = useState(null);
   const [errorList, setErrorList] = useState(null);
+
+  // modal & handler selection state
+  const [showHandlerModal, setShowHandlerModal] = useState(false);
+  const [selectedHandlerIds, setSelectedHandlerIds] = useState([]);
+
+  const currCompanyId = useSelectCurrCompanyId();
+
+  const canManageHandler =
+    isAdmin || userPermissions.includes("manage_handler");
 
   const columns = useMemo(() => {
     if (currSelectedGroup) {
@@ -94,25 +110,17 @@ export default function ClientImportForm() {
             <code>100</code>)
           </li>
           <li className="instruction-list-item">
-            <strong>Dropdown:</strong> Enter one value only from the available
-            options (e.g. <code>abc</code>)
+            <strong>Dropdown:</strong> Enter any value or value from the
+            available options (e.g. <code>abc</code>)
           </li>
           <li className="instruction-list-item">
             <strong>Short Text:</strong> Plain text (e.g. <code>abc</code>)
           </li>
-          <li className="instruction-list-item">
-            <strong>Handler:</strong> Enter the User Id by copying it from the{" "}
-            <span
-              className="user-list-link"
-              onClick={() => {
-                window.open("/control-panel/users", "_blank");
-              }}
-            >
-              User List
-            </span>
-            . Separate multiple selections with commas (e.g.{" "}
-            <code>id1,id2,id3</code>)
-          </li>
+          {/* <li className="instruction-list-item">
+            <strong>Handler:</strong> You will select handler(s) in the next
+            step after uploading — do NOT include a Handler column in the
+            spreadsheet.
+          </li> */}
         </ul>
       </div>
     );
@@ -123,57 +131,54 @@ export default function ClientImportForm() {
   };
 
   const handleGetTemplate = async () => {
-    const columns = currSelectedGroup.columns;
-    const groupName = currSelectedGroup.client_group_name;
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Clients");
-
-    if (!worksheet) {
-      console.error("Failed to create worksheet.");
+    // Ensure currSelectedGroup exists
+    if (!currSelectedGroup) {
+      console.error("No selected group");
       return;
     }
 
+    // Filter columns: exclude alert/rich_text AND columns that are not editable (unless admin)
+    const allColumns = currSelectedGroup.columns || [];
+    const templateColumns = allColumns.filter((col) => {
+      if (col.field_type === "alert" || col.field_type === "rich_text")
+        return false;
+      // Adjust this check to your actual permission flag; common variants:
+      // col.permission === 'editable' OR col.is_editable === true
+      if (!isAdmin) {
+        if (col.permission && col.permission !== "editable") return false;
+      }
+      return true;
+    });
+
+    const groupName = currSelectedGroup.client_group_name || "group";
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Clients");
+
     worksheet.columns = [
-      ...columns
-        .filter(
-          (col) => col.field_type !== "alert" && col.field_type !== "rich_text"
-        )
-        .map((col) => {
-          const key = col.label.toLowerCase().split(" ").join("_");
-          return {
-            header: col.label,
-            key: key,
-            width: 20,
-          };
-        }),
-      {
-        header: "Handler",
-        key: "handler",
-        width: 20,
-      },
+      ...templateColumns.map((col) => {
+        const key = col.label.toLowerCase().split(" ").join("_");
+        return {
+          header: col.label,
+          key,
+          width: 20,
+        };
+      }),
+      // Handler removed from template on purpose
     ];
 
     try {
       const buffer = await workbook.xlsx.writeBuffer();
-
       if (!buffer || buffer.byteLength === 0) {
         console.error("Generated XLSX file is empty.");
         return;
       }
-
       const blob = new Blob([buffer], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
-
-      if (blob.size === 0) {
-        console.error("Blob creation failed.");
-        return;
-      }
-
       const url = window.URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = groupName + "_template" + "-Client.xlsx";
+      anchor.download = `${groupName}_template-Client.xlsx`;
       anchor.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {
@@ -224,16 +229,42 @@ export default function ClientImportForm() {
     try {
       const rows = await readExcelFile(file);
       setRawImportedData(rows);
-      const header = rows[0];
-      const expectedLength = header.length;
-      const areAllColumnsSame = columns
-        .filter(
-          (col) => col.field_type !== "alert" && col.field_type !== "rich_text"
-        )
-        .map((col) => col.label)
-        .every((colName) => header.some((header) => header === colName));
 
-      if (!areAllColumnsSame) {
+      if (!rows || rows.length < 1) {
+        dispatch(
+          showToast({ message: "File empty or unreadable", status: "error" })
+        );
+        setLoading(false);
+        return;
+      }
+
+      const header = rows[0];
+
+      // treat Handler as optional but we don't expect it in the template anymore
+      const optional = [];
+
+      const expectedLength = header.length;
+      const compareHeader = header;
+
+      // compute compareColumn the same way as template (exclude non-editable unless admin)
+      const compareColumn = columns.filter((col) => {
+        if (col.field_type === "alert" || col.field_type === "rich_text")
+          return false;
+        if (!isAdmin) {
+          if (col.permission && col.permission !== "editable") return false;
+        }
+        return true;
+      });
+
+      // validateHeader: keep your current validator contract; it accepts the header (array)
+      // and compareColumn (array of column objects). If your validator expects labels, pass compareColumn.map(c=>c.label)
+      const { isValid, extra, missing } = validateHeader(
+        compareHeader,
+        compareColumn,
+        optional
+      );
+
+      if (!isValid) {
         dispatch(
           showToast({
             message:
@@ -244,6 +275,7 @@ export default function ClientImportForm() {
         setTimeout(() => {
           dispatch(hideToast());
         }, 3000);
+        setLoading(false);
         return;
       }
 
@@ -251,8 +283,15 @@ export default function ClientImportForm() {
       const processedList = rows
         .slice(1)
         .filter((row) => {
+          // remove totally-empty rows or rows with wrong column count
+          if (!row) return false;
           if (row.length !== expectedLength) return false;
-          return true;
+          // also skip rows that are all empty
+          const hasAny = row.some(
+            (cell) =>
+              cell !== null && cell !== undefined && `${cell}`.trim() !== ""
+          );
+          return hasAny;
         })
         .reduce(
           (acc, currRow, rowIndex) => {
@@ -261,68 +300,65 @@ export default function ClientImportForm() {
 
             const newObj = header.reduce(
               (dataAcc, currColName, colIndex) => {
-                if (currColName === "Handler") {
-                  const isLastIndex = header.length - 1;
-                  const row_value = currRow[isLastIndex];
-                  if (row_value) {
-                    const handlerArr = row_value.split(",").map((handler) => {
-                      return {
-                        client_id,
-                        user_id: handler.trim(),
-                      };
-                    });
-                    dataAcc["handler_list"].push(handlerArr);
+                // Handler parsing removed — we will attach handlers in modal step
+                const columnObj = compareColumn.find(
+                  (col) => col.label === currColName
+                );
+
+                // Skip if no matching column found or if column_id is empty
+                if (!columnObj || !columnObj.column_id) {
+                  return dataAcc;
+                }
+
+                const column_id = columnObj.column_id;
+                const field_type = columnObj.field_type;
+                const is_required = columnObj.is_required;
+                const allow_duplicate = columnObj.allow_duplicate;
+                const row_value = currRow[colIndex];
+
+                if (
+                  is_required &&
+                  (row_value === "" ||
+                    row_value === null ||
+                    row_value === undefined)
+                ) {
+                  dataAcc["error_values"].push({
+                    row_index: rowIndex,
+                    col_index: colIndex,
+                    message: `${currColName} is a required field, please make sure it's not empty.`,
+                    error_type: "required",
+                  });
+                }
+
+                if (
+                  !allow_duplicate &&
+                  row_value !== "" &&
+                  row_value !== null &&
+                  row_value !== undefined
+                ) {
+                  if (!seenValues[column_id]) {
+                    seenValues[column_id] = new Set();
                   }
-                } else {
-                  const columnObj = columns.find(
-                    (col) => col.label === currColName
-                  );
-
-                  // Skip if no matching column found or if column_id is empty
-                  if (!columnObj || !columnObj.column_id) {
-                    return dataAcc;
-                  }
-
-                  const column_id = columnObj.column_id;
-                  const field_type = columnObj.field_type;
-                  const is_required = columnObj.is_required;
-                  const allow_duplicate = columnObj.allow_duplicate;
-                  const row_value = currRow[colIndex];
-
-                  if (is_required && row_value === "") {
+                  if (seenValues[column_id].has(row_value)) {
                     dataAcc["error_values"].push({
                       row_index: rowIndex,
                       col_index: colIndex,
-                      message: `${currColName} is a required field, please make sure it's not empty.`,
-                      error_type: "required",
+                      message: `${currColName} must be unique, but "${row_value}" is duplicated.`,
+                      error_type: "duplicate",
                     });
+                  } else {
+                    seenValues[column_id].add(row_value);
                   }
-
-                  if (!allow_duplicate && row_value !== "") {
-                    if (!seenValues[column_id]) {
-                      seenValues[column_id] = new Set();
-                    }
-                    if (seenValues[column_id].has(row_value)) {
-                      dataAcc["error_values"].push({
-                        row_index: rowIndex,
-                        col_index: colIndex,
-                        message: `${currColName} must be unique, but "${row_value}" is duplicated.`,
-                        error_type: "duplicate",
-                      });
-                    } else {
-                      seenValues[column_id].add(row_value);
-                    }
-                  }
-
-                  dataAcc["values"].push({
-                    client_id,
-                    column_id,
-                    client_group_id,
-                    row_value: row_value,
-                  });
-
-                  dataAcc["processed"][currColName] = row_value;
                 }
+
+                dataAcc["values"].push({
+                  client_id,
+                  column_id,
+                  client_group_id,
+                  row_value: row_value,
+                });
+
+                dataAcc["processed"][currColName] = row_value;
 
                 return dataAcc;
               },
@@ -352,6 +388,7 @@ export default function ClientImportForm() {
           }
         );
 
+      // pull results out
       const client_list = processedList.client_list;
       const custom_values = processedList.custom_values.flat();
       const processed_list = processedList.processed_list;
@@ -363,13 +400,14 @@ export default function ClientImportForm() {
         dispatch(
           showToast({
             message:
-              "There are problems with your imported list, please ammend according to the error list provided below !",
+              "There are problems with your imported list, please amend according to the error list provided below !",
             status: "error",
           })
         );
         setTimeout(() => {
           dispatch(hideToast());
         }, 4000);
+        setLoading(false);
         return;
       }
 
@@ -383,6 +421,8 @@ export default function ClientImportForm() {
         setTimeout(() => {
           dispatch(hideToast());
         }, 3000);
+        setLoading(false);
+        return;
       }
 
       setImportedData({
@@ -398,27 +438,126 @@ export default function ClientImportForm() {
     }
   };
 
+  // When user clicks the main Import button, open the handler modal
   const handleListImport = async () => {
-    const client_list = importedData.client_list;
-    const custom_values = importedData.custom_values;
-    const add_handler_list = importedData.add_handler_list;
+    if (!importedData || !importedData.client_list?.length) {
+      dispatch(
+        showToast({
+          message: "No imported data available. Please upload a file first.",
+          status: "error",
+        })
+      );
+      setTimeout(() => dispatch(hideToast()), 2500);
+      return;
+    }
 
-    console.log({
-      router,
-      setImportedData,
-      client_list,
-      custom_values,
-      handler: add_handler_list,
+    // optionally pre-select current user
+    // setSelectedHandlerIds([user?.uid]);
+
+    setShowHandlerModal(true);
+  };
+
+  // Confirm import inside the modal
+  // const handleConfirmImport = (handlerIds = []) => {
+  //   if (!importedData || !importedData.client_list?.length) {
+  //     dispatch(
+  //       showToast({
+  //         message: "No imported data available. Please upload a file first.",
+  //         status: "error",
+  //       })
+  //     );
+  //     setShowHandlerModal(false);
+  //     setTimeout(() => dispatch(hideToast()), 2500);
+  //     return;
+  //   }
+
+  //   // build handler pairs: [{ client_id, user_id }, ...]
+  //   // apply selected handlers to every client
+  //   const handlerPairs = [];
+  //   importedData.client_list.forEach((c) => {
+  //     handlerIds.forEach((uid) => {
+  //       handlerPairs.push({
+  //         client_id: c.client_id,
+  //         user_id: uid,
+  //       });
+  //     });
+  //   });
+
+  //   // Dispatch the bulk create thunk — adapt if your API expects a different shape
+  //   dispatch(
+  //     bulkCreateClient({
+  //       router,
+  //       setImportedData,
+  //       client_list: importedData.client_list,
+  //       custom_values: importedData.custom_values,
+  //       handler: handlerPairs,
+  //     })
+  //   );
+
+  //   // close modal
+  //   setShowHandlerModal(false);
+  //   // clear selection if you want
+  //   // setSelectedHandlerIds([]);
+  // };
+
+  const handleConfirmImport = (handlerIds = []) => {
+    if (!importedData || !importedData.client_list?.length) {
+      dispatch(
+        showToast({
+          message: "No imported data available. Please upload a file first.",
+          status: "error",
+        })
+      );
+      setShowHandlerModal(false);
+      setTimeout(() => dispatch(hideToast()), 2500);
+      return;
+    }
+
+    const totalImported = importedData.client_list.length;
+    const client_group_id =
+      currSelectedGroup?.client_group_id ?? currSelectedGroup?.id ?? null;
+    const client_group_name = currSelectedGroup?.client_group_name ?? "";
+
+    // build handler pairs
+    const handlerPairs = [];
+    importedData.client_list.forEach((c) => {
+      handlerIds.forEach((uid) => {
+        handlerPairs.push({
+          client_id: c.client_id,
+          user_id: uid,
+        });
+      });
     });
+
+    // --- build logsBody (minimal & clean) ---
+    const logsBody = {
+      company_id: currCompanyId,
+      user_id: user?.uid,
+      section: "Client",
+      action: "Import",
+      text: `${user?.displayName} imported ${totalImported} clients into ${client_group_name}`,
+      subject_id: currGroupId,
+      metadata: {
+        type: "client_import",
+        total_imported: totalImported,
+        client_group_id: currGroupId,
+        client_group_name: currSelectedGroup.client_group_name,
+      },
+    };
+
+    // --- dispatch bulk import with logs ---
     dispatch(
       bulkCreateClient({
         router,
         setImportedData,
-        client_list,
-        custom_values,
-        handler: add_handler_list,
+        client_list: importedData.client_list,
+        custom_values: importedData.custom_values,
+        handler: handlerPairs,
+        logsBody,
       })
     );
+
+    setShowHandlerModal(false);
   };
 
   const handleErrorListExport = async () => {
@@ -426,19 +565,6 @@ export default function ClientImportForm() {
     const currentDate = moment(new Date()).format("YYYY-MM-DD");
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet(`Sheet 1`);
-
-    const informationColumns = [
-      {
-        header: "Row",
-        key: "Row",
-        width: 10,
-      },
-      {
-        header: "Error Message",
-        key: "Error Message",
-        width: 50,
-      },
-    ];
 
     rawImportedData.forEach((row) => {
       worksheet.addRow(row);
@@ -484,7 +610,11 @@ export default function ClientImportForm() {
 
   return (
     <div className="client-import-container">
-      <form id="group-form" className="import-form">
+      <form
+        id="group-form"
+        className="import-form"
+        onSubmit={(e) => e.preventDefault()}
+      >
         <div className="import-header">
           <div className="header-left">
             <h1 className="page-title">Import Client</h1>
@@ -515,6 +645,9 @@ export default function ClientImportForm() {
 
           {importedData && importedData?.processed_list.length > 0 ? (
             <div className="import-data-section">
+              <span className="record-count">
+                {importedData?.processed_list.length} record(s) ready for import
+              </span>
               <div className="data-actions">
                 <div className="action-group">
                   <button
@@ -531,34 +664,22 @@ export default function ClientImportForm() {
                     type="file"
                     className="visually-hidden"
                     accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-                    onChange={(e)=>handleFileUpload(e)}
+                    onChange={(e) => handleFileUpload(e)}
                   />
                 </div>
 
                 <ActionButton
                   type="primary"
                   label={"Import"}
-                  onClick={(e) => handleListImport(e)}
-                />
-                {/* <button
-                  className="btn btn-primary"
-                  type="button"
                   onClick={() => handleListImport()}
-                >
-                  Import
-                </button> */}
+                />
               </div>
 
-              {/* <ImportedDataTable
-                processedList={
-                  importedData ? importedData?.processed_list : null
-                }
-              /> */}
-              <SimpleImportTable
+              {/* <SimpleImportTable
                 importedData={importedData}
                 columns={columns}
                 loading={loading}
-              />
+              /> */}
             </div>
           ) : (
             <div className="upload-section">
@@ -581,6 +702,90 @@ export default function ClientImportForm() {
           )}
         </div>
       </form>
+      {/* Handler selection modal */}
+      {showHandlerModal && (
+        <div className="handler-modal-backdrop">
+          <div
+            className="handler-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="handler-modal-title"
+          >
+            <header className="handler-modal__header">
+              <h3 id="handler-modal-title" className="handler-modal__title">
+                Select Handler(s)
+              </h3>
+              <p className="handler-modal__subtitle">
+                Choose one or more users to assign as handler for the imported
+                clients.
+              </p>
+            </header>
+
+            <div className="handler-modal__body">
+              {allCompanyUsers && allCompanyUsers.length > 0 ? (
+                allCompanyUsers.map((u) => {
+                  const checked = selectedHandlerIds.includes(u.user_id);
+                  return (
+                    <label key={u.user_id} className="handler-modal__user-row">
+                      <input
+                        type="checkbox"
+                        className="handler-modal__checkbox"
+                        checked={checked}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedHandlerIds((s) => [...s, u.user_id]);
+                          } else {
+                            setSelectedHandlerIds((s) =>
+                              s.filter((id) => id !== u.user_id)
+                            );
+                          }
+                        }}
+                      />
+                      <div className="handler-modal__user-meta">
+                        <span className="handler-modal__user-name">
+                          {u.displayName || u.name || u.email}
+                        </span>
+                        <small className="handler-modal__user-sub">
+                          {u.email || u.user_id}
+                        </small>
+                      </div>
+                    </label>
+                  );
+                })
+              ) : (
+                <div className="handler-modal__no-users">
+                  No users available
+                </div>
+              )}
+            </div>
+
+            <footer className="handler-modal__footer">
+              <div className="handler-modal__footer-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary handler-modal__btn-back"
+                  onClick={() => setShowHandlerModal(false)}
+                >
+                  Back
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-primary handler-modal__btn-import"
+                  onClick={() => handleConfirmImport(selectedHandlerIds)}
+                  // disabled={
+                  //   !importedData ||
+                  //   !importedData.processed_list?.length ||
+                  //   selectedHandlerIds.length === 0
+                  // }
+                >
+                  Import
+                </button>
+              </div>
+            </footer>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

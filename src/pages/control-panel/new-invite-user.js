@@ -118,46 +118,6 @@ export default function NewInviteUser() {
     }
   }, [currCompanyId]);
 
-  /** Update nested boolean permission */
-  // const setNestedPermission = (path, value) => {
-  //   setPermissions((prev) => {
-  //     const next = structuredClone(prev);
-  //     let cur = next;
-  //     path.slice(0, -1).forEach((p) => (cur = cur[p]));
-  //     cur[path[path.length - 1]] = value;
-  //     return next;
-  //   });
-  // };
-
-  /** Render a permission section */
-  // const renderPermissionSection = (sectionKey, title) => (
-  //   <div className="permission-section">
-  //     <div className="section-header">{title}</div>
-  //     {PERMISSION_DEFINITIONS[sectionKey].map((item) => {
-  //       const value = permissions?.[sectionKey]?.[item.key] ?? false;
-  //       return (
-  //         <div className="permission-item" key={item.key}>
-  //           <div className="permission-main">
-  //             <div className="permission-text">
-  //               <div className="permission-title">{item.label}</div>
-  //               <div className="permission-desc">{item.desc}</div>
-  //             </div>
-  //             <div className="permission-switch">
-  //               <Switch
-  //                 checked={value}
-  //                 onChange={(val) =>
-  //                   setNestedPermission([sectionKey, item.key], val)
-  //                 }
-  //               />
-  //             </div>
-  //           </div>
-  //           <hr className="permission-sep" />
-  //         </div>
-  //       );
-  //     })}
-  //   </div>
-  // );
-
   const handleCancel = (e) => {
     e.preventDefault();
     router.back();

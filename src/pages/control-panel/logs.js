@@ -22,21 +22,19 @@ import {
 import {
   useSelectAllCompanyUsers,
   useSelectCurrCompanyId,
+  useSelectIsAdmin,
 } from "../../../redux/slices/companySlice";
 import { useSelectUser } from "../../../redux/slices/authSlice";
 import { DropdownField } from "@/components/FormComponents/DropdownField";
 import { FaSearch } from "react-icons/fa";
+import { getAllClientGroupsName, useSelectAllClientGroupsName } from "../../../redux/slices/clientGroupSlice";
 
 const formatValue = (val) => {
-  if (Array.isArray(val)) {
-    return val.length > 0 ? val.join(", ") : "(empty)";
-  }
-  if (val === null || val === undefined || val === "") {
-    return "(empty)";
-  }
+  if (val === null || val === undefined || val === "") return "(empty)";
+  if (Array.isArray(val)) return val.length ? val.join(", ") : "(empty)";
   if (typeof val === "object") {
     try {
-      return JSON.stringify(val);
+      return JSON.stringify(val, null, 2);
     } catch {
       return String(val);
     }
@@ -54,6 +52,7 @@ export default function LogsPage() {
 
   const currCompanyId = useSelectCurrCompanyId();
   const user = useSelectUser();
+  const allGroupName = useSelectAllClientGroupsName(); // expected [{ client_group_id, client_group_name }, ...]
 
   const permissions = useSelector((s) => s.roleAuth?.userPermissions ?? []);
   const canViewAll = useMemo(
@@ -63,8 +62,10 @@ export default function LogsPage() {
     [permissions]
   );
 
-  // modal state: which log is open (null = closed)
+  // modal state
   const [selectedLog, setSelectedLog] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
+  const [showAllAffected, setShowAllAffected] = useState(false);
   const modalRef = useRef(null);
 
   // filters / paging
@@ -73,51 +74,39 @@ export default function LogsPage() {
   const [search, setSearch] = useState("");
   const [limit] = useState(50);
   const [offset, setOffset] = useState(0);
-  const [openModal, setOpenModal] = useState(false);
   const allCompanyUsers = useSelectAllCompanyUsers();
-
-  console.log(allCompanyUsers);
+  const isAdmin = useSelectIsAdmin();
 
   const debounceRef = useRef(null);
 
   const SECTION_MAP = useMemo(
     () => ({
       Client: "#2f86f6",
-      Appointment: "#e74c3c",
-      Form: "#27ae60",
+      // Appointment: "#e74c3c",
+      // Form: "#27ae60",
     }),
     []
   );
 
-  // click outside handler to close modal
-  // const handleClickOutside = useCallback(
-  //   (e) => {
-  //     if (!modalRef.current) return;
-  //     if (!modalRef.current.contains(e.target)) {
-  //       setSelectedLog(null);
-  //     }
-  //   },
-  //   [modalRef]
-  // );
+  useEffect(() => {
+    if (currCompanyId) {
+      dispatch(getAllClientGroupsName({ company_id: currCompanyId }));
+    }
+  }, [currCompanyId]);
 
   useEffect(() => {
     if (selectedLog) {
-      // document.addEventListener("mousedown", handleClickOutside);
-      // document.addEventListener("keydown", handleEsc);
-      // prevent body scroll while modal open
       document.body.style.overflow = "hidden";
     } else {
-      // document.removeEventListener("mousedown", handleClickOutside);
-      // document.removeEventListener("keydown", handleEsc);
       document.body.style.overflow = "";
+      setShowAllAffected(false);
     }
 
     return () => {
-      // document.removeEventListener("mousedown", handleClickOutside);
-      // document.removeEventListener("keydown", handleEsc);
       document.body.style.overflow = "";
+      setShowAllAffected(false);
     };
-  }, [openModal]);
+  }, [openModal, selectedLog]);
 
   // fetchLogs (useCallback so effects are stable)
   const fetchLogs = useCallback(
@@ -142,21 +131,30 @@ export default function LogsPage() {
       );
 
       if (currCompanyId && user?.uid) {
-        if (mode === "mine") {
+        if (mode === "mine" && !isAdmin) {
           dispatch(getMyLogs({ params }));
         } else {
           dispatch(getLogs({ params }));
         }
       }
     },
-    [dispatch, offset, section, limit, currCompanyId, user?.uid, mode, search]
+    [
+      dispatch,
+      offset,
+      section,
+      limit,
+      currCompanyId,
+      user?.uid,
+      mode,
+      search,
+      isAdmin,
+    ]
   );
 
   // Debounced effect: run when mode/section/search change
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      // reset to page 0
       setOffset(0);
       fetchLogs({ offset: 0, section, search });
     }, 300);
@@ -218,7 +216,160 @@ export default function LogsPage() {
 
   const canLoadMore = !loading && logs && logs.length < (total || 0);
 
-  console.log(selectedLog);
+  // helper to get client group name by id (returns id if not found)
+  const getGroupName = useCallback(
+    (subjectId) => {
+      if (!subjectId) return "";
+      if (!Array.isArray(allGroupName) || allGroupName.length === 0)
+        return subjectId;
+      const found = allGroupName.find(
+        (g) =>
+          g.client_group_id === subjectId ||
+          g.id === subjectId ||
+          g.client_group?.id === subjectId
+      );
+      return found?.client_group_name ?? found?.name ?? subjectId;
+    },
+    [allGroupName]
+  );
+
+  // ---------- small helpers to render metadata shapes ----------
+  const renderSingleChanges = (changes = []) => {
+    if (!Array.isArray(changes) || changes.length === 0) return null;
+    return (
+      <div className="modalChanges">
+        <h4>Changes</h4>
+        {changes.map((ch, i) => (
+          <div key={i} className="changeRow">
+            <div className="changeLabel">{ch.label ?? ch.column_id}</div>
+            <div className="changeValues">
+              <div className="old">
+                Old: <span>{formatValue(ch.old)}</span>
+              </div>
+              <div className="new">
+                New: <span>{formatValue(ch.new)}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderBulkFields = (fields = []) => {
+    if (!Array.isArray(fields) || fields.length === 0) return null;
+
+    return (
+      <div className="modalFieldsTouched">
+        <h4>Fields updated</h4>
+        <div className="fieldsGrid">
+          {fields.map((f, i) => {
+            let rawVal = f.value;
+            const isObject =
+              rawVal !== null &&
+              rawVal !== undefined &&
+              typeof rawVal === "object";
+
+            // detect alert object structure
+            const isAlertObj =
+              isObject &&
+              rawVal &&
+              typeof rawVal.date === "string" &&
+              typeof rawVal.is_complete === "boolean";
+
+            let formattedValue;
+
+            if (isAlertObj) {
+              const status = rawVal.is_complete ? "Complete" : "Incomplete";
+              formattedValue = `${rawVal.date} (${status})`;
+            } else {
+              formattedValue = formatValue(rawVal);
+            }
+
+            return (
+              <div key={i} className="fieldRowTwoCol">
+                <div className="fieldLabelTwoCol">{f.label ?? f.column_id}</div>
+                <div className="fieldValueTwoCol">
+                  <div className="fieldText" title={formattedValue}>
+                    {formattedValue}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderAffectedList = (affected = []) => {
+    if (!Array.isArray(affected) || affected.length === 0) return null;
+
+    const sample = showAllAffected ? affected : affected.slice(0, 20);
+
+    return (
+      <div className="modalAffected">
+        <h4>
+          Affected clients <span className="muted">({affected.length})</span>
+          {!showAllAffected && affected.length > 20 && (
+            <small className="muted" style={{ marginLeft: 8 }}>
+              (showing 20)
+            </small>
+          )}
+        </h4>
+
+        <div className="affectedGrid" role="list">
+          {sample.map((a, i) => {
+            // prefer client_name (if provided in metadata), then serial_number, then client_id
+            const display =
+              a.client_name ??
+              a.client_name_display ??
+              a.serial_number ??
+              a.client_id ??
+              "-";
+            return (
+              <div
+                key={a.client_id ?? `${i}`}
+                className="affectedItem"
+                role="listitem"
+              >
+                <div className="affectedName" title={display}>
+                  {display}
+                </div>
+                {/* {a.serial_number && (
+                  <div className="affectedSerial muted">{a.serial_number}</div>
+                )} */}
+              </div>
+            );
+          })}
+        </div>
+
+        {affected.length > 20 && (
+          <div className="affectedFooter">
+            <button
+              type="button"
+              className="showMoreBtn"
+              onClick={() => setShowAllAffected((s) => !s)}
+            >
+              {showAllAffected ? "Show less" : `Show all (${affected.length})`}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Helper to build display title: "Action — Group Name" when available
+  const buildLogTitle = (log) => {
+    if (!log) return "";
+    const action = log.action ?? "Action";
+    const groupId = log.subject_id ?? log.client_group ?? null;
+    const groupName = groupId
+      ? getGroupName(groupId)
+      : log.client_group_name ?? null;
+    return groupName ? `${action} — ${groupName}` : action;
+  };
+
   return (
     <div className="logs-page-container" aria-busy={loading ? "true" : "false"}>
       <header className="page-header">
@@ -299,6 +450,7 @@ export default function LogsPage() {
               const key =
                 log.log_id ?? log.id ?? `${log.created_at ?? ""}-${idx}`;
 
+              const title = buildLogTitle(log);
               return (
                 <article
                   key={key}
@@ -312,7 +464,7 @@ export default function LogsPage() {
                 >
                   <div className="cardHeader">
                     <div className="cardTitle" style={{ color }}>
-                      {log.action ?? "action"}
+                      {title}
                     </div>
                   </div>
 
@@ -336,20 +488,12 @@ export default function LogsPage() {
         </div>
       </div>
 
-      {/* <div className="actions">
-        <ActionButton
-          label="Load more"
-          onClick={handleLoadMore}
-          disabled={!canLoadMore}
-        />
-      </div> */}
-
       {/* Modal: show metadata when selectedLog is set */}
-      {openModal && (
+      {openModal && selectedLog && (
         <div className="logModalOverlay" aria-modal="true" role="dialog">
           <div className="logModal" ref={modalRef}>
             <div className="logModalHeader">
-              <h3>{selectedLog.action ?? "Log details"}</h3>
+              <h3>{buildLogTitle(selectedLog)}</h3>
               <button
                 type="button"
                 className="modalClose"
@@ -375,6 +519,7 @@ export default function LogsPage() {
                     )}
                   </span>
                 </div>
+
                 <div className="metaRow">
                   <strong>User:</strong>{" "}
                   <span>
@@ -386,30 +531,54 @@ export default function LogsPage() {
                     })()}
                   </span>
                 </div>
+
+                {/* show group name */}
+                {(selectedLog.subject_id ||
+                  selectedLog.client_group_name) && (
+                  <div className="metaRow">
+                    <strong>Group:</strong>{" "}
+                    <span>
+                      {selectedLog.client_group_name ??
+                        getGroupName(selectedLog.subject_id)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Single-update serial number */}
                 {selectedLog.metadata?.serial_number && (
                   <div className="metaRow">
                     <strong>Serial Number</strong>{" "}
                     <span>{selectedLog.metadata.serial_number}</span>
                   </div>
                 )}
+
+                {/* Single-update client name */}
+                {selectedLog.metadata?.client_name && (
+                  <div className="metaRow">
+                    <strong>Client</strong>{" "}
+                    <span>{selectedLog.metadata.client_name}</span>
+                  </div>
+                )}
               </div>
 
-              {selectedLog.metadata?.changes?.length > 0 && (
-                <div className="modalChanges">
-                  <h4>Changes</h4>
-                  {selectedLog.metadata.changes.map((ch, i) => (
-                    <div key={i} className="changeRow">
-                      <div className="changeLabel">{ch.label}</div>
-                      <div className="changeValues">
-                        <div className="old">
-                          Old: <span>{formatValue(ch.old)}</span>
-                        </div>
-                        <div className="new">
-                          New: <span>{formatValue(ch.new)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+              {/* Render single-update changes if present */}
+              {selectedLog.metadata?.changes &&
+                Array.isArray(selectedLog.metadata.changes) &&
+                selectedLog.metadata.changes.length > 0 &&
+                renderSingleChanges(selectedLog.metadata.changes)}
+
+              {/* Render bulk-update fields if present */}
+              {selectedLog.metadata?.type === "bulk_update" &&
+                renderBulkFields(selectedLog.metadata.fields)}
+
+              {/* Render affected for bulk updates (with toggle) */}
+              {selectedLog.metadata?.type === "bulk_update" &&
+                renderAffectedList(selectedLog.metadata.affected)}
+
+              {/* Fallback: show raw metadata if nothing else rendered */}
+              {!selectedLog.metadata && (
+                <div style={{ marginTop: 12, color: "#666" }}>
+                  No metadata attached to this log.
                 </div>
               )}
             </div>

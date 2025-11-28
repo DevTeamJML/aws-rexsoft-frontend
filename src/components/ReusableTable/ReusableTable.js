@@ -48,7 +48,8 @@ const ReusableTable = ({
   userSortingArray,
   columnVisibility,
   columnWidths = {},
-  setColumnWidths = () => {}
+  setColumnWidths = () => {},
+  isAdmin = false,
 }) => {
   const dispatch = useDispatch();
   const [resizing, setResizing] = useState(null);
@@ -103,7 +104,14 @@ const ReusableTable = ({
     }
 
     return resultColumns;
-  }, [fixedColumns, dynamicColumns, selectable, actionable, deletableAction, editableAction]);
+  }, [
+    fixedColumns,
+    dynamicColumns,
+    selectable,
+    actionable,
+    deletableAction,
+    editableAction,
+  ]);
 
   const sortedAllColumns = useMemo(() => {
     const cols = Array.isArray(allColumns) ? allColumns : [];
@@ -138,15 +146,21 @@ const ReusableTable = ({
   }, [allColumns, userSortingArray, columnSortingArray]);
 
   const visibleSortedColumns = useMemo(() => {
-    if (!Array.isArray(columnVisibility) || columnVisibility.length === 0) {
-      return sortedAllColumns;
+    const getId = (c) => c?.id ?? c?.column_id ?? c?.raw?.column_id;
+
+    let filtered = isAdmin ? sortedAllColumns : sortedAllColumns.filter(
+      (c) => c?.permission !== "not_viewable"
+    );
+
+    if (Array.isArray(columnVisibility) && columnVisibility.length > 0) {
+      filtered = filtered.filter((col) => {
+        const id = getId(col);
+        if (id === "_checkbox" || id === "actions") return true; // keep special
+        return columnVisibility.includes(id);
+      });
     }
-    const getId = (c) => c?.id ?? c?.column_id;
-    return sortedAllColumns.filter((col) => {
-      const id = getId(col);
-      if (id === "_checkbox" || id === "actions") return true; // always keep
-      return columnVisibility.includes(id);
-    });
+
+    return filtered;
   }, [sortedAllColumns, columnVisibility]);
 
   // Add this row styling function
@@ -202,7 +216,7 @@ const ReusableTable = ({
   }, [dynamicColumns]);
 
   const getColumnWidth = (columnId) => {
-    return columnId === "_checkbox" ? 100 : columnWidths[columnId] || 200; // default width
+    return columnId === "_checkbox" ? 100 : columnWidths?.[columnId] ?? 200;
   };
 
   const handleSelectAll = () => {
@@ -424,6 +438,21 @@ const ReusableTable = ({
         return renderCheckbox(row);
       case "action":
         return renderActionIcons(row);
+      case "multiline":
+        return (
+          <span
+            title={value}
+            className="cell-multiline"
+            style={{
+              maxWidth: columnWidths[column.id]
+                ? `${columnWidths[column.id]}px`
+                : "100px",
+            }}
+          >
+            {value}
+          </span>
+        );
+
       case "date":
         return formatDate(value);
       case "dropdown":
@@ -542,13 +571,24 @@ const ReusableTable = ({
         {/* Optional selection summary above table */}
         {selectable && (
           <div className="table-selection-summary">
-            {selectedCount > 0 ? (
+            {/* {selectedCount > 0 ? (
               <span>
                 Selected {selectedCount} {selectedCount === 1 ? "item" : "items"} of {effectiveTotalItems}
               </span>
             ) : (
               <span>{`No items selected (${effectiveTotalItems} items)`}</span>
-            )}
+            )} */}
+            <span>
+              {selectable && selectedCount > 0 ? (
+                <span className="selected-info" style={{ marginRight: 8 }}>
+                  Selected {selectedCount}{" "}
+                  {selectedCount === 1 ? "client" : "clients"} —
+                </span>
+              ) : null}
+              Showing {(currentPage - 1) * pageSize + 1} to{" "}
+              {Math.min(currentPage * pageSize, effectiveTotalItems)} of{" "}
+              {effectiveTotalItems} entries
+            </span>
           </div>
         )}
 
@@ -568,7 +608,10 @@ const ReusableTable = ({
                       }}
                       data-fixed={column.fixedPosition}
                       onClick={() => {
-                        if (column.id !== "_checkbox" && column.id !== "actions") {
+                        if (
+                          column.id !== "_checkbox" &&
+                          column.id !== "actions"
+                        ) {
                           handleSort(column);
                         }
                       }}
@@ -588,7 +631,11 @@ const ReusableTable = ({
                         column.field_type !== "action" && (
                           <div
                             className="column-resizer"
-                            onMouseDown={(e) => handleResizeStart(column.id, e)}
+                            onMouseDown={(e) => {
+                              e.stopPropagation();
+                              handleResizeStart(column.id, e);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
                           />
                         )}
                     </th>
@@ -651,15 +698,15 @@ const ReusableTable = ({
       {pagination && totalPages > 1 && (
         <div className="table-pagination">
           <div className="pagination-info">
-            {selectable && selectedCount > 0 ? (
+            {/* {selectable && selectedCount > 0 ? (
               <span className="selected-info" style={{ marginRight: 8 }}>
-                Selected {selectedCount} {selectedCount === 1 ? "client" : "clients"} —
+                Selected {selectedCount}{" "}
+                {selectedCount === 1 ? "client" : "clients"} —
               </span>
             ) : null}
-
             Showing {(currentPage - 1) * pageSize + 1} to{" "}
-            {Math.min(currentPage * pageSize, effectiveTotalItems)} of {effectiveTotalItems}{" "}
-            entries
+            {Math.min(currentPage * pageSize, effectiveTotalItems)} of{" "}
+            {effectiveTotalItems} entries */}
           </div>
           <div className="pagination-controls">
             <button

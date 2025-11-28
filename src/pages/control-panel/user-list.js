@@ -152,6 +152,11 @@ const UserList = () => {
             type="primary"
             onClick={() => router.push("/control-panel/new-invite-user")}
           />
+          {/* <ActionButton
+            label="Create User"
+            type="primary"
+            onClick={() => router.push("/control-panel/create-user")}
+          /> */}
         </div>
       </div>
 

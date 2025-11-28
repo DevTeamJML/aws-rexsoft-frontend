@@ -18,6 +18,7 @@ export default function ColumnOrderDrawer({
   columnSortingArray = [],
   columnVisibility = [],
   setColumnVisibility,
+  isAdmin = false,
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [tempColumns, setTempColumns] = useState([]);
@@ -26,7 +27,7 @@ export default function ColumnOrderDrawer({
   // const [selectedColumnIds, setSelectedColumnIds] = useState([]);
 
   const sortedColumns = useMemo(() => {
-    if(!open) return;
+    if (!open) return;
     const fixed = Array.isArray(fixedColumns) ? fixedColumns : [];
     const dynamic = Array.isArray(dynamicColumns) ? dynamicColumns : [];
     const allColumns = [...fixed, ...dynamic];
@@ -60,7 +61,10 @@ export default function ColumnOrderDrawer({
     }
 
     if (sortedColumns.length > 0) {
-      setTempColumns(sortedColumns);
+      let filtered = isAdmin
+        ? sortedColumns
+        : sortedColumns.filter((c) => c?.permission !== "not_viewable");
+      setTempColumns(filtered);
     }
   }, [sortedColumns]);
 
@@ -68,10 +72,13 @@ export default function ColumnOrderDrawer({
     if (isEditMode) return;
 
     setColumnVisibility((prev) => {
-      if (prev.includes(columnId)) {
-        return prev.filter((id) => id !== columnId);
-      } else {
-        return [...prev, columnId];
+      console.log(prev);
+      if (prev) {
+        if (prev.includes(columnId)) {
+          return prev.filter((id) => id !== columnId);
+        } else {
+          return [...prev, columnId];
+        }
       }
     });
 
@@ -243,14 +250,14 @@ export default function ColumnOrderDrawer({
 
 // Column Item for Visibility Toggle Mode
 const ColumnVisibilityItem = ({
-  selectedColumnIds,
+  selectedColumnIds = [],
   column,
   onToggleVisibility,
 }) => {
   return (
     <div
       className={`column-item ${
-        !selectedColumnIds.includes(column.id) ? "disabled" : ""
+        !selectedColumnIds?.includes(column.id) ? "disabled" : ""
       }`}
       onClick={() => onToggleVisibility(column.id)}
     >
@@ -260,7 +267,7 @@ const ColumnVisibilityItem = ({
       <div className="visibility-indicator">
         <div
           className={`toggle-dot ${
-            selectedColumnIds.includes(column.id) ? "visible" : "hidden"
+            selectedColumnIds?.includes(column.id) ? "visible" : "hidden"
           }`}
         />
       </div>

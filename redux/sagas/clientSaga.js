@@ -52,7 +52,7 @@ function* handleOnChangeClientGroupSaga({ payload }) {
 }
 
 function* bulkCreateClientSaga({ payload }) {
-  const { router, setImportedData, ...otherData } = payload;
+  const { router, setImportedData, logsBody, ...otherData } = payload;
   try {
     yield put(
       showToast({
@@ -63,15 +63,26 @@ function* bulkCreateClientSaga({ payload }) {
     );
     yield delay(1000);
     yield call(API.post, ApiRoute.client.bulkCreateClient, otherData);
+    yield put(
+      showToast({
+        message: "Import client successfully !",
+        status: "success",
+        loader: true
+      })
+    );
+    yield delay(2000);
+    yield put(hideToast());
     yield put(bulkCreateClientSuccess());
     setImportedData(null);
+    yield call(API.post, ApiRoute.logs.create, logsBody);
     yield put(
       showToast({
         message: "Data imported successfully !",
         status: "success",
+        loader: true
       })
     );
-    yield delay(3000);
+    yield delay(2000);
     yield put(hideToast());
     // router.push("/client/client-list");
   } catch (error) {
@@ -82,10 +93,27 @@ function* bulkCreateClientSaga({ payload }) {
 function* createClientSaga({ payload }) {
   const { router, logsBody, ...otherData } = payload;
   try {
+    yield put(
+      showToast({
+        message: "Processing data, please wait..",
+        status: "success",
+        loader: true,
+      })
+    );
+    yield delay(1000);
     yield call(API.post, ApiRoute.client.create, otherData.payload);
 
     yield call(API.post, ApiRoute.logs.create, logsBody);
+    yield put(
+      showToast({
+        message: "Create client successfully !",
+        status: "success",
+        loader: true
+      })
+    );
+    yield delay(2000);
     router.push("/client/client-list");
+    yield put(hideToast());
   } catch (error) {
     console.log(error);
   }
@@ -94,9 +122,26 @@ function* createClientSaga({ payload }) {
 function* updateClientSaga({ payload }) {
   const { router, logsBody, ...otherData } = payload;
   try {
+    yield put(
+      showToast({
+        message: "Processing data, please wait..",
+        status: "success",
+        loader: true,
+      })
+    );
+    yield delay(1000);
     yield call(API.post, ApiRoute.client.update, otherData.payload);
     yield call(API.post, ApiRoute.logs.create, logsBody);
+    yield put(
+      showToast({
+        message: "Update client successfully !",
+        status: "success",
+        loader: true
+      })
+    );
+    yield delay(2000);
     router.push("/client/client-list");
+    yield put(hideToast());
   } catch (error) {
     console.log(error);
   }
@@ -153,20 +198,9 @@ function* setSelectedClientIdsSaga({ payload }) {
 
 function* bulkUpdateClientSaga({ payload }) {
   try {
-    const { router, ...otherData } = payload;
+    const { router, logsBody, ...otherData } = payload;
 
     yield call(API.post, ApiRoute.client.bulkUpdate, otherData.payload);
-
-    // yield put(
-    //   showToast({
-    //     message: "Processing data, please wait..",
-    //     status: "success",
-    //     loader: true,
-    //   })
-    // );
-
-    // // yield put(router.push("/client/client-list"));
-    // yield put(hideToast());
   } catch (error) {
     console.log(error);
     yield put(
@@ -191,9 +225,10 @@ function* deleteClientSaga({ payload }) {
       showToast({
         message: "Delete client successfully !",
         status: "success",
+        loader: true
       })
     );
-    yield delay(3000);
+    yield delay(2000);
     yield put(hideToast());
     // router.push("/client/client-list");
   } catch (error) {
@@ -203,10 +238,20 @@ function* deleteClientSaga({ payload }) {
 
 function* bulkDeleteClientSaga({ payload }) {
   try {
-    const { client_id_list, client_group_id } = payload;
-    yield call(API.post, ApiRoute.client.bulkDelete, payload);
-    yield put(bulkDeleteClientSuccess(client_id_list));
+    const { clientPayload, ...otherPayload } = payload;
+    yield call(API.post, ApiRoute.client.bulkDelete, otherPayload);
+    yield put(getAllClients({ ...clientPayload }));
+    // yield put(bulkDeleteClientSuccess(client_id_list));
     yield put(setShowModal(false));
+    yield put(
+      showToast({
+        message: "Delete client successfully !",
+        status: "success",
+        loader: true
+      })
+    );
+    yield delay(2000);
+    yield put(hideToast());
     // router.push("/client/client-list");
   } catch (error) {
     console.log(error);
@@ -252,9 +297,10 @@ function* archiveClientSaga({ payload }) {
       showToast({
         message: "Archive client successfully !",
         status: "success",
+        loader: true
       })
     );
-    yield delay(3000);
+    yield delay(2000);
     yield put(hideToast());
     // router.push("/client/client-list");
   } catch (error) {
@@ -264,10 +310,20 @@ function* archiveClientSaga({ payload }) {
 
 function* bulkArchiveClientSaga({ payload }) {
   try {
-    const { client_id_list, client_group_id } = payload;
-    yield call(API.post, ApiRoute.client.bulkArchive, payload);
-    yield put(bulkArchiveClientSuccess(client_id_list));
+    const { clientPayload, ...otherPayload } = payload;
+    yield call(API.post, ApiRoute.client.bulkArchive, otherPayload);
+    yield put(getAllClients({ ...clientPayload }));
+    // yield put(bulkArchiveClientSuccess(otherPayload.client_id_list));
     yield put(setShowModal(false));
+    yield put(
+      showToast({
+        message: "Archive client successfully !",
+        status: "success",
+        loader: true
+      })
+    );
+    yield delay(2000);
+    yield put(hideToast());
     // router.push("/client/client-list");
   } catch (error) {
     console.log(error);
@@ -287,9 +343,10 @@ function* restoreClientSaga({ payload }) {
       showToast({
         message: "Restore client successfully !",
         status: "success",
+        loader: true
       })
     );
-    yield delay(3000);
+    yield delay(2000);
     yield put(hideToast());
     // router.push("/client/client-list");
   } catch (error) {
@@ -299,16 +356,18 @@ function* restoreClientSaga({ payload }) {
 
 function* bulkRestoreClientSaga({ payload }) {
   try {
-    const { client_id_list, client_group_id } = payload;
-    yield call(API.post, ApiRoute.client.bulkRestore, payload);
-    yield put(bulkRestoreClientSuccess(client_id_list));
+    const { clientPayload, ...otherPayload } = payload;
+    yield call(API.post, ApiRoute.client.bulkRestore, otherPayload);
+    yield put(getAllClients({ ...clientPayload }));
+    // yield put(bulkRestoreClientSuccess(otherPayload.client_id_list));
     yield put(
       showToast({
         message: "Restore client successfully !",
         status: "success",
+        loader: true
       })
     );
-    yield delay(3000);
+    yield delay(2000);
     yield put(hideToast());
     // router.push("/client/client-list");
   } catch (error) {

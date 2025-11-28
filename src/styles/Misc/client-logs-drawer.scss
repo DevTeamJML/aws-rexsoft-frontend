@@ -1,0 +1,135 @@
+/* ---- Client Logs Drawer ---- */
+
+.client-logs-drawer {
+  position: fixed;
+  top: 0;
+  right: -720px; // hidden by default
+  width: 720px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.12);
+  transition: right 0.28s ease;
+  z-index: 1500;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.client-logs-drawer.open {
+  right: 0;
+}
+
+/* Header */
+.client-logs-drawer .drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 2px solid #e5e5e5;
+  background: #fafafa;
+}
+
+.client-logs-drawer .drawerHeader h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.client-logs-drawer .drawerHeader button {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  color: #444;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Content */
+.client-logs-drawer .drawerContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 18px;
+}
+
+/* Each log row */
+.drawerLogRow {
+  padding: 10px 0;
+  border-bottom: 1px solid #efefef;
+}
+
+.drawerLogHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+}
+
+.drawerLogTitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #3b82f6;
+}
+
+.drawerLogDate {
+  font-size: 12px;
+  color: #777;
+}
+
+/* Main text */
+.drawerLogBody {
+  font-size: 13px;
+  color: #444;
+  margin-top: 4px;
+}
+
+/* Fields for bulk updates */
+.drawerFields {
+  margin-top: 6px;
+  padding-left: 8px;
+  border-left: 2px solid #e0e0e0;
+}
+
+.drawerFields strong {
+  font-size: 13px;
+}
+
+.drawerFields ul {
+  margin: 6px 0 0;
+  padding-left: 16px;
+}
+
+.drawerFields li {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+/* Affected list */
+.drawerAffected {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.drawerAffected strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.drawerAffected div > div {
+  background: #f3f3f3;
+  padding: 4px 6px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .client-logs-drawer {
+    width: 100%;
+    right: -100%;
+  }
+  .client-logs-drawer.open {
+    right: 0;
+  }
+}

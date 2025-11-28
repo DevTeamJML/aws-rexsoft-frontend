@@ -13,7 +13,10 @@ import {
   createLog,
   createLogSuccess,
   createLogError,
+  getClientLogsSuccess,
+  getClientLogs,
 } from "../slices/logSlice";
+
 function* getLogsSaga({ payload }) {
   try {
     const params = payload?.params ?? {};
@@ -21,6 +24,19 @@ function* getLogsSaga({ payload }) {
     const body = res?.data ?? res ?? { rows: [], total: 0 };
     // include params so reducer can decide append vs replace
     yield put(getLogsSuccess({ ...body, params }));
+  } catch (error) {
+    console.error("getLogsSaga error:", error);
+    yield put(getLogsError(error.message || "Failed to fetch logs"));
+  }
+}
+
+function* getClientLogsSaga({ payload }) {
+  try {
+    const params = payload?.params ?? {};
+    const res = yield call(API.get, ApiRoute.logs.list, { params });
+    const body = res?.data ?? res ?? { rows: [], total: 0 };
+    // include params so reducer can decide append vs replace
+    yield put(getClientLogsSuccess({ ...body, params }));
   } catch (error) {
     console.error("getLogsSaga error:", error);
     yield put(getLogsError(error.message || "Failed to fetch logs"));
@@ -57,6 +73,7 @@ function* createLogSaga({ payload }) {
 
 export function* logsSaga() {
   yield takeLatest(getLogs.type, getLogsSaga);
+  yield takeLatest(getClientLogs.type, getClientLogsSaga);
   yield takeLatest(getMyLogs.type, getMyLogsSaga);
   yield takeLatest(createLog.type, createLogSaga);
 }

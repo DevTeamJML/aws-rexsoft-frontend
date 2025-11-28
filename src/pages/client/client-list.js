@@ -55,6 +55,7 @@ import { showToast } from "../../../redux/slices/toastSlice";
 import { onValue, ref, set } from "firebase/database";
 import { db } from "@/config/firebaseConfig";
 import { debounce } from "lodash";
+import ExportModal from "@/components/Misc/ExportModal";
 
 const ClientList = () => {
   const dispatch = useDispatch();
@@ -73,28 +74,22 @@ const ClientList = () => {
   const [targetClientId, setTargetClientId] = useState();
   const [searchText, setSearchText] = useState("");
   const [rowSelectedIds, setRowSelectedIds] = useState([]);
-  const [showColumns, setShowColumns] = useState(false);
-  const [activeFilter, setActiveFilter] = useState(false);
-  const [sortAscending, setSortAscending] = useState(true);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isColumnDrawerOpen, setIsColumnDrawerOpen] = useState(false);
   const [columnVisibility, setColumnVisibility] = useState([]);
-  const [columnOrder, setColumnOrder] = useState([]);
   const [filters, setFilters] = useState([]);
   const [sortConfig, setSortConfig] = useState({});
   const [isArchivedPage, setIsArchivedPage] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const fixedColumns = getColumnsForPage("client-list");
   const userPermissions = useSelectUserPermissions();
   const isAdmin = useSelectIsAdmin();
   const canDeleteClient = isAdmin || userPermissions.includes("delete_client");
   const canManageClient = isAdmin || userPermissions.includes("manage_client");
+  const canExportClient = isAdmin || userPermissions.includes("export_client");
   const canManageHandler =
     isAdmin || userPermissions.includes("manage_handler");
-  const filteredFixedColumns =
-    isAdmin || canManageHandler
-      ? fixedColumns
-      : fixedColumns.filter((c) => c.id !== "handler");
 
   const modalDescription = {
     bulkDelete: "Are you sure you want to delete these clients ?",
@@ -116,7 +111,7 @@ const ClientList = () => {
       `ClientColumnWidths/${user?.uid}/${currSelectedGroupId}`
     );
     const unsubWidth = onValue(widthRef, (snap) => {
-      const val = snap.val();
+      const val = snap.val() || {};
       setColumnWidths(val);
     });
 
@@ -125,15 +120,15 @@ const ClientList = () => {
       `UserColumnSorting/${user?.uid}/${currSelectedGroupId}`
     );
     const unsubUser = onValue(userRef, (snap) => {
-      const val = snap.val();
+      const val = snap.val() || [];
       const arr = Array.isArray(val) ? val : val?.columnsOrder;
-      setUserSortingArray(Array.isArray(arr) ? arr : null);
+      setUserSortingArray(Array.isArray(arr) ? arr : []);
     });
 
     const groupRef = ref(db, `ColumnSorting/${currSelectedGroupId}`);
     const unsubGroup = onValue(groupRef, (snap) => {
-      const arr = snap.val();
-      setColumnSortingArray(Array.isArray(arr) ? arr : null);
+      const arr = snap.val() || [];
+      setColumnSortingArray(Array.isArray(arr) ? arr : []);
     });
 
     const viewRef = ref(
@@ -141,8 +136,8 @@ const ClientList = () => {
       `ViewableClientColumn//${user?.uid}/${currSelectedGroupId}`
     );
     const unsubView = onValue(viewRef, (snap) => {
-      const arr = snap.val();
-      setColumnVisibility(Array.isArray(arr) ? arr : null);
+      const arr = snap.val() || [];
+      setColumnVisibility(Array.isArray(arr) ? arr : []);
     });
 
     // Cleanup listeners when unmounting or group changes
@@ -361,6 +356,17 @@ const ClientList = () => {
         bulkDeleteClient({
           client_group_id: currSelectedGroupId,
           client_id_list: client_id_list,
+          clientPayload: {
+            ...currSelectedGroup,
+            sortConfig,
+            pagination,
+            filters: filters,
+            fixedColumns,
+            user_id: user?.uid,
+            isAdmin,
+            isArchivedPage,
+            hasPermission: canManageHandler,
+          },
         })
       );
     } else {
@@ -368,6 +374,17 @@ const ClientList = () => {
         bulkArchiveClient({
           client_group_id: currSelectedGroupId,
           client_id_list: client_id_list,
+          clientPayload: {
+            ...currSelectedGroup,
+            sortConfig,
+            pagination,
+            filters: filters,
+            fixedColumns,
+            user_id: user?.uid,
+            isAdmin,
+            isArchivedPage,
+            hasPermission: canManageHandler,
+          },
         })
       );
     }
@@ -417,7 +434,6 @@ const ClientList = () => {
   };
 
   const handleColumnOrderChange = async (newOrder) => {
-    setColumnOrder(newOrder);
     if (user?.uid && currSelectedGroupId) {
       await set(
         ref(db, `UserColumnSorting/${user?.uid}/${currSelectedGroupId}`),
@@ -439,6 +455,17 @@ const ClientList = () => {
       bulkRestoreClient({
         client_id_list: clientIds,
         client_group_id: currSelectedGroupId,
+        clientPayload: {
+          ...currSelectedGroup,
+          sortConfig,
+          pagination,
+          filters: filters,
+          fixedColumns,
+          user_id: user?.uid,
+          isAdmin,
+          isArchivedPage,
+          hasPermission: canManageHandler,
+        },
       })
     );
   };
@@ -462,6 +489,24 @@ const ClientList = () => {
 
   return (
     <div className="page-container">
+      <ExportModal
+        open={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        fixedColumns={fixedColumns}
+        dynamicColumns={dynamicColumns}
+        columnVisibility={columnVisibility}
+        clients={clients}
+        selectedClientIds={rowSelectedIds}
+        currSelectedGroup={currSelectedGroup || {}}
+        dispatch={dispatch}
+        getAllClients={getAllClients}
+        user={user}
+        isArchivedPage={isArchivedPage}
+        showToast={showToast}
+        pagination={pagination}
+        isAdmin={isAdmin}
+      />
+
       <ColumnOrderDrawer
         open={isColumnDrawerOpen}
         onClose={() => setIsColumnDrawerOpen(false)}
@@ -473,6 +518,7 @@ const ClientList = () => {
         userSortingArray={userSortingArray}
         columnVisibility={columnVisibility}
         setColumnVisibility={setColumnVisibility}
+        isAdmin={isAdmin}
       />
       <FilterDrawer
         open={isFilterOpen}
@@ -508,6 +554,14 @@ const ClientList = () => {
             onChange={(value) => handleOnChangeGroup(value)}
             width={"200px"}
           />
+          {canExportClient && !isArchivedPage ? (
+            <ActionButton
+              label={"Export Client"}
+              type="primary"
+              onClick={() => setIsExportModalOpen(true)}
+            />
+          ) : null}
+
           {canManageClient && !isArchivedPage ? (
             <ActionButton
               label={"Import Client"}
@@ -620,6 +674,8 @@ const ClientList = () => {
         columnVisibility={columnVisibility}
         columnWidths={columnWidths}
         setColumnWidths={setColumnWidths}
+        canManageHandler={canManageHandler}
+        isAdmin={isAdmin}
       />
     </div>
   );

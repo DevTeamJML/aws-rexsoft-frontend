@@ -71,7 +71,9 @@ function* handleRegisterAndAcceptInvitation({ payload }) {
 
     yield delay(2000);
     yield put(registerAndAcceptInvitationSuccess());
-    window.location.replace("/");
+    if (payload.invitation_id) {
+      window.location.replace("/");
+    }
   } catch (error) {
     const errorMessage = error.response.data.description;
     yield put(registerAndAcceptInvitationError(errorMessage));

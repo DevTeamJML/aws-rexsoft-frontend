@@ -235,6 +235,7 @@ export default function NewClientPage() {
         section: "Client",
         action: "Create",
         text: `${user?.displayName} created client ${clientName}`,
+        subject_id: currSelectedGroupId,
         metadata: {},
       };
 
@@ -366,6 +367,7 @@ export default function NewClientPage() {
         section: "Client",
         action: "Create",
         text: `${user?.displayName} created client ${clientName}`,
+        client_group_id: currSelectedGroupId,
         metadata: {},
       };
 

@@ -32,6 +32,11 @@ import { useSelectUserPermissions } from "../../../../../../redux/slices/roleAut
 import { checkDuplicate } from "@/utils/checkDuplicate";
 import { onValue, ref } from "firebase/database";
 import { db } from "@/config/firebaseConfig";
+import { ClientLogsDrawer } from "@/components/Misc/ClientLogDrawer";
+import {
+  getClientLogs,
+  useSelectClientLogs,
+} from "../../../../../../redux/slices/logSlice";
 
 export default function EditClientPage() {
   const dispatch = useDispatch();
@@ -46,12 +51,51 @@ export default function EditClientPage() {
   const { client_group_id, client_id } = router.query;
 
   const userPermissions = useSelectUserPermissions();
+  const allClientLogs = useSelectClientLogs();
   const isAdmin = useSelectIsAdmin();
   const canManageHandler =
     isAdmin || userPermissions.includes("manage_handler");
 
   const [userSortingArray, setUserSortingArray] = useState(null);
   const [columnSortingArray, setColumnSortingArray] = useState(null);
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [clientLogs, setClientLogs] = useState([]);
+
+  // show logs handler
+  const handleShowLogs = async () => {
+    // get serial number from clientData (preferred) or mapped
+    const serial =
+      clientData?.serial_number ?? clientData?.mapped?.serial_number ?? null;
+    if (!serial) {
+      dispatch(
+        showToast({
+          message: "No serial number available for this client",
+          status: "error",
+        })
+      );
+      return;
+    }
+    setDrawerOpen(true);
+    setLogsLoading(true);
+
+    const params = {
+      serial_number: serial,
+      company_id: currCompanyId,
+    };
+
+    dispatch(getClientLogs({ params }));
+  };
+
+  useEffect(() => {
+    if (allClientLogs.length > 0) {
+      setClientLogs(Array.isArray(allClientLogs) ? allClientLogs : []);
+      setLogsLoading(false);
+    }
+  }, [allClientLogs]);
+
+  console.log(allClientLogs);
 
   useEffect(() => {
     if (!currSelectedGroupId) return;
@@ -192,108 +236,107 @@ export default function EditClientPage() {
 
     setFormData(initialData);
   }, [clientData]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormErrors({});
 
-    // Admin bypass: skip front-end validation
-    if (isAdmin) {
-      // Build payload same as non-admin path but without validations
-      const rawColumnId = (clientData?.raw || []).map((col) => col.column_id);
-      const columns = clientColumns.filter((c) => c.column_id !== "handler");
+    // helpers
+    const rawColumnIds = (clientData?.raw || []).map((r) => r.column_id);
+    const columns = clientColumns.filter((c) => c.column_id !== "handler");
 
-      const existingColumns = columns.filter((col) =>
-        rawColumnId.includes(col.column_id)
-      );
-      const missingColumns = columns.filter(
-        (col) => !rawColumnId.includes(col.column_id)
-      );
+    const getHandlerListFromForm = (form) =>
+      (form?.handler || []).map((h) => ({ client_id, user_id: h.value || h }));
 
+    const buildCustomPayloads = (columnsArr, form) => {
+      const existing = columnsArr.filter((col) =>
+        rawColumnIds.includes(col.column_id)
+      );
+      const missing = columnsArr.filter(
+        (col) => !rawColumnIds.includes(col.column_id)
+      );
       const custom_values = generateCustomValues(
-        existingColumns,
-        formData,
+        existing,
+        form,
         client_id,
         currSelectedGroupId
       );
-
       const missing_custom_values = generateCustomValues(
-        missingColumns,
-        formData,
+        missing,
+        form,
         client_id,
         currSelectedGroupId
       );
+      return { existing, missing, custom_values, missing_custom_values };
+    };
 
-      const handlerList =
-        (formData.handler || []).map((h) => {
-          const user_id = h.value || h;
-          return {
-            client_id: client_id,
-            user_id: user_id,
-          };
-        }) || [];
-
-      const finalPayload = {
+    // Common final payload builder
+    const buildFinalPayload = ({
+      handlerList,
+      custom_values,
+      missing_custom_values,
+      createdByAdmin = false,
+    }) => {
+      const base = {
         handler: handlerList,
         client_group_id: currSelectedGroupId,
         user_id: user?.uid,
-        client_id: client_id,
+        client_id,
         custom_values,
         missing_custom_values,
-        // optional audit flag
-        created_by_admin: true,
       };
+      if (createdByAdmin) base.created_by_admin = true;
+      return base;
+    };
 
-      // Build logs payload similar to original flow (minimal here)
-      const logsBody = {
+    // Standardized logs metadata
+    const buildLogsBody = ({ clientName, serialNumber, changes = [] }) => {
+      return {
         company_id: currCompanyId,
         user_id: user?.uid,
         section: "Client",
         action: "Update",
-        text: `${user?.displayName} updated client ${client_id}`,
-        metadata: {},
+        text: `${user?.displayName} updated client ${clientName ?? client_id}`,
+        subject_id: currSelectedGroupId,
+        metadata: {
+          client_id,
+          client_name: clientName ?? "",
+          serial_number: serialNumber ?? null,
+          change_count: Array.isArray(changes) ? changes.length : 0,
+          changes,
+        },
       };
+    };
 
-      dispatch(updateClient({ payload: finalPayload, logsBody, router }));
-      return;
-    } else {
-      // Non-admin: perform validations
+    // --- Validation (non-admin only) ---
+    if (!isAdmin) {
       const errors = {};
 
       // required checks
       clientColumns.forEach((col) => {
-        if (col.is_required) {
-          const val = formData[col.column_id];
-          if (col.column_id === "handler") {
-            if (!val || (Array.isArray(val) && val.length === 0)) {
-              errors[col.column_id] = `${col.label} is required`;
-            }
-          } else if (col.field_type === "alert") {
-            const v = formData[col.column_id] || {
-              date: "",
-              is_complete: false,
-            };
-            if (!v.date) {
-              errors[col.column_id] = `${col.label} date is required`;
-            }
-          } else {
-            if (
-              val === undefined ||
-              val === null ||
-              String(val).trim() === ""
-            ) {
-              errors[col.column_id] = `${col.label} is required`;
-            }
+        if (!col.is_required) return;
+        const val = formData[col.column_id];
+
+        if (col.column_id === "handler") {
+          if (!val || (Array.isArray(val) && val.length === 0)) {
+            errors[col.column_id] = `${col.label} is required`;
+          }
+        } else if (col.field_type === "alert") {
+          const v = formData[col.column_id] || { date: "", is_complete: false };
+          if (!v.date) {
+            errors[col.column_id] = `${col.label} date is required`;
+          }
+        } else {
+          if (val === undefined || val === null || String(val).trim() === "") {
+            errors[col.column_id] = `${col.label} is required`;
           }
         }
       });
 
-      // if required errors exist, stop early
+      // duplicate checks for allow_duplicate === 0
       if (Object.keys(errors).length === 0) {
-        // duplicate checks for allow_duplicate === 0
         for (const col of clientColumns) {
           if (col.allow_duplicate === 0) {
-            if (col.column_id === "handler") continue; // skip handler
+            if (col.column_id === "handler") continue;
             const value = formData[col.column_id];
             const { isDuplicate, ok } = await checkDuplicate(
               dispatch,
@@ -301,9 +344,6 @@ export default function EditClientPage() {
               col.column_id,
               value
             );
-
-            // console.log(isDuplicate)
-            // console.log(ok)
             if (!ok) {
               errors[col.column_id] = `${col.label} error`;
               break;
@@ -321,173 +361,147 @@ export default function EditClientPage() {
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
+    } // end non-admin validation
 
-      // If validations passed, proceed to build update payload (same as original)
-      const rawColumnId = (clientData?.raw || []).map((col) => col.column_id);
-      const columns = clientColumns.filter((c) => c.column_id !== "handler");
+    // --- Build custom values & handler list (common path) ---
+    const {
+      custom_values,
+      missing_custom_values,
+      existing: existingColumns,
+      missing: missingColumns,
+    } = buildCustomPayloads(columns, formData);
 
-      const missingColumns = columns.filter(
-        (col) => !rawColumnId.includes(col.column_id)
-      );
+    const handlerList = getHandlerListFromForm(formData);
 
-      const existingColumns = columns.filter((col) =>
-        rawColumnId.includes(col.column_id)
-      );
-
-      const custom_values = generateCustomValues(
-        existingColumns,
-        formData,
-        client_id,
-        currSelectedGroupId
-      );
-
-      const missing_custom_values = generateCustomValues(
-        missingColumns,
-        formData,
-        client_id,
-        currSelectedGroupId
-      );
-
-      const handlerList =
-        formData.handler?.map((h) => {
-          const user_id = h.value || h;
-          return {
-            client_id: client_id,
-            user_id: user_id,
-          };
-        }) || [];
-
-      const finalPayload = {
-        handler: handlerList,
-        client_group_id: currSelectedGroupId,
-        user_id: user?.uid,
-        client_id: client_id,
-        custom_values,
-        missing_custom_values,
-      };
-
-      // Build change-diff for logs (copied from your original logic)
-      const prevMap = {};
-      (clientData.raw || []).forEach((r) => {
-        let prevVal = r.row_value ?? r.value ?? "";
-        try {
-          prevVal =
-            typeof prevVal === "string" &&
-            (prevVal.startsWith("{") || prevVal.startsWith("["))
-              ? JSON.parse(prevVal)
-              : prevVal;
-        } catch (err) {
-          // leave as string
+    // --- Compute changes (diff) against existing raw values ---
+    // Build prevMap from clientData.raw
+    const prevMap = {};
+    (clientData.raw || []).forEach((r) => {
+      let prevVal = r.row_value ?? r.value ?? "";
+      try {
+        if (
+          typeof prevVal === "string" &&
+          (prevVal.startsWith("{") || prevVal.startsWith("["))
+        ) {
+          prevVal = JSON.parse(prevVal);
         }
-        prevMap[r.column_id] = prevVal;
-      });
+      } catch (err) {
+        // leave as string if JSON parse fails
+      }
+      prevMap[r.column_id] = prevVal;
+    });
 
-      const changes = [];
+    const changes = [];
 
-      existingColumns.forEach((col) => {
-        const colId = col.column_id;
-        const newRaw = formData[colId];
-        let newVal = newRaw;
-        if (col.field_type === "alert") {
-          newVal = newRaw || {};
-        }
+    // existingColumns contains column meta objects (those that existed in schema)
+    existingColumns.forEach((col) => {
+      const colId = col.column_id;
+      let newRaw = formData[colId];
+      let newVal = newRaw;
 
-        const oldVal = prevMap[colId] ?? "";
+      if (col.field_type === "alert") {
+        newVal = newRaw || {};
+      }
 
-        const equal =
-          typeof oldVal === "object" || typeof newVal === "object"
-            ? JSON.stringify(oldVal) === JSON.stringify(newVal)
-            : String(oldVal) === String(newVal);
+      const oldVal = prevMap[colId] ?? "";
 
-        if (!equal) {
-          changes.push({
-            column_id: colId,
-            label: col.label ?? colId,
-            old: oldVal,
-            new: newVal,
-          });
-        }
-      });
+      const equal =
+        typeof oldVal === "object" || typeof newVal === "object"
+          ? JSON.stringify(oldVal) === JSON.stringify(newVal)
+          : String(oldVal) === String(newVal);
 
-      const prevHandlers =
-        Array.isArray(clientData.handler) && clientData.handler.length > 0
-          ? clientData.handler.map((h) => h.label ?? h.value)
-          : typeof clientData.handler_name === "string" &&
-            clientData.handler_name.length
-          ? clientData.handler_name.split(",").map((s) => s.trim())
-          : [];
-
-      const handlerLookup = (clientData.handler || []).reduce((acc, h) => {
-        acc[h.value] = h.label;
-        return acc;
-      }, {});
-
-      const newHandlers = handlerList.map(
-        (h) => handlerLookup[h.user_id] ?? h.user_id
-      );
-
-      const handlersChanged =
-        JSON.stringify(prevHandlers.sort()) !==
-        JSON.stringify(newHandlers.sort());
-      if (handlersChanged) {
+      if (!equal) {
         changes.push({
-          column_id: "handler",
-          label: "Handler",
-          old: prevHandlers,
-          new: newHandlers,
+          column_id: colId,
+          label: col.label ?? colId,
+          old: oldVal,
+          new: newVal,
         });
       }
+    });
 
-      // Retrieve clientName (existing DB value preferred, fallback to edited)
-      let clientName = "";
-      const clientNameColumn = clientColumns.find(
-        (c) => c.label === "Client Name"
+    // handlers diff
+    const prevHandlers =
+      Array.isArray(clientData.handler) && clientData.handler.length > 0
+        ? clientData.handler.map((h) => h.label ?? h.value)
+        : typeof clientData.handler_name === "string" &&
+          clientData.handler_name.length
+        ? clientData.handler_name.split(",").map((s) => s.trim())
+        : [];
+
+    const handlerLookup = (clientData.handler || []).reduce((acc, h) => {
+      acc[h.value] = h.label;
+      return acc;
+    }, {});
+
+    const newHandlers = handlerList.map(
+      (h) => handlerLookup[h.user_id] ?? h.user_id
+    );
+
+    const handlersChanged =
+      JSON.stringify(prevHandlers.sort()) !==
+      JSON.stringify(newHandlers.sort());
+    if (handlersChanged) {
+      changes.push({
+        column_id: "handler",
+        label: "Handler",
+        old: prevHandlers,
+        new: newHandlers,
+      });
+    }
+
+    // retrieve clientName fallback logic
+    let clientName = "";
+    const clientNameColumn = clientColumns.find(
+      (c) => c.label === "Client Name"
+    );
+    if (clientNameColumn) {
+      const rawItem = (clientData.raw || []).find(
+        (r) => r.column_id === clientNameColumn.column_id
       );
-      if (clientNameColumn) {
-        const rawItem = (clientData.raw || []).find(
-          (r) => r.column_id === clientNameColumn.column_id
-        );
-        if (rawItem) {
-          try {
-            const parsed =
-              typeof rawItem.row_value === "string" &&
-              (rawItem.row_value.startsWith("{") ||
-                rawItem.row_value.startsWith("["))
-                ? JSON.parse(rawItem.row_value)
-                : rawItem.row_value;
-            clientName = parsed ?? "";
-          } catch {
-            clientName = rawItem.row_value ?? "";
-          }
-        }
-        const editedName = formData[clientNameColumn.column_id];
-        if (
-          editedName !== undefined &&
-          editedName !== null &&
-          String(editedName).trim() !== ""
-        ) {
-          clientName = editedName;
+      if (rawItem) {
+        try {
+          const parsed =
+            typeof rawItem.row_value === "string" &&
+            (rawItem.row_value.startsWith("{") ||
+              rawItem.row_value.startsWith("["))
+              ? JSON.parse(rawItem.row_value)
+              : rawItem.row_value;
+          clientName = parsed ?? "";
+        } catch {
+          clientName = rawItem.row_value ?? "";
         }
       }
-      if (!clientName) clientName = client_id;
-
-      const serialNumber =
-        clientData.serial_number ?? clientData.mapped?.serial_number ?? null;
-
-      const logsBody = {
-        company_id: currCompanyId,
-        user_id: user?.uid,
-        section: "Client",
-        action: "Update",
-        text: `${user?.displayName} updated client ${clientName}`,
-        metadata: {
-          serial_number: serialNumber,
-          changes,
-        },
-      };
-
-      dispatch(updateClient({ payload: finalPayload, logsBody, router }));
+      const editedName = formData[clientNameColumn.column_id];
+      if (
+        editedName !== undefined &&
+        editedName !== null &&
+        String(editedName).trim() !== ""
+      ) {
+        clientName = editedName;
+      }
     }
+    if (!clientName) clientName = client_id;
+
+    const serialNumber =
+      clientData.serial_number ?? clientData.mapped?.serial_number ?? null;
+
+    // build final payload and logs
+    const finalPayload = buildFinalPayload({
+      handlerList,
+      custom_values,
+      missing_custom_values,
+      createdByAdmin: !!isAdmin,
+    });
+
+    const logsBody = buildLogsBody({
+      clientName,
+      serialNumber,
+      changes,
+    });
+
+    // dispatch update
+    dispatch(updateClient({ payload: finalPayload, logsBody, router }));
   };
 
   const handleCancel = (e) => {
@@ -497,10 +511,39 @@ export default function EditClientPage() {
 
   return (
     <div className="create-client-container">
+      <ClientLogsDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        loading={logsLoading}
+        logs={clientLogs}
+      />
+
       <div className="form-card">
-        <div className="form-header">
-          <h1>Edit Client</h1>
-          <p>Update the client details below</p>
+        <div
+          className="form-header"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div>
+            <h1>Edit Client</h1>
+            <p>Update the client details below</p>
+          </div>
+
+          <div>
+            <ActionButton type="primary" label={"Show Logs"} onClick={handleShowLogs} />
+
+            {/* <button
+              type="button"
+              className="outline"
+              onClick={handleShowLogs}
+              title="Show logs for this client"
+            >
+              Show Logs
+            </button> */}
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="client-form">

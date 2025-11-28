@@ -4,6 +4,15 @@
 .table-header,
 .table-cell {
   font-size: variables.$font-s;
+
+  .cell-multiline{
+    display: block;
+    // max-width: 100px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
   input[type="checkbox"] {
     cursor: pointer;
     width: 16px;
@@ -67,6 +76,8 @@
 }
 
 .table-selection-summary{
+  color: #6c757d;
+  font-size: 12px;
   // // padding-inline: 1rem;
   // display: flex;
   // justify-content: space-between;

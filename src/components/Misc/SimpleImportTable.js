@@ -25,13 +25,13 @@ const SimpleImportTable = ({
   return (
     <div className="simple-import-table">
       <div className="table-header">
-        <h3>Imported Data Preview</h3>
+        {/* <h3>Imported Data Preview</h3> */}
         <span className="record-count">
           {processedData.length} record(s) ready for import
         </span>
       </div>
       
-      <div className="table-container">
+      {/* <div className="table-container">
         <table className="data-table">
           <thead>
             <tr>
@@ -64,7 +64,7 @@ const SimpleImportTable = ({
             ))}
           </tbody>
         </table>
-      </div>
+      </div> */}
     </div>
   );
 };

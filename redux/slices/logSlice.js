@@ -8,6 +8,11 @@ const initialState = {
   loading: false, // loading for getLogs / getMyLogs
   error: "",
 
+  clientLogs: [], // array of log rows
+  clientLogsTotal: 0, // total count from server (for pagination)
+  clientLogsLoading: false, // loading for getLogs / getMyLogs
+  clientLogsError: "",
+
   creating: false, // creating a log entry
   createError: "",
 };
@@ -38,6 +43,30 @@ const logsSlice = createSlice({
 
     getLogsError(state, { payload }) {
       state.error = payload;
+      state.loading = false;
+    },
+
+    getClientLogs(state, { payload }) {
+      state.clientLogsLoading = true;
+      state.clientLogsError = "";
+    },
+    getClientLogsSuccess(state, { payload }) {
+      const rows = payload.rows || [];
+      const total = payload.total ?? 0;
+      const offset = payload.params?.offset ?? 0;
+      if (offset > 0) {
+        // append
+        state.clientLogs = [...(state.clientLogs || []), ...rows];
+      } else {
+        // replace
+        state.clientLogs = rows;
+      }
+      state.clientLogsTotal = total;
+      state.clientLogsLoading = false;
+    },
+
+    getClientLogsError(state, { payload }) {
+      state.clientLogsError = payload;
       state.loading = false;
     },
 
@@ -103,10 +132,14 @@ export const {
   createLogSuccess,
   createLogError,
   clearLogsState,
+  getClientLogs,
+  getClientLogsError,
+  getClientLogsSuccess
 } = logsSlice.actions;
 
 // Selectors — pattern used in your repo (hooks using useSelector)
 export const useSelectLogs = () => useSelector((state) => state.logs.logs);
+export const useSelectClientLogs = () => useSelector((state) => state.logs.clientLogs);
 export const useSelectLogsTotal = () =>
   useSelector((state) => state.logs.total);
 export const useSelectLogsLoading = () =>
