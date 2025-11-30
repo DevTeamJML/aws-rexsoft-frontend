@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
+import { ResetPasswordModal } from "@/components/Misc/ResetPasswordModal";
 
 export default function LoginPage() {
   const dispatch = useDispatch();
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const isMobile = useMediaQuery("(max-width:1100px)");
+  const [showResetModal, setShowResetModal] = useState(false);
 
   const handleSubmit = () => {
     const data = {
@@ -25,6 +27,10 @@ export default function LoginPage() {
 
   return (
     <div className="login-page-content">
+      <ResetPasswordModal
+        show={showResetModal}
+        onClose={() => setShowResetModal(false)}
+      />
       <div className="login-container">
         <div className="login-content">
           {/* <div className="image-box">
@@ -73,6 +79,7 @@ export default function LoginPage() {
             <div className="reset-password">
               <span
                 onClick={() => {
+                  setShowResetModal(true);
                   // router.push("/forgot-password");
                 }}
               >

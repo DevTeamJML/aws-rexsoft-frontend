@@ -14,6 +14,7 @@ import "@/styles/Misc/filter-drawer.scss";
 import "@/styles/Misc/column-order-drawer.scss";
 import "@/styles/Misc/export-modal.scss";
 import "@/styles/Misc/client-logs-drawer.scss";
+import "@/styles/Misc/reset-password-modal.scss";
 
 // Invitation
 import "@/styles/Invitation/invitation.scss";

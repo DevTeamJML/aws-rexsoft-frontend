@@ -3,12 +3,14 @@ const MENU_PERMISSION_MAP = {
   form: "view_form",
   appointment: "view_all_appointment",
   kpi: "view_kpi",
+  client: "manage_client",
   "control-panel": "manage-roles",
   "manage-group": "manage_client_group",
 };
 
-export function filterMenuByPermissions(menuItems, userPermissions, isAdmin) {
-  return menuItems
+export function filterMenuByPermissions(menuItems, userPermissions, isAdmin, currCompany) {
+  // First apply permission checks as before
+  const filtered = menuItems
     .map((item) => {
       // Skip checks if admin
       if (!isAdmin) {
@@ -36,4 +38,12 @@ export function filterMenuByPermissions(menuItems, userPermissions, isAdmin) {
       return { ...item, subItems: filteredSubs };
     })
     .filter(Boolean);
+
+  // If there's no current company, only show "create-company" (if present after permission filtering)
+  if (!currCompany) {
+    return filtered.filter((item) => item.id === "create-company");
+  }
+
+  // otherwise return full filtered menu
+  return filtered;
 }
