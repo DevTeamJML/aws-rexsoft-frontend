@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import PropTypes from "prop-types";
 import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
 

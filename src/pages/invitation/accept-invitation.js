@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import PropTypes from "prop-types";
 import { useDispatch, useSelector } from "react-redux";
 import { acceptInvitation, selectAcceptInvitationLoading } from "../../../redux/slices/invitationSlice";
 
@@ -39,7 +38,3 @@ export default function AcceptInvitationForm({ invitation, role_id }) {
     </div>
   );
 }
-
-AcceptInvitationForm.propTypes = {
-  invitation: PropTypes.object.isRequired,
-};
