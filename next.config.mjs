@@ -3,7 +3,7 @@
 
 const nextConfig = {
   devIndicators: false,
-  trailingSlash: false,
+  trailingSlash: true,
   reactStrictMode: false,
   output: 'export',
   images: {
