@@ -6,6 +6,9 @@ const nextConfig = {
   trailingSlash: false,
   reactStrictMode: false,
   output: 'export',
+  images: {
+    unoptimized: true,
+  },
   eslint: {
     ignoreDuringBuilds: true, // (optional) prevents build fail due to lint errors
   },
