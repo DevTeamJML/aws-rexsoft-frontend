@@ -19,7 +19,7 @@ const nextConfig = {
     CURR_SELECTED_GROUP_ID: "curr_selected_group_id",
     CURR_COMPANY_ID: "company_id",
     CURR_USER_ID: "user_id",
-    API_URL: "https://cqyambqcrdzvmje8gm.zumaxdigital.com:8081/v1",
+    API_URL: "https://cqyambqcrdzvmje8gm.zumaxdigital.com/v1",
     FIREBASE_API_KEY: "AIzaSyDGMS-R8G80ewcoPbePBcAUojKkV52-94Q",
     FIREBASE_AUTH_DOMAIN: "zumax-crm-v2.firebaseapp.com",
     FIREBASE_PROJECT_ID: "zumax-crm-v2",
