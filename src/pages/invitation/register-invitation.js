@@ -90,7 +90,7 @@ export default function RegistrationForm({ invitation, role_id }) {
 
       <div className="field read-only-email">
         <label>Email</label>
-        <div className="email-value">{invitation.email}</div>
+        <div className="email-value">{invitation?.email}</div>
       </div>
 
       <div className="field">

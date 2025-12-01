@@ -48,7 +48,7 @@ export default function InvitationPage() {
       return null;
     }
 
-    if (invitation.user_exists) {
+    if (invitation?.user_exists) {
       return <AcceptInvitationForm invitation={invitation} role_id={role_id}/>;
     } else {
       return <RegistrationForm invitation={invitation} role_id={role_id} />;
