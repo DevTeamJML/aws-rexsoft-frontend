@@ -71,9 +71,9 @@ export function convertTo12Hour(timeStr) {
 export function flattenPermissions(nested) {
   const keys = [];
   for (const moduleKey in nested) {
-    const module = nested[moduleKey];
-    for (const permKey in module) {
-      if (module[permKey]) keys.push(permKey);
+    const modules = nested[moduleKey];
+    for (const permKey in modules) {
+      if (modules[permKey]) keys.push(permKey);
     }
   }
   return keys;
