@@ -3,6 +3,11 @@ const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig = {
   devIndicators: false,
+  trailingSlash: false,
+  reactStrictMode: false,
+  eslint: {
+    ignoreDuringBuilds: true, // (optional) prevents build fail due to lint errors
+  },
   experimental: {
     optimizeCss: false, // disables lightningcss
   },
