@@ -197,174 +197,78 @@ export default function BulkUpdateClient() {
     setRemoveHandler((prev) => prev.filter((h) => h !== handlerToRemove));
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
+  // ---------- Helpers for merging alert objects (handles both is_complete & is_completed) ----------
+  const safeParseJSON = (value) => {
+    try {
+      if (typeof value === "string") return JSON.parse(value);
+      return value;
+    } catch (e) {
+      return value;
+    }
+  };
 
-  //   // Validate that same handler is not in both lists
-  //   const conflictingHandlers = addHandler.filter((addHandlerItem) =>
-  //     removeHandler.includes(addHandlerItem)
-  //   );
+  // canonicalize keys: prefer `is_complete` (your sample) but accept `is_completed` as synonym
+  const normalizeAlertShape = (obj) => {
+    if (!obj || typeof obj !== "object" || Array.isArray(obj)) {
+      return { is_complete: false, date: null };
+    }
 
-  //   if (conflictingHandlers.length > 0) {
-  //     // Get handler labels for error message
-  //     const conflictingHandlerLabels = conflictingHandlers
-  //       .map((userId) => {
-  //         const handlerObj = handler.find((h) => h.value === userId);
-  //         return handlerObj?.label || userId;
-  //       })
-  //       .join(", ");
+    const isComplete =
+      typeof obj.is_complete === "boolean"
+        ? obj.is_complete
+        : typeof obj.is_completed === "boolean"
+        ? obj.is_completed
+        : false;
 
-  //     alert(
-  //       `Error: The same handler cannot be in both Add and Remove lists. Conflicting handlers: ${conflictingHandlerLabels}`
-  //     );
-  //     return;
-  //   }
+    return {
+      ...obj,
+      is_complete: isComplete,
+      // ensure date exists (string or null)
+      date: typeof obj.date === "string" ? obj.date : obj.date ?? null,
+    };
+  };
 
-  //   dispatch(
-  //     showToast({
-  //       message: "Processing data, please wait..",
-  //       status: "success",
-  //       loader: true,
-  //     })
-  //   );
+  // Find existing alert row_value for a given client and column
+  const getExistingAlertForClient = (client_id, column_id) => {
+    const clientObj = (clients || []).find(
+      (c) => (c.id ?? c.client_id) === client_id
+    );
+    if (!clientObj) return { is_complete: false, date: null };
 
-  //   try {
-  //     const BATCH_SIZE = 25;
-  //     const CONCURRENCY = 3;
-  //     const limit = pLimit(CONCURRENCY);
-  //     const tasks = [];
+    // Try raw array first
+    const rawEntry =
+      Array.isArray(clientObj.raw) &&
+      clientObj.raw.find((r) => r.column_id === column_id);
 
-  //     const columnsWithValues = clientColumns.filter(
-  //       (col) => formData[col.column_id] && formData[col.column_id] !== ""
-  //     );
+    if (rawEntry) {
+      const parsed = safeParseJSON(rawEntry.row_value);
+      return normalizeAlertShape(parsed);
+    }
 
-  //     // Process each column (we will queue requests via p-limit)
-  //     for (const col of columnsWithValues) {
-  //       const columnValue = formData[col.column_id];
+    // Try mapped (your sample stores under mapped.alert or mapped[column_id])
+    if (clientObj.mapped) {
+      // if mapped has a keyed property equal to column_id
+      if (clientObj.mapped[column_id]) {
+        const parsed = safeParseJSON(clientObj.mapped[column_id]);
+        return normalizeAlertShape(parsed);
+      }
+      // or if mapped has 'alert' object (convention in sample)
+      if (clientObj.mapped.alert) {
+        const parsed = safeParseJSON(clientObj.mapped.alert);
+        return normalizeAlertShape(parsed);
+      }
+    }
 
-  //       // Process clients in batches for this column
-  //       for (let i = 0; i < selectedClientIds.length; i += BATCH_SIZE) {
-  //         const batchClientIds = selectedClientIds.slice(i, i + BATCH_SIZE);
+    // Try custom_values fallback shape
+    if (clientObj.custom_values && clientObj.custom_values[column_id]) {
+      const parsed = safeParseJSON(clientObj.custom_values[column_id]);
+      return normalizeAlertShape(parsed);
+    }
 
-  //         const updateList = {
-  //           alert_values: [],
-  //           custom_values: [],
-  //         };
+    return { is_complete: false, date: null };
+  };
 
-  //         if (col.field_type === "alert") {
-  //           updateList["alert_values"] = batchClientIds.map((client_id) => ({
-  //             client_group_id: currSelectedGroupId,
-  //             column_id: col.column_id,
-  //             client_id: client_id,
-  //             row_value: columnValue,
-  //           }));
-  //         } else {
-  //           updateList["custom_values"] = batchClientIds.map((client_id) => ({
-  //             client_group_id: currSelectedGroupId,
-  //             column_id: col.column_id,
-  //             client_id: client_id,
-  //             row_value: columnValue,
-  //           }));
-  //         }
-
-  //         const addHandlerList = batchClientIds.flatMap((client_id) =>
-  //           (addHandler || []).map((user_id) => ({
-  //             client_id,
-  //             user_id: user_id, // user_id is already a string
-  //           }))
-  //         );
-
-  //         const removeHandlerList = batchClientIds.flatMap((client_id) =>
-  //           (removeHandler || []).map((user_id) => ({
-  //             client_id,
-  //             user_id: user_id, // user_id is already a string
-  //           }))
-  //         );
-
-  //         // Queue the dispatch with concurrency limit.
-  //         // We include a small delay inside the limited function to preserve your pacing.
-  //         tasks.push(
-  //           limit(async () => {
-  //             dispatch(
-  //               bulkUpdateClient({
-  //                 router,
-  //                 payload: {
-  //                   client_group_id: currSelectedGroupId,
-  //                   custom_values: updateList.custom_values,
-  //                   alert_values: updateList.alert_values,
-  //                   client_id_list: batchClientIds,
-  //                   add_handler_list: addHandlerList,
-  //                   remove_handler_list: removeHandlerList,
-  //                 },
-  //               })
-  //             );
-
-  //             // small delay/jitter to avoid bursts — keeps your original behavior
-  //             await new Promise((resolve) =>
-  //               setTimeout(resolve, 50 + Math.floor(Math.random() * 50))
-  //             );
-  //           })
-  //         );
-  //       }
-  //     }
-
-  //     // If only handlers are being updated (no column changes)
-  //     if (
-  //       columnsWithValues.length === 0 &&
-  //       (addHandler.length > 0 || removeHandler.length > 0)
-  //     ) {
-  //       for (let i = 0; i < selectedClientIds.length; i += BATCH_SIZE) {
-  //         const batchClientIds = selectedClientIds.slice(i, i + BATCH_SIZE);
-
-  //         const addHandlerList = batchClientIds.flatMap((client_id) =>
-  //           (addHandler || []).map((user_id) => ({
-  //             client_id,
-  //             user_id: user_id,
-  //           }))
-  //         );
-
-  //         const removeHandlerList = batchClientIds.flatMap((client_id) =>
-  //           (removeHandler || []).map((user_id) => ({
-  //             client_id,
-  //             user_id: user_id,
-  //           }))
-  //         );
-
-  //         tasks.push(
-  //           limit(async () => {
-  //             await dispatch(
-  //               bulkUpdateClient({
-  //                 router,
-  //                 payload: {
-  //                   client_group_id: currSelectedGroupId,
-  //                   custom_values: [],
-  //                   alert_values: [],
-  //                   client_id_list: batchClientIds,
-  //                   add_handler_list: addHandlerList,
-  //                   remove_handler_list: removeHandlerList,
-  //                 },
-  //               })
-  //             );
-
-  //             // small delay/jitter
-  //             await new Promise((resolve) =>
-  //               setTimeout(resolve, 50 + Math.floor(Math.random() * 50))
-  //             );
-  //           })
-  //         );
-  //       }
-  //     }
-
-  //     // Wait for all queued tasks to finish (respecting concurrency)
-  //     await Promise.all(tasks);
-
-  //     dispatch(hideToast());
-  //     router.push("/client/client-list");
-  //   } catch (error) {
-  //     console.error("Error during bulk update:", error);
-  //     dispatch(hideToast());
-  //   }
-  // };
+  // ---------- Updated handleSubmit with alert merge and "ignore empty values" behavior ----------
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -392,14 +296,6 @@ export default function BulkUpdateClient() {
       return;
     }
 
-    // dispatch(
-    //   showToast({
-    //     message: "Processing data, please wait..",
-    //     status: "success",
-    //     loader: true,
-    //   })
-    // );
-
     try {
       // ---------- Setup ----------
       const BATCH_SIZE = 25;
@@ -412,14 +308,13 @@ export default function BulkUpdateClient() {
       (clients || []).forEach((c) => {
         const id = c.id ?? c.client_id;
         const serial = c.serial_number ?? c.mapped?.serial_number ?? null;
-        // try mapped client_name, fallback to raw lookup or null
         const clientName =
           c.mapped?.client_name ??
           (Array.isArray(c.raw)
             ? (() => {
                 const found = c.raw.find(
                   (r) =>
-                    // try to detect column that represents client name (system id might differ)
+                    // adjust the column id used here if yours differs
                     r.column_id === "38096615-7993-4122-9275-a4627efba466"
                 );
                 return found ? found.row_value : null;
@@ -444,7 +339,6 @@ export default function BulkUpdateClient() {
       const hasHandlerChanges =
         (addHandler?.length || 0) > 0 || (removeHandler?.length || 0) > 0;
       if (columnsWithValues.length === 0 && !hasHandlerChanges) {
-        dispatch(hideToast());
         dispatch(showToast({ message: "Nothing to update.", status: "info" }));
         return;
       }
@@ -500,15 +394,67 @@ export default function BulkUpdateClient() {
           const alert_values = [];
 
           if (col.field_type === "alert") {
+            // For alerts we need to merge with existing per-client values
             for (const client_id of batchClientIds) {
+              // Normalize incoming column value into partial object but IGNORE empty strings/null/undefined
+              let normalizedNew = {};
+
+              if (
+                columnValue !== null &&
+                typeof columnValue === "object" &&
+                !Array.isArray(columnValue)
+              ) {
+                // include only keys that are actual changes:
+                // - keep booleans (including false)
+                // - keep numbers
+                // - keep non-empty strings
+                // - ignore empty strings, null, undefined
+                Object.entries(columnValue).forEach(([k, v]) => {
+                  const isBoolean = typeof v === "boolean";
+                  const isNumber = typeof v === "number" && !Number.isNaN(v);
+                  const isNonEmptyString = typeof v === "string" && v.trim() !== "";
+                  const isValidObject = v !== null && typeof v === "object" && !Array.isArray(v);
+
+                  if (isBoolean || isNumber || isNonEmptyString || isValidObject) {
+                    normalizedNew[k] = v;
+                  }
+                  // otherwise ignore (treat as "no change")
+                });
+              } else if (typeof columnValue === "boolean") {
+                // interpret boolean as toggle for completion
+                normalizedNew = { is_complete: columnValue };
+              } else if (
+                typeof columnValue === "string" &&
+                columnValue.trim() !== ""
+              ) {
+                // treat plain string as date by default (adjust if you expect other string semantics)
+                normalizedNew = { date: columnValue };
+              } else {
+                normalizedNew = {};
+              }
+
+              // canonicalize incoming synonyms (is_completed -> is_complete)
+              if (typeof normalizedNew.is_completed === "boolean") {
+                normalizedNew.is_complete = normalizedNew.is_completed;
+                delete normalizedNew.is_completed;
+              }
+
+              // get existing object for this client+column
+              const existing = getExistingAlertForClient(client_id, col.column_id);
+
+              // merge: incoming fields overwrite existing; unspecified fields preserved
+              const mergedRowValue = { ...existing, ...normalizedNew };
+
+              // push merged object (if server expects string, switch to JSON.stringify)
               alert_values.push({
                 client_group_id: currSelectedGroupId,
                 column_id: col.column_id,
                 client_id,
-                row_value: columnValue,
+                row_value: mergedRowValue,
               });
             }
           } else {
+            // regular custom field
             for (const client_id of batchClientIds) {
               custom_values.push({
                 client_group_id: currSelectedGroupId,
@@ -535,7 +481,6 @@ export default function BulkUpdateClient() {
 
           tasks.push(
             limit(async () => {
-              // include isAdmin / created_by_admin flags so backend can decide the path in a single endpoint
               const payload = {
                 client_group_id: currSelectedGroupId,
                 custom_values,
@@ -547,8 +492,8 @@ export default function BulkUpdateClient() {
                 created_by_admin: !!isAdmin,
               };
 
-              // dispatch and await completion. Make sure your saga returns a Promise/response.
-              dispatch(bulkUpdateClient({ router, payload }));
+              // dispatch and await completion. Ensure your saga returns a promise if you want to await
+              await dispatch(bulkUpdateClient({ router, payload }));
 
               // small jitter
               await new Promise((res) =>
@@ -559,7 +504,7 @@ export default function BulkUpdateClient() {
         }
       }
 
-      // ---------- enqueue handler-only batches if no column updates (or you may want to always add handler batches too) ----------
+      // ---------- enqueue handler-only batches if no column updates ----------
       if (columnsWithValues.length === 0 && hasHandlerChanges) {
         for (let i = 0; i < selectedClientIds.length; i += BATCH_SIZE) {
           const batchClientIds = selectedClientIds.slice(i, i + BATCH_SIZE);
@@ -589,7 +534,7 @@ export default function BulkUpdateClient() {
                 created_by_admin: !!isAdmin,
               };
 
-              dispatch(bulkUpdateClient({ router, payload }));
+              await dispatch(bulkUpdateClient({ router, payload }));
               await new Promise((res) =>
                 setTimeout(res, 50 + Math.floor(Math.random() * 50))
               );
@@ -600,17 +545,14 @@ export default function BulkUpdateClient() {
 
       // if no tasks, nothing to do
       if (tasks.length === 0) {
-        dispatch(hideToast());
         dispatch(showToast({ message: "Nothing to update.", status: "info" }));
         return;
       }
 
       // ---------- run all batches concurrently (bounded by CONCURRENCY) ----------
-      // This will reject if any individual batch throws
       await Promise.all(tasks);
 
       // ---------- after all batches succeeded, create one aggregated log entry ----------
-      // build final aggregated logsBody
       const affectedArray = Array.from(aggregatedAffected.entries()).map(
         ([, /* client_id */ info]) => ({
           client_name: info.client_name ?? "",
