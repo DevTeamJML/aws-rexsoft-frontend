@@ -161,6 +161,7 @@ const UserList = () => {
 
       <ReusableTable
         tableId="user_list"
+        editableAction={false}
         data={tableData}
         fixedColumns={fixedColumns}
         dynamicColumns={[]}

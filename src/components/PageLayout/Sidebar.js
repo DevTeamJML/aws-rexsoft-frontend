@@ -25,6 +25,7 @@ import {
   FaThLarge,
   FaBuilding,
   FaChevronDown,
+  FaPlus,
 } from "react-icons/fa";
 import { ImHammer2 } from "react-icons/im";
 import { useState, useRef, useEffect } from "react";
@@ -151,7 +152,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       id: "create-company",
       label: "Create Company",
       path: "/control-panel/create-company",
-      icon: <FaThLarge size={20} />,
+      icon: <FaPlus size={20} />,
     },
   ];
 
