@@ -1,8 +1,10 @@
 "use client";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { acceptInvitation, selectAcceptInvitationLoading } from "../../../redux/slices/invitationSlice";
-
+import {
+  acceptInvitation,
+  selectAcceptInvitationLoading,
+} from "../../../redux/slices/invitationSlice";
 
 export default function AcceptInvitationForm({ invitation, role_id }) {
   const dispatch = useDispatch();
@@ -24,14 +26,18 @@ export default function AcceptInvitationForm({ invitation, role_id }) {
       <div className="center-icon">📧</div>
 
       <div className="form-header center">
-        <h1 className="form-title">You've Been Invited</h1>
+        <h1 className="form-title">{`You have Been Invited`}</h1>
         <p className="form-sub">
           {invitation.company_name} invited you to join
         </p>
       </div>
 
       <div className="field">
-        <button className="btn primary" onClick={handleAccept} disabled={loading}>
+        <button
+          className="btn primary"
+          onClick={handleAccept}
+          disabled={loading}
+        >
           {loading ? <span className="btn-spinner" /> : "Accept Invitation"}
         </button>
       </div>

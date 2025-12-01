@@ -204,7 +204,7 @@ const ReusableTable = ({
               (a, b) => a.value - b.value
             );
 
-            // Find the closest value that's >= daysDiff
+            // Find the closest value that is >= daysDiff
             const matchingOption = sortedOptions.find(
               (item) => daysDiff <= item.value
             );

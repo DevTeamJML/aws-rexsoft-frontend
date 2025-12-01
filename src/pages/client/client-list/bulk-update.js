@@ -200,7 +200,7 @@ export default function BulkUpdateClient() {
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
 
-  //   // Validate that same handler isn't in both lists
+  //   // Validate that same handler is not in both lists
   //   const conflictingHandlers = addHandler.filter((addHandlerItem) =>
   //     removeHandler.includes(addHandlerItem)
   //   );
@@ -449,12 +449,10 @@ export default function BulkUpdateClient() {
         return;
       }
 
-      // Accumulators for aggregated logs (we'll build single logs entry after all batches done)
       const aggregatedFieldsTouched = []; // { column_id, label, value } (unique by column_id)
       const aggregatedAffected = new Map(); // client_id -> { serial_number, client_name }
       let totalAffectedCount = 0;
 
-      // helper to register metadata for a batch (we'll push batch fields & affected clients)
       const registerBatchMetadata = (fieldsTouched, batchClientIds) => {
         // fields: keep unique by column_id in aggregatedFieldsTouched
         for (const f of fieldsTouched) {
@@ -535,7 +533,6 @@ export default function BulkUpdateClient() {
           // Register metadata now (for aggregated logs after all batches)
           registerBatchMetadata(fieldsTouched, batchClientIds);
 
-          // push limited task. NOTE: we do NOT pass logsBody here; we'll create logs after all tasks finish.
           tasks.push(
             limit(async () => {
               // include isAdmin / created_by_admin flags so backend can decide the path in a single endpoint

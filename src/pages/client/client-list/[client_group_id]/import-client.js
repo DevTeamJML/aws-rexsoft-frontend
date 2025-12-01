@@ -143,7 +143,6 @@ export default function ClientImportForm() {
       if (col.field_type === "alert" || col.field_type === "rich_text")
         return false;
       // Adjust this check to your actual permission flag; common variants:
-      // col.permission === 'editable' OR col.is_editable === true
       if (!isAdmin) {
         if (col.permission && col.permission !== "editable") return false;
       }
@@ -240,7 +239,6 @@ export default function ClientImportForm() {
 
       const header = rows[0];
 
-      // treat Handler as optional but we don't expect it in the template anymore
       const optional = [];
 
       const expectedLength = header.length;
@@ -325,7 +323,7 @@ export default function ClientImportForm() {
                   dataAcc["error_values"].push({
                     row_index: rowIndex,
                     col_index: colIndex,
-                    message: `${currColName} is a required field, please make sure it's not empty.`,
+                    message: `${currColName} is a required field, please make sure it is not empty.`,
                     error_type: "required",
                   });
                 }

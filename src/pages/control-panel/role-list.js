@@ -76,7 +76,6 @@ const RoleList = () => {
     }
   };
 
-  // Called when ConfirmModal's Confirm clicked (receives payload set by modal)
   const handleModalConfirm = (payload) => {
     if (modalMode === "edit") {
       console.log("Edit payload (demo):", payload, "role:", targetRoleId);

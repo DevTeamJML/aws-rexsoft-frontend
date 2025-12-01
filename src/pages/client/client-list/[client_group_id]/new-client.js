@@ -418,10 +418,7 @@ export default function NewClientPage() {
                   ) : null}
                 </label>
 
-                {/*
-                  renderClientInputField will receive setFormData and also
-                  be able to read 'disabled' and 'error' props from commonProps
-                */}
+        
                 {renderClientInputField(formData, column, setFormData, {
                   disabled: column.permission === "view_only",
                   error: formErrors[column.column_id],
