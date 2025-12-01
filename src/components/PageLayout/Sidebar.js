@@ -89,24 +89,24 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       icon: <FaThLarge size={20} />,
       path: "/dashboard",
     },
-    {
-      id: "graph",
-      label: "Graph",
-      icon: <FaChartLine size={20} />,
-      subItems: [
-        { id: "graph-client", label: "Graph Client", path: "/graph/graph-client" },
-        { id: "graph-form", label: "Graph Form", path: "/graph/graph-form" },
-      ],
-    },
-    {
-      id: "kpi",
-      label: "KPI",
-      icon: <FaChartBar size={20} />,
-      subItems: [
-        { id: "kpi-list", label: "KPI List", path: "/kpi/kpi-list" },
-        { id: "kpi-group", label: "KPI Group", path: "/kpi/kpi-group" },
-      ],
-    },
+    // {
+    //   id: "graph",
+    //   label: "Graph",
+    //   icon: <FaChartLine size={20} />,
+    //   subItems: [
+    //     { id: "graph-client", label: "Graph Client", path: "/graph/graph-client" },
+    //     { id: "graph-form", label: "Graph Form", path: "/graph/graph-form" },
+    //   ],
+    // },
+    // {
+    //   id: "kpi",
+    //   label: "KPI",
+    //   icon: <FaChartBar size={20} />,
+    //   subItems: [
+    //     { id: "kpi-list", label: "KPI List", path: "/kpi/kpi-list" },
+    //     { id: "kpi-group", label: "KPI Group", path: "/kpi/kpi-group" },
+    //   ],
+    // },
     {
       id: "client",
       label: "Client",
@@ -116,26 +116,26 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         { id: "manage-group", label: "Manage Group", path: "/client/client-group-list" },
       ],
     },
-    {
-      id: "form",
-      label: "Form",
-      icon: <FaFileAlt size={20} />,
-      subItems: [
-        { id: "form-template", label: "Form Template", path: "/form/form-template" },
-        { id: "form-submission", label: "Form Submission", path: "/form/form-submission" },
-        { id: "form-approval", label: "Form Approval", path: "/form/form-approval" },
-        { id: "form-tracker", label: "Form Tracker", path: "/form/Tracker" },
-      ],
-    },
-    {
-      id: "appointment",
-      label: "Appointment",
-      icon: <FaCalendarAlt size={20} />,
-      subItems: [
-        { id: "calendar", label: "Calendar", path: "/appointment/calendar" },
-        { id: "upcoming-appointment", label: "Upcoming Appointment", path: "/appointment/upcoming-appointment" },
-      ],
-    },
+    // {
+    //   id: "form",
+    //   label: "Form",
+    //   icon: <FaFileAlt size={20} />,
+    //   subItems: [
+    //     { id: "form-template", label: "Form Template", path: "/form/form-template" },
+    //     { id: "form-submission", label: "Form Submission", path: "/form/form-submission" },
+    //     { id: "form-approval", label: "Form Approval", path: "/form/form-approval" },
+    //     { id: "form-tracker", label: "Form Tracker", path: "/form/Tracker" },
+    //   ],
+    // },
+    // {
+    //   id: "appointment",
+    //   label: "Appointment",
+    //   icon: <FaCalendarAlt size={20} />,
+    //   subItems: [
+    //     { id: "calendar", label: "Calendar", path: "/appointment/calendar" },
+    //     { id: "upcoming-appointment", label: "Upcoming Appointment", path: "/appointment/upcoming-appointment" },
+    //   ],
+    // },
     {
       id: "control-panel",
       label: "Control Panel",
