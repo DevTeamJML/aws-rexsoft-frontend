@@ -1,4 +1,3 @@
-import { useMediaQuery } from "@mui/material";
 import moment from "moment";
 import Image from "next/image";
 import React from "react";
@@ -28,6 +27,8 @@ const EventModal = ({
   attendingEventId = [],
   onUnattend,
 }) => {
+  const router = useRouter();
+  const user = useSelectUser();
   if (!open || !selectedEvent) return null;
 
   const isAttending = attendingEventId.includes(selectedEvent.event_id);
@@ -36,10 +37,6 @@ const EventModal = ({
   const isClosed = !selectedEvent.is_publish; // 0 or false
   const isExpired = now.isAfter(eventDate, "day"); // date passed
 
-  const router = useRouter();
-  const user = useSelectUser();
-
-  const isTabSize = useMediaQuery("(max-width:1280px)");
   const day = moment(selectedEvent.date).format("DD");
   const month = moment(selectedEvent.date).format("MMM");
   const monthUpper = month.toUpperCase();
@@ -137,8 +134,7 @@ const EventModal = ({
                     className="remark-text"
                     title={selectedEvent.event_url_description}
                   >
-                    URL Description :{" "}  
-                    {selectedEvent.event_url_description}
+                    URL Description : {selectedEvent.event_url_description}
                   </span>
                 </div>
                 <div className="details">
@@ -147,8 +143,7 @@ const EventModal = ({
                     className="remark-text"
                     title={selectedEvent.event_description}
                   >
-                    Description :{" "}  
-                    {selectedEvent.event_description}
+                    Description : {selectedEvent.event_description}
                   </span>
                 </div>
               </>
