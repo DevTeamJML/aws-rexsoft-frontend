@@ -224,7 +224,7 @@ export default function BulkUpdateClient() {
       ...obj,
       is_complete: isComplete,
       // ensure date exists (string or null)
-      date: typeof obj.date === "string" ? obj.date : obj.date ?? null,
+      date: typeof obj.date === "string" ? obj.date : obj.date ?? "",
     };
   };
 
@@ -233,7 +233,7 @@ export default function BulkUpdateClient() {
     const clientObj = (clients || []).find(
       (c) => (c.id ?? c.client_id) === client_id
     );
-    if (!clientObj) return { is_complete: false, date: null };
+    if (!clientObj) return { is_complete: false, date: "" };
 
     // Try raw array first
     const rawEntry =
@@ -307,20 +307,9 @@ export default function BulkUpdateClient() {
       const clientInfoMap = {};
       (clients || []).forEach((c) => {
         const id = c.id ?? c.client_id;
-        const serial = c.serial_number ?? c.mapped?.serial_number ?? null;
+        const serial = c.serial_number ?? c.mapped?.serial_number ?? "";
         const clientName =
-          c.mapped?.client_name ??
-          (Array.isArray(c.raw)
-            ? (() => {
-                const found = c.raw.find(
-                  (r) =>
-                    // adjust the column id used here if yours differs
-                    r.column_id === "38096615-7993-4122-9275-a4627efba466"
-                );
-                return found ? found.row_value : null;
-              })()
-            : null) ??
-          null;
+          c.mapped?.client_name ?? "";
 
         clientInfoMap[id] = {
           serial_number: serial,
@@ -363,8 +352,8 @@ export default function BulkUpdateClient() {
               client_name: null,
             };
             aggregatedAffected.set(client_id, {
-              serial_number: info.serial_number ?? null,
-              client_name: info.client_name ?? null,
+              serial_number: info.serial_number ?? "",
+              client_name: info.client_name ?? "",
             });
           }
         }
