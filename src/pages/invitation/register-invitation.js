@@ -84,7 +84,7 @@ export default function RegistrationForm({ invitation, role_id }) {
         <h1 className="form-title">SIGN UP</h1>
         <p className="form-sub">
           Sign up and accept invitation to{" "}
-          <strong>{invitation.company_name}</strong>
+          <strong>{invitation?.company_name}</strong>
         </p>
       </div>
 

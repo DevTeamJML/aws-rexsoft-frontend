@@ -28,7 +28,7 @@ export default function AcceptInvitationForm({ invitation, role_id }) {
       <div className="form-header center">
         <h1 className="form-title">{`You have Been Invited`}</h1>
         <p className="form-sub">
-          {invitation.company_name} invited you to join
+          {invitation?.company_name} invited you to join
         </p>
       </div>
 
