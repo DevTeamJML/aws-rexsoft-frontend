@@ -5,6 +5,7 @@ const nextConfig = {
   devIndicators: false,
   trailingSlash: false,
   reactStrictMode: false,
+  output: 'export',
   eslint: {
     ignoreDuringBuilds: true, // (optional) prevents build fail due to lint errors
   },
