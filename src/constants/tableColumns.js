@@ -47,13 +47,13 @@ export const TableColumns = {
 
   // Client Pages
   "client-list": [
-    {
-      id: "handler",
-      label: "Handler",
-      field_type: "handler",
-      sortable: true,
-      width: 120,
-    },
+    // {
+    //   id: "handler",
+    //   label: "Handler",
+    //   field_type: "handler",
+    //   sortable: true,
+    //   width: 120,
+    // },
     {
       id: "serial_number",
       label: "Serial Number",

@@ -603,7 +603,7 @@ export default function BulkUpdateClient() {
           <div className="form-section">
             {/* Handler Fields */}
 
-            {canManageHandler ? (
+            {/* {canManageHandler ? (
               <Fragment>
                 <div className="input-group" style={{ width: "98%" }}>
                   <label>Add Handlers</label>
@@ -653,7 +653,7 @@ export default function BulkUpdateClient() {
                   )}
                 </div>
               </Fragment>
-            ) : null}
+            ) : null} */}
 
             {/* Regular columns */}
             {visibleColumns.map((column) => (

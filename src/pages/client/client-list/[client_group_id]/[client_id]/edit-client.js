@@ -127,18 +127,18 @@ export default function EditClientPage() {
   const clientColumns = useMemo(() => {
     const cols = [];
 
-    if (canManageHandler) {
-      cols.push({
-        column_id: "handler",
-        label: "Handler",
-        field_type: "handler",
-        options: handler,
-        width: 100,
-        is_required: true,
-        permission: "editable",
-        allow_duplicate: 1,
-      });
-    }
+    // if (canManageHandler) {
+    //   cols.push({
+    //     column_id: "handler",
+    //     label: "Handler",
+    //     field_type: "handler",
+    //     options: handler,
+    //     width: 100,
+    //     is_required: true,
+    //     permission: "editable",
+    //     allow_duplicate: 1,
+    //   });
+    // }
 
     if (currSelectedGroup) {
       const groupColumns = currSelectedGroup.columns.map((c) => ({
