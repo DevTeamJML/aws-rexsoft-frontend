@@ -5,7 +5,7 @@ const nextConfig = {
   devIndicators: false,
   trailingSlash: true,
   reactStrictMode: false,
-  output: 'export',
+  output: "export",
   images: {
     unoptimized: true,
   },
@@ -20,6 +20,7 @@ const nextConfig = {
     CURR_COMPANY_ID: "company_id",
     CURR_USER_ID: "user_id",
     API_URL: isProd ? "https://cqyambqcrdzvmje8gm.zumaxdigital.com/v1" : "http://localhost:8080/v1",
+    // API_URL: "https://cqyambqcrdzvmje8gm.zumaxdigital.com/v1",
     FIREBASE_API_KEY: "AIzaSyDGMS-R8G80ewcoPbePBcAUojKkV52-94Q",
     FIREBASE_AUTH_DOMAIN: "zumax-crm-v2.firebaseapp.com",
     FIREBASE_PROJECT_ID: "zumax-crm-v2",
