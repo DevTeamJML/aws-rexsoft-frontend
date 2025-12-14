@@ -295,6 +295,7 @@ export default function ClientImportForm() {
           (acc, currRow, rowIndex) => {
             const client_id = v4();
             const client_group_id = currGroupId;
+            const company_id = currCompanyId;
 
             const newObj = header.reduce(
               (dataAcc, currColName, colIndex) => {
@@ -367,6 +368,7 @@ export default function ClientImportForm() {
               client_id,
               user_id: user?.uid,
               client_group_id,
+              company_id,
             });
             acc["custom_values"].push(newObj["values"]);
             acc["processed_list"].push(newObj["processed"]);

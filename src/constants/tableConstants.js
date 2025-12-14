@@ -9,7 +9,8 @@ export const ColumnType = {
   NUMBER: 'number',
   DATE: 'date',
   DROPDOWN: 'dropdown',
-  ACTION: 'action'
+  ACTION: 'action',
+  USER: 'user',
 };
 
 export const ActionIcons = {

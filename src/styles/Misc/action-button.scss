@@ -16,7 +16,7 @@
     color: #fff;
 
     &:hover {
-      background-color:variables.$primary-color;
+      background-color: variables.$primary-color;
     }
 
     &:active {
@@ -37,6 +37,69 @@
       background-color: rgba(variables.$primary-color, 0.2);
     }
   }
+
+  &.danger {
+    background-color: variables.$error-color;
+    color: #fff;
+    border: 1px solid variables.$error-color;
+
+    &:hover {
+      background-color: variables.$error-color;
+    }
+
+    &:active {
+      background-color: variables.$primary-color, 12%;
+    }
+  }
+  // Pending
+  &.pending {
+    background-color: variables.$pending-color;
+    color: #000;
+
+    &.active {
+      border: solid 2px variables.$pending-color;
+      background-color: rgba(variables.$pending-color, 0.6);
+      transform: scale(1.03);
+    }
+  }
+
+  // Resubmission
+  &.resubmission {
+    background-color: variables.$resubmission-color;
+    color: #fff;
+
+    &.active {
+      border: solid 2px variables.$resubmission-color;
+      background-color: rgba(variables.$resubmission-color, 0.6);
+      transform: scale(1.03);
+    }
+  }
+
+  // Approved
+  &.approved {
+    background-color: variables.$approved-color;
+    color: #fff;
+
+    &.active {
+      border: solid 2px variables.$approved-color;
+      background-color: rgba(variables.$approved-color, 0.6);
+      transform: scale(1.03);
+    }
+  }
+
+  // Rejected
+  &.rejected {
+    background-color: variables.$rejected-color;
+    color: #fff;
+
+    &.active {
+      border: solid 2px variables.$rejected-color;
+      background-color: rgba(variables.$rejected-color, 0.6);
+      transform: scale(1.03);
+    }
+  }
+
+  // existing primary, outlined, danger remain the same...
 }
 
 // .add-field-button {

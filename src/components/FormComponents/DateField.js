@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
 import { Fragment, useRef } from "react";
 
-export const DateField = ({ label, value, onChange, width, required }) => {
+export const DateField = ({ label, value, onChange, width, required, type }) => {
   const inputRef = useRef(null);
 
   const handleFocus = () => {
@@ -23,7 +23,7 @@ export const DateField = ({ label, value, onChange, width, required }) => {
         <input
           ref={inputRef}
           className="date-field"
-          type="date"
+          type={type ? type : "date"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />

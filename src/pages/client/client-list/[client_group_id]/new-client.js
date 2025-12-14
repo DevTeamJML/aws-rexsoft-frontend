@@ -244,6 +244,7 @@ export default function NewClientPage() {
         client_group_id: currSelectedGroupId,
         user_id: user?.uid,
         client_id: client_id,
+        company_id : currCompanyId,
         custom_values,
         // optional: include a flag so backend knows this was created by an admin
         created_by_admin: true,
@@ -376,6 +377,7 @@ export default function NewClientPage() {
         client_group_id: currSelectedGroupId,
         user_id: user?.uid,
         client_id: client_id,
+        company_id : currCompanyId,
         custom_values,
       };
 

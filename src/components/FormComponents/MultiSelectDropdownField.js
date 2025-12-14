@@ -37,6 +37,7 @@ export default function MultiSelectDropdownField({
         (optionValue.toLowerCase().includes(search.toLowerCase()) ||
           optionLabel.toLowerCase().includes(search.toLowerCase())) &&
         !selected.some((selectedItem) => {
+      
           const selectedValue = selectedItem.value ?? selectedItem;
           return selectedValue === optionValue;
         })
@@ -70,7 +71,7 @@ export default function MultiSelectDropdownField({
       {/* Input + selected items */}
       <div className="multi-select-input">
         {options.map((item, index) => {
-          const optionValue = item.value ?? item;
+          const optionValue = item.value ?? item ;
           const optionLabel = item.label ?? item;
           if (selected.includes(optionValue)) {
             return (

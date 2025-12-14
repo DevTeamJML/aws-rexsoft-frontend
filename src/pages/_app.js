@@ -15,6 +15,14 @@ import "@/styles/Misc/column-order-drawer.scss";
 import "@/styles/Misc/export-modal.scss";
 import "@/styles/Misc/client-logs-drawer.scss";
 import "@/styles/Misc/reset-password-modal.scss";
+import "@/styles/Misc/appointment-drawer.scss";
+
+// Form
+import "@/styles/Form/new-form-template.scss";
+import "@/styles/Form/new-form-submission.scss";
+
+// Appointment
+import "@/styles/Appointment/calendar.scss";
 
 // Invitation
 import "@/styles/Invitation/invitation.scss";

@@ -103,3 +103,93 @@
     }
   }
 }
+
+
+
+// react-select multi-value pills styled like your .chip
+.custom-select {
+  // container tweaks if needed
+  &__control {
+    border-color: variables.$input-stroke;
+    background-color: variables.$input-bg;
+    min-height: 38px;
+    padding: 4px 6px;
+    border-radius: 6px;
+  }
+
+  &__value-container {
+    padding: 0 6px;
+    gap: 6px;
+  }
+
+  &__multi-value {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    color: white !important;
+    background: variables.$primary-color !important;
+    border-radius: 10px !important;
+    padding: 5px 12px !important;
+    margin: 3px 4px 3px 0 !important;
+    height: auto; // allow multi-line if needed
+    box-sizing: border-box !important;
+    // shadow / border if you want
+    // border: 1px solid darken(variables.$primary-color, 5%);
+  }
+
+  &__multi-value__label {
+    color: white !important;
+    font-size: variables.$font-s;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  &__multi-value__remove {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    color: white !important;
+    margin-left: 6px !important;
+    cursor: pointer !important;
+    border: none !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    transition: background 0.12s ease !important;
+
+    &:hover {
+      background: rgba(255,255,255,0.14);
+      color: white;
+    }
+
+    svg, i { // if using an icon tag
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+  }
+
+  &__input {
+    color: white;
+    font-size: variables.$font-s;
+    padding-left: 4px;
+  }
+
+  // small screens: scale down padding / fonts
+  @media (max-width: 768px) {
+    &__multi-value {
+      padding: 3px 8px;
+    }
+    &__multi-value__label {
+      font-size: variables.$font-xxs;
+    }
+    &__input {
+      font-size: variables.$font-xxs;
+    }
+  }
+}

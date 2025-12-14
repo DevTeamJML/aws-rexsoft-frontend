@@ -6,12 +6,12 @@ export const ActionButton = ({
   height = "",
   onClick = () => {},
   type = "",
-  style
+  style,
+  externalClass = ""
 }) => {
-
   return (
     <button
-      className={`reusable-button ${type}`}
+      className={`reusable-button ${type} ${externalClass}`.trim()}
       style={{
         width,
         height,

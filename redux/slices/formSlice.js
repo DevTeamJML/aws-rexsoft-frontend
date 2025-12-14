@@ -167,38 +167,38 @@ const formSlice = createSlice({
   },
 });
 
-export const {
-  createFormTemplate,
-  createFormTemplateSuccess,
-  retrieveAllFormTemplate,
-  retrieveAllFormTemplateSuccess,
-  retrieveFormTemplate,
-  retrieveFormTemplateSuccess,
-  updateFormTemplate,
-  updateFormTemplateSuccess,
-  deleteFormTemplate,
-  deleteFormTemplateSuccess,
-  createFormSubmission,
-  createFormSubmissionSuccess,
-  retrieveAllFormSubmission,
-  retrieveAllFormSubmissionSuccess,
-  retrieveFormSubmission,
-  retrieveFormSubmissionSuccess,
-  updateFormSubmission,
-  updateFormSubmissionSuccess,
-  deleteFormSubmission,
-  deleteFormSubmissionSuccess,
-} = formSlice.actions;
+// export const {
+//   createFormTemplate,
+//   createFormTemplateSuccess,
+//   retrieveAllFormTemplate,
+//   retrieveAllFormTemplateSuccess,
+//   retrieveFormTemplate,
+//   retrieveFormTemplateSuccess,
+//   updateFormTemplate,
+//   updateFormTemplateSuccess,
+//   deleteFormTemplate,
+//   deleteFormTemplateSuccess,
+//   createFormSubmission,
+//   createFormSubmissionSuccess,
+//   retrieveAllFormSubmission,
+//   retrieveAllFormSubmissionSuccess,
+//   retrieveFormSubmission,
+//   retrieveFormSubmissionSuccess,
+//   updateFormSubmission,
+//   updateFormSubmissionSuccess,
+//   deleteFormSubmission,
+//   deleteFormSubmissionSuccess,
+// } = formSlice.actions;
 
-export const useSelectAllFormTemplate = () =>
-  useSelector((state) => state.form.allFormTemplate);
-export const useSelectFormTemplate = () =>
-  useSelector((state) => state.form.formTemplate);
-export const useSelectAllFormSubmission = () =>
-  useSelector((state) => state.form.allFormSubmission);
-export const useSelectFormSubmission = () =>
-  useSelector((state) => state.form.formSubmission);
+// export const useSelectAllFormTemplate = () =>
+//   useSelector((state) => state.form.allFormTemplate);
+// export const useSelectFormTemplate = () =>
+//   useSelector((state) => state.form.formTemplate);
+// export const useSelectAllFormSubmission = () =>
+//   useSelector((state) => state.form.allFormSubmission);
+// export const useSelectFormSubmission = () =>
+//   useSelector((state) => state.form.formSubmission);
 
-const formReducer = formSlice.reducer;
+// const formReducer = formSlice.reducer;
 
-export default formReducer;
+// export default formReducer;

@@ -1,6 +1,13 @@
 import { getUserRoles } from "../../redux/slices/roleAuthSlice";
 
 export const ApiRoute = {
+  appointment: {
+    getAppointments: "/appointment/getAppointments",
+    createAppointment: "/appointment/createAppointment",
+    updateAppointment: "/appointment/updateAppointment",
+    deleteAppointment: "/appointment/deleteAppointment",
+    searchClientListInAppointment: "/appointment/searchClientListInAppointment",
+  },
   user: {
     getUserDetailsById: "/user/getUserDetailsById",
   },
@@ -36,6 +43,26 @@ export const ApiRoute = {
     getAllClientsCount: "/client/getAllClientsCount",
     checkDuplicate: "/client/checkDuplicate",
   },
+
+  formTemplate: {
+    createFormTemplate: "/form/createFormTemplate",
+    getAllFormTemplates: "/form/getAllFormTemplates",
+    getFormTemplateById: "/form/getFormTemplateById",
+    deleteFromTemplate: "/form/deleteFormTemplate",
+    updateFormTemplate: "/form/updateFormTemplate",
+  },
+  formSubmission: {
+    getUserFormSubmission: "/form/getUserFormSubmission",
+    createFormSubmission: "/form/createFormSubmission",
+    updateFormSubmission: "/form/updateFormSubmission",
+    getAllFormSubmissions: "/form/getAllFormSubmissions",
+    getFormSubmissionById: "/form/getFormSubmissionById",
+    deleteFormSubmission: "/form/deleteFormSubmission",
+    getFormSubmissionById: "/form/getFormSubmissionById",
+  },
+  formApproval: {
+    updateFormSubmissionApproval: "/form/updateFormSubmissionApproval",
+  },
   invitation: {
     getInvitationById: "/invitation/getInvitationById",
     create: "/invitation/create",
@@ -53,13 +80,6 @@ export const ApiRoute = {
     get: "/form/retrieve",
     update: "/form/update",
     delete: "/form/delete",
-  },
-  formSubmission: {
-    create: "/form/form-submission/create",
-    getAll: "/form/form-submission/retrieve-all",
-    get: "/form/form-submission/retrieve",
-    update: "/form/form-submission/update",
-    delete: "/form/form-submission/delete",
   },
   graph: {
     generateGraphData: "/graph/generateGraphData",

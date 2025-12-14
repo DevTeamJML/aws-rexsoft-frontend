@@ -11,6 +11,10 @@ import { invitationSaga } from './sagas/invitationSaga';
 import { roleSaga } from './sagas/roleSaga';
 import { roleAuthSaga } from './sagas/roleAuthSaga';
 import { logsSaga } from './sagas/logSaga';
+import { appointmentSaga } from './sagas/appointmentSaga';
+import formTemplateSaga from './sagas/formTemplateSaga';
+import formSubmissionSaga from './sagas/formSubmissionSaga';
+import formApprovalSaga from './sagas/formApprovalSaga';
 // Root saga
 function* rootSaga() {
   yield all([
@@ -18,13 +22,17 @@ function* rootSaga() {
     clientGroupSaga(),
     companySaga(),
     clientSaga(),
-    formSaga(),
+    // formSaga(),
     tableSaga(),
     graphSaga(),
     invitationSaga(),
     roleSaga(),
     roleAuthSaga(),
-    logsSaga()
+    logsSaga(),
+    appointmentSaga(),
+    formTemplateSaga(),
+    formSubmissionSaga(),
+    formApprovalSaga()
   ]);
 }
 

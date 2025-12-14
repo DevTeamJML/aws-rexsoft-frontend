@@ -113,30 +113,53 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       label: "Client",
       icon: <FaUsers size={20} />,
       subItems: [
-        { id: "client-list", label: "Client List", path: "/client/client-list" },
-        { id: "manage-group", label: "Manage Group", path: "/client/client-group-list" },
+        {
+          id: "client-list",
+          label: "Client List",
+          path: "/client/client-list",
+        },
+        {
+          id: "manage-group",
+          label: "Manage Group",
+          path: "/client/client-group-list",
+        },
       ],
     },
-    // {
-    //   id: "form",
-    //   label: "Form",
-    //   icon: <FaFileAlt size={20} />,
-    //   subItems: [
-    //     { id: "form-template", label: "Form Template", path: "/form/form-template" },
-    //     { id: "form-submission", label: "Form Submission", path: "/form/form-submission" },
-    //     { id: "form-approval", label: "Form Approval", path: "/form/form-approval" },
-    //     { id: "form-tracker", label: "Form Tracker", path: "/form/Tracker" },
-    //   ],
-    // },
-    // {
-    //   id: "appointment",
-    //   label: "Appointment",
-    //   icon: <FaCalendarAlt size={20} />,
-    //   subItems: [
-    //     { id: "calendar", label: "Calendar", path: "/appointment/calendar" },
-    //     { id: "upcoming-appointment", label: "Upcoming Appointment", path: "/appointment/upcoming-appointment" },
-    //   ],
-    // },
+    {
+      id: "form",
+      label: "Form",
+      icon: <FaFileAlt size={20} />,
+      subItems: [
+        {
+          id: "form-template",
+          label: "Form Template",
+          path: "/form/form-template/form-template-list",
+        },
+        {
+          id: "apply-form",
+          label: "Apply Form",
+          path: "/form/form-submission/apply-form-list",
+        },
+        {
+          id: "form-submission",
+          label: "Your submitted forms",
+          path: "/form/form-submission/form-submission-list",
+        },
+        {
+          id: "form-approval",
+          label: "Form Approval",
+          path: "/form/form-approval/form-approval-list",
+        },
+      ],
+    },
+    {
+      id: "appointment",
+      label: "Appointment",
+      icon: <FaCalendarAlt size={20} />,
+      subItems: [
+        { id: "calendar", label: "Calendar", path: "/appointment/calendar" },
+      ],
+    },
     {
       id: "control-panel",
       label: "Control Panel",
@@ -145,7 +168,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         { id: "logs", label: "Logs", path: "/control-panel/logs" },
         { id: "users", label: "User", path: "/control-panel/user-list" },
         { id: "role", label: "Role", path: "/control-panel/role-list" },
-        { id: "company-profile", label: "Company Profile", path: "/control-panel/company-profile" },
+        {
+          id: "company-profile",
+          label: "Company Profile",
+          path: "/control-panel/company-profile",
+        },
       ],
     },
     {
@@ -157,7 +184,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   ];
 
   // filter using currCompany so helper can return only create-company when currCompany is falsy
-  const menu = filterMenuByPermissions(menuItems, userPermissions, isAdmin, currCompany);
+  const menu = filterMenuByPermissions(
+    menuItems,
+    userPermissions,
+    isAdmin,
+    currCompany
+  );
 
   const handleGoToSelectedPage = (path) => {
     router.push(path);
@@ -235,7 +267,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
 
   return (
     <>
-      {showSubmenu && <div className="submenu-backdrop" onClick={closeSubmenu} />}
+      {showSubmenu && (
+        <div className="submenu-backdrop" onClick={closeSubmenu} />
+      )}
 
       <div className={`sidebar-container ${isCollapsed ? "collapsed" : ""}`}>
         <div
@@ -246,13 +280,18 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           {!isCollapsed ? (
             <div className="sidebar-header">
               <div className="company-selector" ref={companyDropdownRef}>
-                <div className="company-current" onClick={toggleCompanyDropdown}>
+                <div
+                  className="company-current"
+                  onClick={toggleCompanyDropdown}
+                >
                   <FaBuilding className="company-icon" />
                   <span className="company-name">
                     {currCompany?.company_name || "Select Company"}
                   </span>
                   <FaChevronDown
-                    className={`dropdown-arrow ${showCompanyDropdown ? "rotated" : ""}`}
+                    className={`dropdown-arrow ${
+                      showCompanyDropdown ? "rotated" : ""
+                    }`}
                   />
                 </div>
 
@@ -266,18 +305,24 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
                         <div
                           key={company.company_id}
                           className={`dropdown-item ${
-                            currCompany?.company_id === company.company_id ? "active" : ""
+                            currCompany?.company_id === company.company_id
+                              ? "active"
+                              : ""
                           }`}
                           onClick={() => handleCompanySwitch(company)}
                         >
-                          <span className="item-name">{company.company_name || "N/A"}</span>
+                          <span className="item-name">
+                            {company.company_name || "N/A"}
+                          </span>
                           {currCompany?.company_id === company.company_id && (
                             <div className="active-indicator" />
                           )}
                         </div>
                       ))}
                     </div>
-                    <div className="dropdown-footer">{/* optional footer buttons */}</div>
+                    <div className="dropdown-footer">
+                      {/* optional footer buttons */}
+                    </div>
                   </div>
                 )}
               </div>
@@ -290,7 +335,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
               toggleSidebar();
             }}
           >
-            {isCollapsed ? <FaChevronRight size={15} /> : <FaChevronLeft size={15} />}
+            {isCollapsed ? (
+              <FaChevronRight size={15} />
+            ) : (
+              <FaChevronLeft size={15} />
+            )}
           </div>
         </div>
 
@@ -308,7 +357,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
                     className={`sidebar-section menu-item ${
                       isActive ? "selected-sidebar-section" : ""
                     } ${hasSubItems ? "has-submenu" : ""} ${
-                      activeMenu?.id === menu.id && showSubmenu ? "active-menu" : ""
+                      activeMenu?.id === menu.id && showSubmenu
+                        ? "active-menu"
+                        : ""
                     }`}
                     onClick={() => handleMenuClick(menu)}
                   >
@@ -332,7 +383,10 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           </div>
 
           <div className="bottom-section">
-            <div className={`sidebar-section menu-item`} onClick={handleSignOut}>
+            <div
+              className={`sidebar-section menu-item`}
+              onClick={handleSignOut}
+            >
               <div className="menu-item-content">
                 <div className="icon">
                   <LogoutIcon sx={{ fontSize: 23 }} />
@@ -356,7 +410,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
             {activeMenu.subItems.map((subItem) => (
               <div
                 key={subItem.id}
-                className={`submenu-item ${isSubItemActive(subItem) ? "selected-submenu-item" : ""}`}
+                className={`submenu-item ${
+                  isSubItemActive(subItem) ? "selected-submenu-item" : ""
+                }`}
                 onClick={() => handleGoToSelectedPage(subItem.path)}
               >
                 <div className="submenu-item-content">
