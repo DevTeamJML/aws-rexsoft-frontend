@@ -60,7 +60,7 @@ export default function NewGraph() {
     series: { id: "", label: "", field_type: "" },
     general: {
       monotype: "line",
-      publishStatus: "unpublished",
+      publishStatus: "published",
     },
     meta: {
       graphName: "",
