@@ -183,7 +183,7 @@ function* signInSaga({ payload }) {
       })
     );
     yield delay(1500);
-    router.push("/dashboard");
+    router.push("/client/client-list");
     yield put(hideToast());
   } catch (error) {
     yield put(signInError(error.message));
