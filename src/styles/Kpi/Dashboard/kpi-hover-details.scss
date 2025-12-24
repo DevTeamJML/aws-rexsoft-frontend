@@ -1,0 +1,86 @@
+// HOVER
+.kpi-hover {
+  position: absolute;
+  right: 0;
+  top: 5%;
+  width: 300px;
+  height: 220px;
+  padding: 14px;
+  background: white;
+  border-radius: 12px;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.12),
+    0 1px 0 rgba(0, 0, 0, 0.04);
+  opacity: 0;
+  transform: translateY(6px) scale(0.98);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.kpi-tile:hover .kpi-hover {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.kpi-hover-header {
+  margin-bottom: 10px;
+}
+
+.kpi-hover-header .badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #4f46e5;
+  background: #eef2ff;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.kpi-hover-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.kpi-hover-stats .row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #374151;
+}
+
+.kpi-hover-stats .row.highlight {
+  background: #f0fdf4;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.kpi-hover-progress {
+  margin-bottom: 10px;
+}
+
+.kpi-hover-progress .percent {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+  display: block;
+}
+
+.kpi-hover-dates {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.kpi-hover-members .label {
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 4px;
+  display: block;
+}
+// HOVER

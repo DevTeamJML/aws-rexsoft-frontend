@@ -1,7 +1,3 @@
-// NewClientPage.jsx (or .tsx) — only file-level code shown (replace your current file contents)
-import { DropdownField } from "@/components/FormComponents/DropdownField";
-import MultiSelectDropdownField from "@/components/FormComponents/MultiSelectDropdownField";
-import { PlainTextField } from "@/components/FormComponents/PlainTextField";
 import { ActionButton } from "@/components/Misc/ActionButton";
 import { useSelectUser } from "../../../../../redux/slices/authSlice";
 import {
@@ -10,7 +6,6 @@ import {
 } from "../../../../../redux/slices/clientGroupSlice";
 import {
   createClient,
-  duplicateCheckRequest,
   useSelectCurrSelectedGroupId,
 } from "../../../../../redux/slices/clientSlice";
 import {
@@ -79,18 +74,18 @@ export default function NewClientPage() {
   const clientColumns = useMemo(() => {
     const cols = [];
 
-    // if (canManageHandler) {
-    //   cols.push({
-    //     column_id: "handler",
-    //     label: "Handler",
-    //     field_type: "handler",
-    //     options: handler,
-    //     width: 100,
-    //     is_required: true,
-    //     permission: "editable",
-    //     allow_duplicate: 1,
-    //   });
-    // }
+    if (canManageHandler) {
+      cols.push({
+        column_id: "handler",
+        label: "Handler",
+        field_type: "handler",
+        options: handler,
+        width: 100,
+        is_required: false,
+        permission: "editable",
+        allow_duplicate: 1,
+      });
+    }
 
     if (currSelectedGroup) {
       const groupColumns = currSelectedGroup.columns.map((c) => ({
@@ -244,7 +239,7 @@ export default function NewClientPage() {
         client_group_id: currSelectedGroupId,
         user_id: user?.uid,
         client_id: client_id,
-        company_id : currCompanyId,
+        company_id: currCompanyId,
         custom_values,
         // optional: include a flag so backend knows this was created by an admin
         created_by_admin: true,
@@ -377,7 +372,7 @@ export default function NewClientPage() {
         client_group_id: currSelectedGroupId,
         user_id: user?.uid,
         client_id: client_id,
-        company_id : currCompanyId,
+        company_id: currCompanyId,
         custom_values,
       };
 
@@ -420,7 +415,6 @@ export default function NewClientPage() {
                   ) : null}
                 </label>
 
-        
                 {renderClientInputField(formData, column, setFormData, {
                   disabled: column.permission === "view_only",
                   error: formErrors[column.column_id],

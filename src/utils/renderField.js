@@ -4,24 +4,27 @@ import { MultilineField } from "@/components/FormComponents/MultilineField";
 import MultiSelectDropdownField from "@/components/FormComponents/MultiSelectDropdownField";
 import { PlainTextField } from "@/components/FormComponents/PlainTextField";
 import { SearchDropdownField } from "@/components/FormComponents/SearchDropdownField";
+import { safeParseJSON } from "./validation";
 
-const handleInputChange = (columnId, value, setFormData) => {
-  if (columnId === "handler") {
-    setFormData((prev) => ({
+const handleInputChange = (columnId, value, setFormData, isMulti = false) => {
+  setFormData((prev) => {
+    if (!isMulti) {
+      return {
+        ...prev,
+        [columnId]: value,
+      };
+    }
+
+    return {
       ...prev,
       [columnId]: prev[columnId].includes(value)
         ? prev[columnId].filter((o) => o.value !== value)
         : [...prev[columnId], value],
-    }));
-  } else {
-    setFormData((prev) => ({
-      ...prev,
-      [columnId]: value,
-    }));
-  }
+    };
+  });
 };
 
-const handleHandlerRemove = (columnId, value, setFormData) => {
+const handleRemoveDropdownValue = (columnId, value, setFormData) => {
   setFormData((prev) => ({
     ...prev,
     [columnId]: prev[columnId].filter((o) => o !== value),
@@ -50,15 +53,17 @@ export const renderClientInputField = (
 ) => {
   const { disabled = false, error = null } = extraProps;
 
+  const isMulti =
+    column.field_type === "handler" || column.multi_select_dropdown;
+
   const commonProps = {
-    value:
-      formData[column.column_id] || (column.field_type === "handler" ? [] : ""),
+    value: formData[column.column_id] ?? (isMulti ? [] : ""),
     onChange: (value) =>
-      handleInputChange(column.column_id, value, setFormData),
+      handleInputChange(column.column_id, value, setFormData, isMulti),
     required: !!column.is_required,
     placeholder: `Enter ${column.label.toLowerCase()}`,
-    disabled, // new
-    error, // new (if your components support it)
+    disabled,
+    error,
   };
 
   switch (column.field_type) {
@@ -130,6 +135,21 @@ export const renderClientInputField = (
 
     case "dropdown": {
       const dropdownOptions = parseDropdownOptions(column.options);
+
+      if (column.multi_select_dropdown) {
+        return (
+          <MultiSelectDropdownField
+            {...commonProps}
+            options={dropdownOptions}
+            selected={formData[column.column_id] || []}
+            onRemove={(value) =>
+              handleRemoveDropdownValue(column.column_id, value, setFormData)
+            }
+            disabled={disabled}
+          />
+        );
+      }
+
       return (
         <SearchDropdownField
           {...commonProps}
@@ -147,7 +167,7 @@ export const renderClientInputField = (
           options={handlerOptions}
           selected={formData["handler"]}
           onRemove={(value) =>
-            handleHandlerRemove(column.column_id, value, setFormData)
+            handleRemoveDropdownValue(column.column_id, value, setFormData)
           }
           disabled={disabled}
         />

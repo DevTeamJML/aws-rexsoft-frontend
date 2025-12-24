@@ -1,8 +1,7 @@
-
 /**
  * Email validation
- * @param {*} email 
- * @returns 
+ * @param {*} email
+ * @returns
  */
 export function isValidEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -10,22 +9,26 @@ export function isValidEmail(email) {
 }
 
 export function safeParseJSON(input) {
-  if (!input) return input;
+  if (input == null) return input;
 
-  // Already an object → return as is
+  // Already parsed
   if (typeof input === "object") return input;
 
-  // Try parsing if it's a string
-  if (typeof input === "string") {
-    try {
-      return JSON.parse(input);
-    } catch (err) {
-      console.warn("Invalid JSON detected for previous_answers:", input);
-      return input; // return raw if not valid JSON
-    }
-  }
+  if (typeof input !== "string") return input;
 
-  return input;
+  try {
+    const parsed = JSON.parse(input);
+
+    // Only return parsed if it becomes object or array
+    if (typeof parsed === "object") {
+      return parsed;
+    }
+
+    // Parsed to string/number/boolean → keep original
+    return input;
+  } catch {
+    return input;
+  }
 }
 
 // FORM

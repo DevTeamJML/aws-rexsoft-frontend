@@ -21,6 +21,9 @@
 .reusable-dropdown {
   position: relative;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 
   select {
     @extend .reusable-select;

@@ -43,8 +43,8 @@ import { filterMenuByPermissions } from "@/utils/filterSidebarMenuByPermission";
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const router = useRouter();
-  const { id } = router.query;
   const dispatch = useDispatch();
+
   const user = useSelectUser();
   const unsavedChanges = useSelectUnsavedChanges();
   const currCompany = useSelectCurrCompany();
@@ -60,12 +60,10 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
 
   const LogoutIcon = dynamic(
     () => import("@mui/icons-material/LogoutOutlined"),
-    {
-      ssr: false,
-    }
+    { ssr: false }
   );
 
-  const currentPath = router.pathname;
+  const currentPath = router.asPath;
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -78,9 +76,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const menuItems = [
@@ -90,24 +86,45 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       icon: <FaThLarge size={20} />,
       path: "/dashboard",
     },
-    // {
-    //   id: "graph",
-    //   label: "Graph",
-    //   icon: <FaChartLine size={20} />,
-    //   subItems: [
-    //     { id: "graph-client", label: "Graph Client", path: "/graph/graph-client" },
-    //     { id: "graph-form", label: "Graph Form", path: "/graph/graph-form" },
-    //   ],
-    // },
-    // {
-    //   id: "kpi",
-    //   label: "KPI",
-    //   icon: <FaChartBar size={20} />,
-    //   subItems: [
-    //     { id: "kpi-list", label: "KPI List", path: "/kpi/kpi-list" },
-    //     { id: "kpi-group", label: "KPI Group", path: "/kpi/kpi-group" },
-    //   ],
-    // },
+    {
+      id: "kpi",
+      label: "KPI",
+      icon: <FaChartLine size={20} />,
+      subItems: [
+        {
+          id: "kpi-list",
+          label: "Kpi List",
+          path: "/kpi/kpi-list",
+        },
+        {
+          id: "kpi-dashboard",
+          label: "KPI Dashboard",
+          path: "/kpi/kpi-dashboard",
+        },
+      ],
+    },
+    {
+      id: "graph",
+      label: "Graph",
+      icon: <FaChartBar size={20} />,
+      subItems: [
+        {
+          id: "graph-publish",
+          label: "Published Graph",
+          path: "/graph/graph-publish",
+        },
+        {
+          id: "graph-list",
+          label: "Graph Client",
+          path: "/graph/group/graph-list",
+        },
+        {
+          id: "graph-form",
+          label: "Graph Form",
+          path: "/graph/form/graph-list",
+        },
+      ],
+    },
     {
       id: "client",
       label: "Client",
@@ -168,11 +185,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         { id: "logs", label: "Logs", path: "/control-panel/logs" },
         { id: "users", label: "User", path: "/control-panel/user-list" },
         { id: "role", label: "Role", path: "/control-panel/role-list" },
-        {
-          id: "company-profile",
-          label: "Company Profile",
-          path: "/control-panel/company-profile",
-        },
+        // {
+        //   id: "company-profile",
+        //   label: "Company Profile",
+        //   path: "/control-panel/company-profile",
+        // },
       ],
     },
     {
@@ -183,7 +200,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     },
   ];
 
-  // filter using currCompany so helper can return only create-company when currCompany is falsy
   const menu = filterMenuByPermissions(
     menuItems,
     userPermissions,
@@ -192,7 +208,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   );
 
   const handleGoToSelectedPage = (path) => {
-    router.push(path);
+    if (router.asPath === path) {
+      router.replace(path);
+    } else {
+      router.push(path);
+    }
     setShowSubmenu(false);
     setActiveMenu(null);
   };
@@ -235,8 +255,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   };
 
   const handleCompanySwitch = (company) => {
-    const id = company.company_id;
-    dispatch(switchCompany({ company_id: id }));
+    dispatch(switchCompany({ company_id: company.company_id }));
     setShowCompanyDropdown(false);
   };
 
@@ -252,18 +271,8 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     return false;
   };
 
-  const isSubItemActive = (subItem) => {
-    return (
-      currentPath === subItem.path || currentPath.startsWith(subItem.path + "/")
-    );
-  };
-
-  const shouldShowMenuItem = (menu) => {
-    if (menu.roles && user) {
-      return menu.roles.includes(user.role);
-    }
-    return true;
-  };
+  const isSubItemActive = (subItem) =>
+    currentPath === subItem.path || currentPath.startsWith(subItem.path + "/");
 
   return (
     <>
@@ -272,6 +281,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       )}
 
       <div className={`sidebar-container ${isCollapsed ? "collapsed" : ""}`}>
+        {/* --- TOP --- */}
         <div
           className={`sidebar-top-section ${
             !isCollapsed ? "top-section-justify-end" : ""
@@ -320,14 +330,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
                         </div>
                       ))}
                     </div>
-                    <div className="dropdown-footer">
-                      {/* optional footer buttons */}
-                    </div>
                   </div>
                 )}
               </div>
             </div>
           ) : null}
+
           <div
             className="toggle-button"
             onClick={(e) => {
@@ -343,23 +351,18 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           </div>
         </div>
 
+        {/* --- MENU --- */}
         <div className="sidebar-bottom-section">
           <div className="mid-section">
             {menu.map((menu) => {
-              if (!shouldShowMenuItem(menu)) return null;
-
               const isActive = isMenuActive(menu);
-              const hasSubItems = menu.subItems && menu.subItems.length > 0;
+              const hasSubItems = menu.subItems?.length;
 
               return (
                 <div key={menu.id} className="menu-group">
                   <div
                     className={`sidebar-section menu-item ${
                       isActive ? "selected-sidebar-section" : ""
-                    } ${hasSubItems ? "has-submenu" : ""} ${
-                      activeMenu?.id === menu.id && showSubmenu
-                        ? "active-menu"
-                        : ""
                     }`}
                     onClick={() => handleMenuClick(menu)}
                   >
@@ -382,11 +385,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
             })}
           </div>
 
+          {/* --- LOGOUT --- */}
           <div className="bottom-section">
-            <div
-              className={`sidebar-section menu-item`}
-              onClick={handleSignOut}
-            >
+            <div className="sidebar-section menu-item" onClick={handleSignOut}>
               <div className="menu-item-content">
                 <div className="icon">
                   <LogoutIcon sx={{ fontSize: 23 }} />
@@ -398,8 +399,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         </div>
       </div>
 
+      {/* --- SUBMENU --- */}
       {showSubmenu && activeMenu && (
-        <div className="submenu-sidebar" onClick={(e) => e.stopPropagation()}>
+        <div className="submenu-sidebar">
           <div className="submenu-header">
             <span>{activeMenu.label}</span>
             <button className="close-submenu-btn" onClick={closeSubmenu}>

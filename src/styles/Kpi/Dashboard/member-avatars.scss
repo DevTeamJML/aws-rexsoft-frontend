@@ -1,0 +1,23 @@
+.member-avatars {
+  display: flex;
+  gap: -6px;
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  color: #3730a3;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+.avatar.more {
+  background: #e5e7eb;
+  color: #374151;
+}

@@ -1,6 +1,6 @@
 @use "../_variables.scss";
 
-.new-graph-client-container {
+.new-graph-container {
   padding: 20px;
 
   .title-container h1 {
@@ -148,6 +148,40 @@
 
           .setting-select {
             width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+          }
+
+          .setting-input {
+            width: 93%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+          }
+
+          .setting-color-input {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            background: none;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+          }
+
+          /* Chrome / Edge / Safari */
+          .setting-color-input::-webkit-color-swatch-wrapper {
+            padding: 0;
+            border-radius: 50%;
+          }
+
+          .setting- .setting-input {
+            width: 93%;
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;

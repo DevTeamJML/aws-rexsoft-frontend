@@ -19,6 +19,7 @@ export const ApiRoute = {
     getAllCompanyUsers: "/companyUser/getAllCompanyUsers",
   },
   clientGroup: {
+    duplicateClientGroup: "/clientGroup/duplicateClientGroup",
     create: "/clientGroup/createClientGroup",
     getAllClientGroups: "/clientGroup/getAllClientGroups",
     getClientGroupById: "/clientGroup/getClientGroupById",
@@ -83,7 +84,23 @@ export const ApiRoute = {
   },
   graph: {
     generateGraphData: "/graph/generateGraphData",
+    saveGraph: "/graph/saveGraph",
+    getGraphsBySource: "/graph/getGraphsBySource",
+    getGraphById: "/graph/getGraphById",
+    getPublishedGraph: "/graph/getPublishedGraph",
+    getPublishedGraphById: "/graph/getPublishedGraphById",
+    deleteGraph: "/graph/deleteGraph",
   },
+
+  kpi: {
+    saveKpi: "/kpi/saveKpi",
+    deleteKpi: "/kpi/deleteKpiGroup",
+    getKpisBySource: "/kpi/getKpisBySource",
+    getKpiById: "/kpi/getKpiById",
+    getPublishedKpi: "/kpi/getPublishedKpi",
+    getPublishedKpiById: "/kpi/getPublishedKpiById",
+  },
+
   // suggestion for ApiRoute (not required here, just for reference)
   role: {
     getAllRoles: "/roles/roles",

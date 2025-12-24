@@ -201,6 +201,7 @@ const FilterBlock = ({ filter, dynamicColumns, fixedColumns, onUpdate, onOptionS
       "multiline",
       "rich_text",
       "alert",
+      "dropdown",
       "text", // For fixed columns like serial_number
       "handler", // Handler uses search too
     ];

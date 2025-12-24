@@ -44,6 +44,7 @@ import {
   setSelectedClientGroupSuccess,
 } from "../slices/clientSlice";
 import { getUserRoles } from "../slices/roleAuthSlice";
+import { getAllFormTemplatesSuccess } from "../slices/formTemplateSlice";
 
 function* loadUserData(user, setAuthLoading) {
   if (setAuthLoading) setAuthLoading(true);
@@ -72,6 +73,19 @@ function* loadUserData(user, setAuthLoading) {
   }
 
   if (selectedCompanyId) {
+
+    // Form Response
+    const formResponse = yield call(
+      API.get,
+      ApiRoute.formTemplate.getAllFormTemplates,
+      {
+        params: { company_id: selectedCompanyId },
+      }
+    );
+
+    const formList = formResponse.data;
+    yield put(getAllFormTemplatesSuccess(formList))
+
     // Group Response
     const groupResponse = yield call(
       API.get,

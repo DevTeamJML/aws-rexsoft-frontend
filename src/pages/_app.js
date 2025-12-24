@@ -27,16 +27,26 @@ import "@/styles/Appointment/calendar.scss";
 // Invitation
 import "@/styles/Invitation/invitation.scss";
 
-// Graph
-import "@/styles/Graph/graph-client.scss";
-import "@/styles/Graph/new-graph-client.scss";
+// KPI
+import "@/styles/Kpi/new-kpi.scss";
+import "@/styles/Kpi/kpi-dashboard.scss";
+import "@/styles/Kpi/Dashboard/kpi-group-card.scss";
+import "@/styles/Kpi/Dashboard/kpi-hover-details.scss";
+import "@/styles/Kpi/Dashboard/kpi-mini-chart.scss";
+import "@/styles/Kpi/Dashboard/kpi-tile.scss";
+import "@/styles/Kpi/Dashboard/member-avatars.scss";
 
+// Graph
+import "@/styles/Graph/graph-list.scss";
+import "@/styles/Graph/new-graph.scss";
+
+import "@/styles/Graph/graph-publish.scss";
 // Client
 import "@/styles/Client/client-list.scss";
 import "@/styles/Client/client-group-list.scss";
 import "@/styles/Client/new-client-group.scss";
-import "@/styles/Client/new-client.scss"
-import "@/styles/Client/import-client.scss";;
+import "@/styles/Client/new-client.scss";
+import "@/styles/Client/import-client.scss";
 
 // Control panel
 import "@/styles/ControlPanel/create-company.scss";

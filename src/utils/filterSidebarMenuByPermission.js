@@ -1,5 +1,7 @@
 const MENU_PERMISSION_MAP = {
-  graph: "view_graph",
+  graph_client: "graph_client",
+  graph_publish: "graph_publish",
+  graph_form: "graph_form",
   form: "view_form",
   appointment: "view_all_appointment",
   kpi: "view_kpi",

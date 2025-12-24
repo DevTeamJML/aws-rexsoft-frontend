@@ -1,7 +1,6 @@
-import { jsonParser } from "@/utils/jsonParser";
+
 import { createSlice } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
-import { v4 } from "uuid";
 
 const initialState = {
   // default data

@@ -1,0 +1,14 @@
+.kpi-dashboard-container {
+  padding: 1rem;
+  height: 95vh;
+  overflow: scroll;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  .kpi-dashboard-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}

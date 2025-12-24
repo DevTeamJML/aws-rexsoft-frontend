@@ -19,7 +19,7 @@ const nextConfig = {
     CURR_SELECTED_GROUP_ID: "curr_selected_group_id",
     CURR_COMPANY_ID: "company_id",
     CURR_USER_ID: "user_id",
-    API_URL: "http://localhost:8080/v1",
+    API_URL: "https://clone.crm-server-eh2y9u82.com/v1",
     FIREBASE_API_KEY: "AIzaSyARgnICQB_9v8l2xIMhgzvo8NP-lSRbZvs",
     FIREBASE_AUTH_DOMAIN: "temp-crm-b8272.firebaseapp.com",
     FIREBASE_PROJECT_ID: "temp-crm-b8272",

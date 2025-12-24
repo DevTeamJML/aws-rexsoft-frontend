@@ -38,6 +38,14 @@ const ArrowOutwardIcon = dynamic(
 
 const ExcelJS = require("exceljs");
 
+const normalizeRow = (row, length) => {
+  const normalized = Array.from({ length }, (_, i) => {
+    const val = row[i];
+    return val === undefined || val === null ? "" : val;
+  });
+  return normalized;
+};
+
 export default function ClientImportForm() {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -64,6 +72,8 @@ export default function ClientImportForm() {
   const canManageHandler =
     isAdmin || userPermissions.includes("manage_handler");
 
+  const fileInputRef = useRef(null);
+
   const columns = useMemo(() => {
     if (currSelectedGroup) {
       return currSelectedGroup?.columns.map((c) => {
@@ -81,6 +91,13 @@ export default function ClientImportForm() {
     "Manage group": "manage-group",
     "Client list": "client-list",
     Import: "import",
+  };
+
+  const triggerFilePicker = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
   };
 
   const importInstruction = () => {
@@ -227,6 +244,7 @@ export default function ClientImportForm() {
     setLoading(true);
     try {
       const rows = await readExcelFile(file);
+
       setRawImportedData(rows);
 
       if (!rows || rows.length < 1) {
@@ -280,17 +298,15 @@ export default function ClientImportForm() {
       const seenValues = {};
       const processedList = rows
         .slice(1)
+        .map((row) => normalizeRow(row, expectedLength))
         .filter((row) => {
-          // remove totally-empty rows or rows with wrong column count
-          if (!row) return false;
-          if (row.length !== expectedLength) return false;
-          // also skip rows that are all empty
           const hasAny = row.some(
             (cell) =>
               cell !== null && cell !== undefined && `${cell}`.trim() !== ""
           );
           return hasAny;
         })
+
         .reduce(
           (acc, currRow, rowIndex) => {
             const client_id = v4();
@@ -350,17 +366,24 @@ export default function ClientImportForm() {
                   }
                 }
 
-                dataAcc["values"].push({
-                  client_id,
-                  column_id,
-                  client_group_id,
-                  row_value: row_value,
-                });
+                if (
+                  row_value !== "" &&
+                  row_value !== null &&
+                  row_value !== undefined
+                ) {
+                  dataAcc["values"].push({
+                    client_id,
+                    column_id,
+                    client_group_id,
+                    row_value,
+                  });
+                }
 
                 dataAcc["processed"][currColName] = row_value;
 
                 return dataAcc;
               },
+
               { values: [], processed: {}, error_values: [], handler_list: [] }
             );
 
@@ -435,6 +458,8 @@ export default function ClientImportForm() {
       console.error("Error reading file:", err);
     } finally {
       setLoading(false);
+
+      e.target.value = "";
     }
   };
 
@@ -653,12 +678,11 @@ export default function ClientImportForm() {
                   <button
                     className="btn btn-secondary"
                     type="button"
-                    onClick={() =>
-                      document.getElementById("reupload-file").click()
-                    }
+                    onClick={triggerFilePicker}
                   >
                     Re-Upload
                   </button>
+
                   <input
                     id="reupload-file"
                     type="file"
@@ -683,10 +707,7 @@ export default function ClientImportForm() {
             </div>
           ) : (
             <div className="upload-section">
-              <div
-                className="upload-area"
-                onClick={() => document.getElementById("upload-file").click()}
-              >
+              <div className="upload-area" onClick={triggerFilePicker}>
                 <CloudUploadOutlinedIcon fontSize="large" />
                 <p className="upload-text">Upload List</p>
               </div>
@@ -786,6 +807,13 @@ export default function ClientImportForm() {
           </div>
         </div>
       )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="visually-hidden"
+        accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+        onChange={handleFileUpload}
+      />
     </div>
   );
 }

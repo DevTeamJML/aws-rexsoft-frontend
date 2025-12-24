@@ -3,6 +3,8 @@ import {
   createClientGroup,
   deleteClientGroup,
   deleteClientGroupSuccess,
+  duplicateClientGroup,
+  duplicateClientGroupSuccess,
   getAllClientGroups,
   getAllClientGroupsName,
   getAllClientGroupsNameSuccess,
@@ -22,6 +24,30 @@ import {
 } from "../slices/clientSlice";
 import { hideToast, showToast } from "../slices/toastSlice";
 
+function* duplicateClientGroupSaga({ payload }) {
+  try {
+    const res = yield call(
+      API.post,
+      ApiRoute.clientGroup.duplicateClientGroup,
+      payload
+    );
+    const data = res?.data;
+    yield put(duplicateClientGroupSuccess(data));
+    yield put(
+      showToast({
+        message: "Clone client group successfully !",
+        status: "success",
+      })
+    );
+    yield delay(2000);
+    yield hideToast();
+    // yield put(getAllClientGroups({company_id}))
+    yield put(setShowModal(false));
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 function* deleteClientGroupSaga({ payload }) {
   try {
     const { client_group_id, setTargetGroupId, company_id } = payload;
@@ -33,15 +59,16 @@ function* deleteClientGroupSaga({ payload }) {
     setTargetGroupId("");
     yield put(deleteClientGroupSuccess(client_group_id));
     yield call(remove, ref(db, `ColumnSorting/${client_group_id}/`));
+    yield put(setShowModal(false));
     yield put(
       showToast({
         message: "Delete successfully !",
-        status: "success"
+        status: "success",
       })
     );
     yield delay(1000);
+    yield hideToast();
     // yield put(getAllClientGroups({company_id}))
-    yield put(setShowModal(false));
   } catch (error) {
     console.log(error);
   }
@@ -78,6 +105,14 @@ function* createClientGroupSaga({ payload }) {
     yield call(set, ref(db, `ColumnSorting/${client_group_id}/`), columnIdList);
     yield delay(1000);
     router.push("/client/client-group-list");
+    yield put(
+      showToast({
+        message: "Create successfully !",
+        status: "success",
+      })
+    );
+    yield delay(2000);
+    yield hideToast();
     // yield put(createClientGroupSuccess(payload));
   } catch (error) {
     console.error(error);
@@ -92,10 +127,25 @@ function* updateClientGroupSaga({ payload }) {
     const columnIdList = columns.map((col) => {
       return col.column_id;
     });
+    yield put(
+      showToast({
+        message: "Processing data, please wait..",
+        status: "success",
+        loader: true,
+      })
+    );
     yield call(API.post, ApiRoute.clientGroup.updateClientGroup, data);
     yield call(set, ref(db, `ColumnSorting/${client_group_id}/`), columnIdList);
     yield delay(1000);
     router.push("/client/client-group-list");
+    yield put(
+      showToast({
+        message: "Update successfully !",
+        status: "success",
+      })
+    );
+    yield delay(2000);
+    yield put(hideToast());
   } catch (error) {
     console.error(error);
   }
@@ -145,6 +195,7 @@ function* clientGroupSaga() {
   yield takeLatest(deleteClientGroup.type, deleteClientGroupSaga);
   yield takeLatest(getAllClientGroupsName.type, getAllClientGroupsNameSaga);
   yield takeLatest(getSelectedClientGroup.type, getSelectedClientGroupSaga);
+  yield takeLatest(duplicateClientGroup.type, duplicateClientGroupSaga);
 }
 
 export default clientGroupSaga;

@@ -1,4 +1,3 @@
-
 import { FaTimesCircle } from "react-icons/fa";
 import { useState, useMemo, useRef, useEffect } from "react";
 
@@ -8,6 +7,7 @@ export default function MultiSelectDropdownField({
   placeholder = "Select...",
   onChange = () => {},
   onRemove = () => {},
+  onCreate,
   width,
 }) {
   const [search, setSearch] = useState("");
@@ -37,7 +37,6 @@ export default function MultiSelectDropdownField({
         (optionValue.toLowerCase().includes(search.toLowerCase()) ||
           optionLabel.toLowerCase().includes(search.toLowerCase())) &&
         !selected.some((selectedItem) => {
-      
           const selectedValue = selectedItem.value ?? selectedItem;
           return selectedValue === optionValue;
         })
@@ -70,32 +69,47 @@ export default function MultiSelectDropdownField({
     <div className="multi-select" ref={dropdownRef} style={{ width: width }}>
       {/* Input + selected items */}
       <div className="multi-select-input">
-        {options.map((item, index) => {
-          const optionValue = item.value ?? item ;
-          const optionLabel = item.label ?? item;
-          if (selected.includes(optionValue)) {
-            return (
-              <div key={index} className="chip">
-                <span>{optionLabel}</span>
-                <div
-                  className="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeSelected(optionValue);
-                  }}
-                >
-                  <FaTimesCircle />
-                </div>
+        {selected.map((value, index) => {
+          const found = options.find((o) => (o.value ?? o) === value);
+
+          const label = found?.label ?? value;
+
+          return (
+            <div key={index} className="chip">
+              <span>{label}</span>
+              <div
+                className="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeSelected(value);
+                }}
+              >
+                <FaTimesCircle />
               </div>
-            );
-          }
+            </div>
+          );
         })}
+
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={placeholder}
           onFocus={() => setOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && search.trim()) {
+              e.preventDefault();
+
+              const newValue = search.trim();
+
+              if (!selected.includes(newValue)) {
+                onChange(newValue);
+              }
+
+              setSearch("");
+              setOpen(false);
+            }
+          }}
         />
       </div>
 

@@ -67,7 +67,7 @@ function* bulkCreateClientSaga({ payload }) {
       showToast({
         message: "Import client successfully !",
         status: "success",
-        loader: true
+        loader: true,
       })
     );
     yield delay(2000);
@@ -79,7 +79,7 @@ function* bulkCreateClientSaga({ payload }) {
       showToast({
         message: "Data imported successfully !",
         status: "success",
-        loader: true
+        loader: true,
       })
     );
     yield delay(2000);
@@ -104,15 +104,16 @@ function* createClientSaga({ payload }) {
     yield call(API.post, ApiRoute.client.create, otherData.payload);
 
     yield call(API.post, ApiRoute.logs.create, logsBody);
+
+    router.push("/client/client-list");
     yield put(
       showToast({
         message: "Create client successfully !",
         status: "success",
-        loader: true
+        loader: true,
       })
     );
     yield delay(2000);
-    router.push("/client/client-list");
     yield put(hideToast());
   } catch (error) {
     console.log(error);
@@ -132,15 +133,16 @@ function* updateClientSaga({ payload }) {
     yield delay(1000);
     yield call(API.post, ApiRoute.client.update, otherData.payload);
     yield call(API.post, ApiRoute.logs.create, logsBody);
+
+    router.push("/client/client-list");
     yield put(
       showToast({
         message: "Update client successfully !",
         status: "success",
-        loader: true
+        loader: true,
       })
     );
     yield delay(2000);
-    router.push("/client/client-list");
     yield put(hideToast());
   } catch (error) {
     console.log(error);
@@ -225,7 +227,7 @@ function* deleteClientSaga({ payload }) {
       showToast({
         message: "Delete client successfully !",
         status: "success",
-        loader: true
+        loader: true,
       })
     );
     yield delay(2000);
@@ -247,7 +249,7 @@ function* bulkDeleteClientSaga({ payload }) {
       showToast({
         message: "Delete client successfully !",
         status: "success",
-        loader: true
+        loader: true,
       })
     );
     yield delay(2000);
@@ -297,7 +299,7 @@ function* archiveClientSaga({ payload }) {
       showToast({
         message: "Archive client successfully !",
         status: "success",
-        loader: true
+        loader: true,
       })
     );
     yield delay(2000);
@@ -319,7 +321,7 @@ function* bulkArchiveClientSaga({ payload }) {
       showToast({
         message: "Archive client successfully !",
         status: "success",
-        loader: true
+        loader: true,
       })
     );
     yield delay(2000);
@@ -343,7 +345,7 @@ function* restoreClientSaga({ payload }) {
       showToast({
         message: "Restore client successfully !",
         status: "success",
-        loader: true
+        loader: true,
       })
     );
     yield delay(2000);
@@ -364,7 +366,7 @@ function* bulkRestoreClientSaga({ payload }) {
       showToast({
         message: "Restore client successfully !",
         status: "success",
-        loader: true
+        loader: true,
       })
     );
     yield delay(2000);

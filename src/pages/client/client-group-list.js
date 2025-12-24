@@ -6,6 +6,7 @@ import { getColumnsForPage } from "@/constants/tableColumns";
 import { useRouter } from "next/router";
 import {
   deleteClientGroup,
+  duplicateClientGroup,
   getAllClientGroups,
   useSelectAllClientGroups,
 } from "../../../redux/slices/clientGroupSlice";
@@ -16,12 +17,14 @@ import {
   useSelectShowModal,
 } from "../../../redux/slices/confirmModalSlice";
 import { ActionButton } from "@/components/Misc/ActionButton";
+import { useSelectUser } from "../../../redux/slices/authSlice";
 
 const ClientGroupList = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const currCompanyID = useSelectCurrCompanyId();
   const clientGroups = useSelectAllClientGroups();
+  const user = useSelectUser();
   const showModal = useSelectShowModal();
   const [targetGroupId, setTargetGroupId] = useState();
 
@@ -52,6 +55,10 @@ const ClientGroupList = () => {
       dispatch(setShowModal(true));
       setTargetGroupId(row.id);
     }
+
+    if (action === "duplicate") {
+      dispatch(duplicateClientGroup({ client_group_id: row.id, user_id : user?.uid }));
+    }
   };
 
   const handleSelectionChange = (selectedIds) => {
@@ -76,7 +83,6 @@ const ClientGroupList = () => {
         })
       );
     }
-
   };
 
   return (
@@ -115,6 +121,7 @@ const ClientGroupList = () => {
         onSelectionChange={handleSelectionChange}
         loading={loading}
         emptyMessage="No client groups found"
+        actionButtons={["duplicate", "edit", "delete"]}
       />
     </div>
   );

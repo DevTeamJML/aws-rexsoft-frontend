@@ -1,0 +1,263 @@
+@use "../_variables.scss";
+
+.new-kpi-container {
+  padding: 20px;
+  overflow: scroll;
+  height: 93vh;
+
+  .page-actions {
+    padding-block: 10px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  /* =========================
+     TITLE
+  ========================= */
+  .title-container {
+    margin-bottom: 20px;
+
+    .inline-title-input {
+      width: 100%;
+      font-size: 24px;
+      font-weight: 600;
+      border: none;
+      outline: none;
+      padding: 10px 10px;
+    }
+  }
+
+  /* =========================
+     TABS
+  ========================= */
+  .tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+
+    .tab {
+      padding: 8px 16px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      background: #f9f9f9;
+      cursor: pointer;
+
+      &.active {
+        background: variables.$primary-color;
+        color: white;
+        border-color: variables.$primary-color;
+      }
+    }
+  }
+
+  /* =========================
+     KPI CONTENT
+  ========================= */
+  .kpi-form-container {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+  }
+
+  /* KPI NAV */
+  .kpi-tabs {
+    display: flex;
+    gap: 8px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+
+    .kpi-tab {
+      padding: 6px 12px;
+      font-size: 13px;
+      border-radius: 4px;
+      border: none;
+      background: #f5f5f5;
+      cursor: pointer;
+
+      &.active {
+        background: variables.$primary-color;
+        color: white;
+      }
+
+      &.add {
+        background: transparent;
+        color: variables.$primary-color;
+        font-weight: 500;
+      }
+    }
+  }
+
+  /* KPI FORM */
+  .kpi-form {
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .settings-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 6px 0;
+
+      .tab {
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 500;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        background: #f5f5f5;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+        white-space: nowrap;
+
+        &:hover {
+          background: #ececec;
+        }
+
+        &.active {
+          background: variables.$primary-color;
+          border-color: variables.$primary-color;
+          color: #fff;
+        }
+
+        &:disabled {
+          cursor: not-allowed;
+          opacity: 0.6;
+        }
+      }
+    }
+
+    .input,
+    .select,
+    .textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+    }
+
+    .textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      h4 {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0 0 5px 0;
+      }
+
+      .hint {
+        font-size: 12px;
+        color: #666;
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+
+        .input,
+        .select {
+          flex: 1;
+        }
+      }
+
+      .checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+    }
+  }
+
+  /* =========================
+     GROUP SETTINGS (GRAPH-LIKE)
+  ========================= */
+  .graph-content {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+
+    /* LEFT */
+    .graph-visualization {
+      width: 75%;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+
+      .placeholder {
+        height: 300px;
+        border: 1px dashed #ccc;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #888;
+        font-size: 14px;
+      }
+    }
+
+    /* RIGHT */
+    .graph-settings {
+      width: 25%;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+      height: 75vh;
+      overflow-y: auto;
+
+      .settings-section {
+        padding-top: 10px;
+
+        h3 {
+          font-size: 16px;
+          font-weight: 600;
+          margin-bottom: 10px;
+        }
+
+        .row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding-bottom: 10px;
+
+          span {
+            flex: 1;
+            font-size: 14px;
+          }
+
+          input[type="color"] {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+          }
+        }
+
+        select {
+          width: 100%;
+          padding: 8px;
+          border-radius: 4px;
+          border: 1px solid #ddd;
+          font-size: 14px;
+        }
+      }
+    }
+  }
+}

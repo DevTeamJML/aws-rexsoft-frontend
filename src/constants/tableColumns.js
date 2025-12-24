@@ -6,33 +6,68 @@ export const TableColumns = {
   dashboard: [],
 
   // Graph Pages
-  "graph-client": [],
-  "graph-kpi": [],
-  "graph-form": [],
+  "graph-list": [
+    {
+      id: "title",
+      label: "Title",
+      field_type: ColumnType.TEXT,
+      sortable: true,
+      width: 120,
+    },
+    {
+      id: "chart_type",
+      label: "Chart Type",
+      field_type: ColumnType.TEXT,
+      sortable: true,
+      width: 120,
+    },
+  ],
 
   // KPI Pages
-  "kpi-list": [],
+  "kpi-list": [
+    {
+      id: "kpi_group_name",
+      label: "Name",
+      field_type: ColumnType.TEXT,
+      sortable: true,
+      width: 120,
+    },
+    {
+      id: "created_by",
+      label: "Created By",
+      field_type: ColumnType.USER,
+      sortable: true,
+      width: 120,
+    },
+     {
+      id: "created_at",
+      label: "Creation Date",
+      field_type: ColumnType.DATE,
+      sortable: true,
+      width: 120,
+    },
+  ],
   "kpi-group": [],
 
   "user-list": [
     {
       id: "name",
       label: "Name",
-      field_field_type: "name",
+      field_type: ColumnType.TEXT,
       sortable: true,
       width: 120,
     },
     {
       id: "status",
       label: "Status",
-      field_field_type: "name",
+      field_type: ColumnType.TEXT,
       sortable: true,
       width: 120,
     },
     {
       id: "email",
       label: "Email",
-      field_field_type: "email",
+      field_type: "email",
       sortable: true,
       width: 120,
     },
@@ -47,24 +82,31 @@ export const TableColumns = {
 
   // Client Pages
   "client-list": [
-    // {
-    //   id: "handler",
-    //   label: "Handler",
-    //   field_field_type: "handler",
-    //   sortable: true,
-    //   width: 120,
-    // },
+    {
+      id: "handler",
+      label: "Handler",
+      field_type: "handler",
+      sortable: true,
+      width: 120,
+    },
+    {
+      id: "user_id",
+      label: "Created By",
+      field_type: ColumnType.USER,
+      sortable: true,
+      width: 120,
+    },
     {
       id: "serial_number",
       label: "Serial Number",
-      field_field_type: ColumnType.TEXT,
+      field_type: ColumnType.TEXT,
       sortable: true,
       width: 120,
     },
     {
       id: "created_at",
       label: "Creation Date",
-      field_field_type: ColumnType.DATE,
+      field_type: ColumnType.DATE,
       sortable: true,
       width: 150,
     },

@@ -1,7 +1,5 @@
-import { jsonParser } from "@/utils/jsonParser";
 import { createSlice } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
-import { v4 } from "uuid";
 
 const initialState = {
   // default data
@@ -15,12 +13,21 @@ const initialState = {
   updateClientGroupLoading: false,
   getAllClientGroupsNameLoading: false,
   getSelectedClientGroupLoading: false,
+  duplicateClientGroupLoading: false,
 };
 
 const clientGroupSlice = createSlice({
   name: "client_group",
   initialState,
   reducers: {
+    duplicateClientGroup(state) {
+      state.duplicateClientGroupLoading = true;
+    },
+    duplicateClientGroupSuccess(state, { payload }) {
+      state.allClientGroups = [payload, ...state.allClientGroups];
+      state.duplicateClientGroupLoading = false;
+    },
+
     deleteClientGroup(state) {
       state.deleteClientGroupLoading = true;
     },
@@ -77,13 +84,13 @@ const clientGroupSlice = createSlice({
       const res = payload;
       const updatedData = {
         ...res,
-        columns : res?.columns.map(c => {
+        columns: res?.columns.map((c) => {
           return {
             ...c,
-            options : JSON.parse(c?.options)
-          }
+            options: JSON.parse(c?.options),
+          };
         }),
-      }
+      };
       state.currGroup = updatedData;
       // state.clientGroups = [] find id then replace
       state.getSelectedClientGroupLoading = false;
@@ -107,6 +114,8 @@ export const {
   getAllClientGroupsNameSuccess,
   getSelectedClientGroup,
   getSelectedClientGroupSuccess,
+  duplicateClientGroup,
+  duplicateClientGroupSuccess,
 } = clientGroupSlice.actions;
 
 export const useSelectAllClientGroups = () =>

@@ -12,9 +12,11 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaFileSignature,
+  FaCopy,
 } from "react-icons/fa";
 import moment from "moment";
 import { useSelectAllCompanyUsers } from "../../../redux/slices/companySlice";
+import { safeParseJSON } from "@/utils/validation";
 
 const ReusableTable = ({
   tableId,
@@ -311,6 +313,17 @@ const ReusableTable = ({
           />
         )}
 
+        {resolvedActionButtons.includes("duplicate") && (
+          <FaCopy
+            className="action-icon duplicate"
+            title="Duplicate"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAction?.("duplicate", row);
+            }}
+          />
+        )}
+
         {resolvedActionButtons.includes("delete") && (
           <FaTrash
             className="action-icon delete"
@@ -376,14 +389,16 @@ const ReusableTable = ({
 
       let alertValue;
       try {
-        alertValue = alertRaw?.row_value
-          ? JSON.parse(alertRaw.row_value)
-          : null;
+        alertValue = safeParseJSON(alertRaw);
       } catch {
         alertValue = null;
       }
-
-      const isDone = alertValue?.is_complete;
+      
+      const isDone =
+        alertValue === undefined ||
+        alertValue === null ||
+        alertValue?.row_value?.date === "" ||
+        alertValue?.row_value?.is_complete;
       if (isDone) return { backgroundColor: "#fff" };
 
       const date = moment(alertValue?.date);
@@ -448,8 +463,47 @@ const ReusableTable = ({
       case "date":
         return formatDate(value);
 
-      case "dropdown":
+      case "handler":
+        return row.handler_name || "-";
+
+      case "dropdown": {
         const opts = column.options || [];
+
+        // multi select
+        if (Array.isArray(value)) {
+          if (!value.length) return <span>-</span>;
+
+          return (
+            <div className="dropdown-chip-group">
+              {value.map((item, index) => {
+                const val = item?.value ?? item;
+                const label = item?.label ?? item;
+
+                const found = opts.find(
+                  (o) => o.value === val || o.name === val
+                );
+
+                const style = {
+                  backgroundColor: found?.fillColor || "#f0f0f0",
+                  color: found?.color || "#333",
+                  border: `1px solid ${found?.color || "#ccc"}`,
+                };
+
+                return (
+                  <span
+                    key={`${val}-${index}`}
+                    style={style}
+                    className="dropdown-chip"
+                  >
+                    {label}
+                  </span>
+                );
+              })}
+            </div>
+          );
+        }
+
+        // single select
         const found = opts.find((o) => o.value === value || o.name === value);
 
         const style = {
@@ -463,6 +517,7 @@ const ReusableTable = ({
             {value || "-"}
           </span>
         );
+      }
 
       case "multiline":
         return (
@@ -516,6 +571,41 @@ const ReusableTable = ({
     return pages;
   };
 
+  const handleResizeStart = (columnId, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setResizing(columnId);
+    setStartX(e.clientX);
+    setStartWidth(getColumnWidth(columnId));
+  };
+
+  useEffect(() => {
+    if (!resizing) return;
+
+    const handleMouseMove = (e) => {
+      const deltaX = e.clientX - startX;
+      const newWidth = Math.max(80, startWidth + deltaX); // min width
+
+      setColumnWidths((prev) => ({
+        ...prev,
+        [resizing]: newWidth,
+      }));
+    };
+
+    const handleMouseUp = () => {
+      setResizing(null);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [resizing, startX, startWidth, setColumnWidths]);
+
   return (
     <Fragment>
       <div className="reusable-table-container">
@@ -549,6 +639,8 @@ const ReusableTable = ({
                       data-fixed={col.fixedPosition}
                       style={{ width: `${getColumnWidth(col.id)}px` }}
                       onClick={() => {
+                        if (resizing) return;
+
                         if (col.id !== "_checkbox" && col.id !== "actions") {
                           handleSort(col);
                         }
@@ -576,6 +668,7 @@ const ReusableTable = ({
                               e.stopPropagation();
                               handleResizeStart(col.id, e);
                             }}
+                            onClick={(e) => e.stopPropagation()}
                           />
                         )}
                     </th>

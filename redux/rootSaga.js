@@ -15,6 +15,7 @@ import { appointmentSaga } from './sagas/appointmentSaga';
 import formTemplateSaga from './sagas/formTemplateSaga';
 import formSubmissionSaga from './sagas/formSubmissionSaga';
 import formApprovalSaga from './sagas/formApprovalSaga';
+import { kpiSaga } from './sagas/kpiSaga';
 // Root saga
 function* rootSaga() {
   yield all([
@@ -32,7 +33,8 @@ function* rootSaga() {
     appointmentSaga(),
     formTemplateSaga(),
     formSubmissionSaga(),
-    formApprovalSaga()
+    formApprovalSaga(),
+    kpiSaga()
   ]);
 }
 

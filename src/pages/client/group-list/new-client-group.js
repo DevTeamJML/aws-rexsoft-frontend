@@ -29,11 +29,12 @@ export default function NewClientGroupPage({ params }) {
       column_id: v4(),
       label: "Client Name",
       field_type: "short_text",
+      multi_select_dropdown: false,
       permission: "editable",
       width: "100",
       is_required: false,
       allow_duplicate: true,
-      is_system : true,
+      is_system: true,
       options: [],
     },
   ]);
@@ -41,6 +42,7 @@ export default function NewClientGroupPage({ params }) {
   const [newField, setNewField] = useState({
     label: "",
     field_type: "short_text",
+    multi_select_dropdown: false,
     permission: "editable",
     width: "100",
     is_required: false,
@@ -146,6 +148,7 @@ export default function NewClientGroupPage({ params }) {
       column_id: v4(),
       label: "",
       field_type: "short_text",
+      multi_select_dropdown: false,
       permission: "editable",
       width: "100",
       is_required: false,
@@ -171,6 +174,7 @@ export default function NewClientGroupPage({ params }) {
         column_id: v4(),
         label: "",
         field_type: "short_text",
+        multi_select_dropdown: false,
         permission: "editable",
         width: "100",
         is_required: false,
@@ -374,6 +378,20 @@ export default function NewClientGroupPage({ params }) {
                   />
                 </div>
 
+                {newField.field_type === "dropdown" && (
+                  <div className="input-group row-layout">
+                    <label>Multi Select</label>
+                    <SwitchField
+                      checked={newField.multi_select_dropdown}
+                      onChange={(e) =>
+                        setNewField((prev) => ({
+                          ...prev,
+                          multi_select_dropdown: e.target.checked,
+                        }))
+                      }
+                    />
+                  </div>
+                )}
                 <div className="input-group row-layout">
                   <label>Required</label>
                   <SwitchField

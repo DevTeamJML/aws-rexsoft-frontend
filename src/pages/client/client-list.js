@@ -51,7 +51,7 @@ import ColumnOrderDrawer from "@/components/Misc/ColumnOrderDrawer";
 import { useSelectUserPermissions } from "../../../redux/slices/roleAuthSlice";
 import { useSelectUser } from "../../../redux/slices/authSlice";
 import SwitchField from "@/components/FormComponents/SwitchField";
-import { showToast } from "../../../redux/slices/toastSlice";
+import { hideToast, showToast } from "../../../redux/slices/toastSlice";
 import { onValue, ref, set } from "firebase/database";
 import { db } from "@/config/firebaseConfig";
 import { debounce } from "lodash";
@@ -446,6 +446,10 @@ const ClientList = () => {
         status: "success",
       })
     );
+
+    setTimeout(() => {
+      dispatch(hideToast());
+    }, 2000);
   };
 
   const handleBulkRestore = () => {

@@ -38,6 +38,7 @@ export default function EditClientGroupPage({ params }) {
       column_id: v4(),
       label: "Client Name",
       field_type: "short_text",
+      multi_select_dropdown: false,
       permission: "editable",
       width: "100",
       is_required: false,
@@ -50,6 +51,7 @@ export default function EditClientGroupPage({ params }) {
   const [newField, setNewField] = useState({
     label: "",
     field_type: "short_text",
+    multi_select_dropdown: false,
     permission: "editable",
     width: "100",
     is_required: false,
@@ -110,10 +112,9 @@ export default function EditClientGroupPage({ params }) {
     const unsubscribe = onValue(
       sortRef,
       (snap) => {
-        const sortOrder = snap.val(); 
+        const sortOrder = snap.val();
 
-        const getId = (col) =>
-          col?.id ?? col?.column_id ?? col?.key;
+        const getId = (col) => col?.id ?? col?.column_id ?? col?.key;
 
         // if no saved sortOrder, just use original columns
         if (!Array.isArray(sortOrder) || sortOrder.length === 0) {
@@ -141,7 +142,7 @@ export default function EditClientGroupPage({ params }) {
           if (id && indexMap.has(id)) known.push(col);
           else unknown.push(col);
         }
-        
+
         known.sort((a, b) => {
           const ai = indexMap.get(getId(a));
           const bi = indexMap.get(getId(b));
@@ -226,6 +227,7 @@ export default function EditClientGroupPage({ params }) {
       column_id: v4(),
       label: "",
       field_type: "short_text",
+      multi_select_dropdown: false,
       permission: "editable",
       width: "100",
       is_required: false,
@@ -251,6 +253,7 @@ export default function EditClientGroupPage({ params }) {
         column_id: v4(),
         label: "",
         field_type: "short_text",
+        multi_select_dropdown: false,
         permission: "editable",
         width: "100",
         is_required: false,
@@ -456,6 +459,21 @@ export default function EditClientGroupPage({ params }) {
                     dropdownList={widths}
                   />
                 </div>
+
+                {newField.field_type === "dropdown" && (
+                  <div className="input-group row-layout">
+                    <label>Multi Select</label>
+                    <SwitchField
+                      checked={newField.multi_select_dropdown}
+                      onChange={(e) =>
+                        setNewField((prev) => ({
+                          ...prev,
+                          multi_select_dropdown: e.target.checked,
+                        }))
+                      }
+                    />
+                  </div>
+                )}
 
                 <div className="input-group row-layout">
                   <label>Required</label>
