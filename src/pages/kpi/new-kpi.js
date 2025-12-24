@@ -111,70 +111,70 @@ export default function NewKpiGroup() {
      SAVE HANDLER
   ========================= */
   const handleSaveKpiGroup = () => {
-    const test = {
-      group: {
-        kpi_group_id: "4c373673-985d-42b6-8b3e-4489a0a42df6",
-        created_by: "0ExDpovfelMsLwHSINgeGzOBz8G2",
-        company_id: "f967f22f-6778-4403-9b01-e12b53cc3e6a",
-        kpi_group_name: "",
-        status: "draft",
-      },
-      kpis: [
-        {
-          kpi_id: "efd973a7-7602-433f-92ee-316b68684bd3",
-          title: "Kpi 1",
-          definition: "test",
-          data_source_type: "group",
-          data_source_id: "4a19f344-57e1-4474-b38c-6d3d6de38648",
-          metric_value_id: "897fbb21-004a-435d-a3b5-a9f99e741cc1",
-          measurement_rule: "total",
-          measurement_unit: "RM",
-          target_value: "50000",
-          start_date: "2025-12-19",
-          due_date: "2025-12-27",
-          members: ["0ExDpovfelMsLwHSINgeGzOBz8G2"],
-          team_contribution: false,
-        },
-        {
-          kpi_id: "28cf5d0e-4d68-48a8-9958-55e9ad57aee1",
-          title: "KPI 2",
-          definition: "test",
-          data_source_type: "group",
-          data_source_id: "4a19f344-57e1-4474-b38c-6d3d6de38648",
-          metric_value_id: "897fbb21-004a-435d-a3b5-a9f99e741cc1",
-          measurement_rule: "total",
-          measurement_unit: "RM",
-          target_value: "50000",
-          start_date: null,
-          due_date: null,
-          members: [
-            "0ExDpovfelMsLwHSINgeGzOBz8G2",
-            "PvYxASUm3tZNLbVhLWLTXPsrNhW2",
-          ],
-          team_contribution: true,
-        },
-      ],
-      visualization: {
-        x_axis: "member",
-        series: [
-          {
-            kpi_id: "efd973a7-7602-433f-92ee-316b68684bd3",
-            label: "KPI 1",
-            chart_type: "bar",
-            color: "#4F46E5",
-            visible: true,
-          },
-          {
-            kpi_id: "28cf5d0e-4d68-48a8-9958-55e9ad57aee1",
-            label: "KPI 2",
-            chart_type: "bar",
-            color: "#4F46E5",
-            visible: true,
-          },
-        ],
-      },
-    };
-    dispatch(saveKpi({ ...test, router }));
+    // const test = {
+    //   group: {
+    //     kpi_group_id: "4c373673-985d-42b6-8b3e-4489a0a42df6",
+    //     created_by: "0ExDpovfelMsLwHSINgeGzOBz8G2",
+    //     company_id: "f967f22f-6778-4403-9b01-e12b53cc3e6a",
+    //     kpi_group_name: "",
+    //     status: "draft",
+    //   },
+    //   kpis: [
+    //     {
+    //       kpi_id: "efd973a7-7602-433f-92ee-316b68684bd3",
+    //       title: "Kpi 1",
+    //       definition: "test",
+    //       data_source_type: "group",
+    //       data_source_id: "4a19f344-57e1-4474-b38c-6d3d6de38648",
+    //       metric_value_id: "897fbb21-004a-435d-a3b5-a9f99e741cc1",
+    //       measurement_rule: "total",
+    //       measurement_unit: "RM",
+    //       target_value: "50000",
+    //       start_date: "2025-12-19",
+    //       due_date: "2025-12-27",
+    //       members: ["0ExDpovfelMsLwHSINgeGzOBz8G2"],
+    //       team_contribution: false,
+    //     },
+    //     {
+    //       kpi_id: "28cf5d0e-4d68-48a8-9958-55e9ad57aee1",
+    //       title: "KPI 2",
+    //       definition: "test",
+    //       data_source_type: "group",
+    //       data_source_id: "4a19f344-57e1-4474-b38c-6d3d6de38648",
+    //       metric_value_id: "897fbb21-004a-435d-a3b5-a9f99e741cc1",
+    //       measurement_rule: "total",
+    //       measurement_unit: "RM",
+    //       target_value: "50000",
+    //       start_date: null,
+    //       due_date: null,
+    //       members: [
+    //         "0ExDpovfelMsLwHSINgeGzOBz8G2",
+    //         "PvYxASUm3tZNLbVhLWLTXPsrNhW2",
+    //       ],
+    //       team_contribution: true,
+    //     },
+    //   ],
+    //   visualization: {
+    //     x_axis: "member",
+    //     series: [
+    //       {
+    //         kpi_id: "efd973a7-7602-433f-92ee-316b68684bd3",
+    //         label: "KPI 1",
+    //         chart_type: "bar",
+    //         color: "#4F46E5",
+    //         visible: true,
+    //       },
+    //       {
+    //         kpi_id: "28cf5d0e-4d68-48a8-9958-55e9ad57aee1",
+    //         label: "KPI 2",
+    //         chart_type: "bar",
+    //         color: "#4F46E5",
+    //         visible: true,
+    //       },
+    //     ],
+    //   },
+    // };
+    dispatch(saveKpi({ group: kpiGroup, visualization, kpis, router }));
   };
 
   return (
