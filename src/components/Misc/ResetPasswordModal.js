@@ -31,7 +31,6 @@ export function ResetPasswordModal({ show, onClose }) {
         <div className="modal-title-input">
           <h3 className="modal-title">Reset Password</h3>
 
-          {/* Your own input field */}
           <PlainTextField
             placeholder="Enter your email"
             value={email}
@@ -39,7 +38,6 @@ export function ResetPasswordModal({ show, onClose }) {
           />
         </div>
         <div className="modal-buttons">
-          {/* Submit Button */}
           <ActionButton
             label={loading ? "Sending..." : "Send Reset Link"}
             width="100%"

@@ -25,7 +25,6 @@ import { hideToast, showToast } from "../slices/toastSlice";
 function* deleteFormTemplateSaga({ payload }) {
   try {
     const { form_template_id, setTargetFormId, company_id } = payload;
-    // using your provided ApiRoute key: deleteFromTemplate
     yield call(API.post, ApiRoute.formTemplate.deleteFromTemplate, {
       form_template_id: form_template_id,
     });
@@ -59,7 +58,7 @@ function* getAllFormTemplatesSaga({ payload }) {
   try {
     const { company_id } = payload || {};
     if (company_id) {
-      // using your provided ApiRoute key: getAllFormTemplates
+      // using provided ApiRoute key: getAllFormTemplates
       const response = yield call(
         API.get,
         ApiRoute.formTemplate.getAllFormTemplates,
@@ -86,7 +85,7 @@ function* getAllFormTemplatesSaga({ payload }) {
 function* getAllFormTemplatesNameSaga({ payload }) {
   try {
     const { company_id } = payload || {};
-    // If your backend has a separate name-only endpoint, change this key accordingly.
+    // If backend has a separate name-only endpoint, change this key accordingly.
     // Using getAllFormTemplates as a fallback to return the list.
     const response = yield call(
       API.get,

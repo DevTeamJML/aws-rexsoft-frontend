@@ -21,20 +21,6 @@ import { ApiRoute } from "@/enums/api-route";
 import { showToast } from "../slices/toastSlice";
 import { setShowModal } from "../slices/confirmModalSlice";
 
-/**
- * Using your ApiRoute.formSubmission mapping:
- *  - ApiRoute.formSubmission.createFormSubmission
- *  - ApiRoute.formSubmission.getAllFormSubmissions
- *  - ApiRoute.formSubmission.getFormSubmissionById
- *  - ApiRoute.formSubmission.deleteFormSubmission
- *
- * Notes:
- *  - There was no explicit "update" or "getByGroup" endpoint in your map.
- *    I defaulted update to POST to createFormSubmission (common pattern for upsert).
- *    Change ApiRoute.formSubmission.createFormSubmission -> ApiRoute.formSubmission.updateFormSubmission
- *    if you add a dedicated update route.
- */
-
 function* getUserFormSubmissionsSaga({ payload }) {
   try {
     const params = payload || {};
@@ -106,11 +92,6 @@ function* createFormSubmissionSaga({ payload }) {
   }
 }
 
-/* Update an existing form submission
-   NOTE: your ApiRoute map doesn't include an update route.
-   I POST to createFormSubmission (assumes upsert). If you have a dedicated route,
-   replace ApiRoute.formSubmission.createFormSubmission with the update route.
-*/
 function* updateFormSubmissionSaga({ payload }) {
   try {
     const { data, router } = payload || {};
@@ -181,9 +162,7 @@ function* getFormSubmissionByIdSaga({ payload }) {
   }
 }
 
-/* Handle change of selected group (set selected group id in slice, and optionally fetch)
-   There is no dedicated getByGroup route in your map; we reuse getAllFormSubmissions with group_id param.
-*/
+
 function* handleOnChangeFormSubmissionGroupSaga({ payload }) {
   try {
     const groupId = payload?.group_id ?? payload;

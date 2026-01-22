@@ -159,7 +159,6 @@ export default function ClientImportForm() {
     const templateColumns = allColumns.filter((col) => {
       if (col.field_type === "alert" || col.field_type === "rich_text")
         return false;
-      // Adjust this check to your actual permission flag; common variants:
       if (!isAdmin) {
         if (col.permission && col.permission !== "editable") return false;
       }
@@ -272,9 +271,7 @@ export default function ClientImportForm() {
         return true;
       });
 
-      // validateHeader: keep your current validator contract; it accepts the header (array)
-      // and compareColumn (array of column objects). If your validator expects labels, pass compareColumn.map(c=>c.label)
-      const { isValid, extra, missing } = validateHeader(
+     const { isValid, extra, missing } = validateHeader(
         compareHeader,
         compareColumn,
         optional
@@ -482,49 +479,6 @@ export default function ClientImportForm() {
     setShowHandlerModal(true);
   };
 
-  // Confirm import inside the modal
-  // const handleConfirmImport = (handlerIds = []) => {
-  //   if (!importedData || !importedData.client_list?.length) {
-  //     dispatch(
-  //       showToast({
-  //         message: "No imported data available. Please upload a file first.",
-  //         status: "error",
-  //       })
-  //     );
-  //     setShowHandlerModal(false);
-  //     setTimeout(() => dispatch(hideToast()), 2500);
-  //     return;
-  //   }
-
-  //   // build handler pairs: [{ client_id, user_id }, ...]
-  //   // apply selected handlers to every client
-  //   const handlerPairs = [];
-  //   importedData.client_list.forEach((c) => {
-  //     handlerIds.forEach((uid) => {
-  //       handlerPairs.push({
-  //         client_id: c.client_id,
-  //         user_id: uid,
-  //       });
-  //     });
-  //   });
-
-  //   // Dispatch the bulk create thunk — adapt if your API expects a different shape
-  //   dispatch(
-  //     bulkCreateClient({
-  //       router,
-  //       setImportedData,
-  //       client_list: importedData.client_list,
-  //       custom_values: importedData.custom_values,
-  //       handler: handlerPairs,
-  //     })
-  //   );
-
-  //   // close modal
-  //   setShowHandlerModal(false);
-  //   // clear selection if you want
-  //   // setSelectedHandlerIds([]);
-  // };
-
   const handleConfirmImport = (handlerIds = []) => {
     if (!importedData || !importedData.client_list?.length) {
       dispatch(
@@ -554,7 +508,6 @@ export default function ClientImportForm() {
       });
     });
 
-    // --- build logsBody (minimal & clean) ---
     const logsBody = {
       company_id: currCompanyId,
       user_id: user?.uid,
@@ -570,7 +523,6 @@ export default function ClientImportForm() {
       },
     };
 
-    // --- dispatch bulk import with logs ---
     dispatch(
       bulkCreateClient({
         router,

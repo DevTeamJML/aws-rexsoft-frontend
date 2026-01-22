@@ -233,7 +233,6 @@ export default function LogsPage() {
     [allGroupName]
   );
 
-  // ---------- small helpers to render metadata shapes ----------
   const renderSingleChanges = (changes = []) => {
     if (!Array.isArray(changes) || changes.length === 0) return null;
     return (
@@ -317,16 +316,12 @@ export default function LogsPage() {
             </small>
           )}
         </h4>
-
         <div className="affectedGrid" role="list">
           {sample.map((a, i) => {
             // prefer client_name (if provided in metadata), then serial_number, then client_id
             const display =
-              a.client_name ??
-              a.client_name_display ??
-              a.serial_number ??
-              a.client_id ??
-              "-";
+              a.client_name ||
+              a.serial_number;
             return (
               <div
                 key={a.client_id ?? `${i}`}

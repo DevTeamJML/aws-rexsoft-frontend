@@ -75,8 +75,6 @@ export default function NewGraphClient() {
     viewableMembers: [],
   });
 
-  // ================= EFFECTS =================
-
   useEffect(() => {
     if (!graph_id || !currCompanyId) return;
 
@@ -140,8 +138,6 @@ export default function NewGraphClient() {
       setIsLoading(false);
     }
   }, [graphData]);
-
-  // ================= HELPERS =================
 
   const memberOptions = useMemo(() => {
     return allCompanyUsers.map((u) => ({
@@ -260,7 +256,6 @@ export default function NewGraphClient() {
     </text>
   );
 
-  // ================= HANDLERS =================
   const handleGenerateGraph = () => {
     if (!graphSettings.xAxis.id || !graphSettings.yAxis.id) {
       setError("Please select X Axis and Y Axis");
@@ -330,8 +325,6 @@ export default function NewGraphClient() {
 
     dispatch(saveGraph(payload));
   };
-
-  // ================= RENDER =================
 
   return (
     <div className="new-graph-container">

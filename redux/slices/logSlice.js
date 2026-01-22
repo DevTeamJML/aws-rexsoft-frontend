@@ -137,7 +137,7 @@ export const {
   getClientLogsSuccess
 } = logsSlice.actions;
 
-// Selectors — pattern used in your repo (hooks using useSelector)
+
 export const useSelectLogs = () => useSelector((state) => state.logs.logs);
 export const useSelectClientLogs = () => useSelector((state) => state.logs.clientLogs);
 export const useSelectLogsTotal = () =>

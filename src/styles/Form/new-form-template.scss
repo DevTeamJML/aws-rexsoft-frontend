@@ -395,9 +395,6 @@
               gap: 5px;
             }
 
-            .reusable-input {
-              // keep as-is for your PlainTextField
-            }
           }
 
           .delete-overlay {
@@ -460,22 +457,3 @@
   }
 }
 
-@media (max-width: 768px) {
-  .form-template-container {
-    width: 100%;
-    .drawer {
-      width: 100%;
-    }
-    .top-card .group-name-input {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    .publish-toggle {
-      margin-left: 0;
-    }
-    .bottom-card {
-      padding: 1rem;
-    }
-  }
-}

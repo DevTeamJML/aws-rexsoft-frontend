@@ -42,9 +42,6 @@ export default function FormTemplateListPage() {
   const [mode, setMode] = useState("templates");
   const [targetId, setTargetId] = useState(null);
 
-  /* -------------------------------------------------------
-     LOAD DATA BASED ON MODE
-  -------------------------------------------------------- */
   useEffect(() => {
     if (!currCompanyId) return;
 
@@ -80,17 +77,11 @@ export default function FormTemplateListPage() {
     return [];
   }, [mode, formTemplates, submissions]);
 
-  /* -------------------------------------------------------
-     COLUMNS
-  -------------------------------------------------------- */
   const fixedColumns = useMemo(() => {
     if (mode === "templates") return getColumnsForPage("form-template-list");
     return getColumnsForPage("form-submission-list");
   }, [mode]);
 
-  /* -------------------------------------------------------
-     TABLE ACTION HANDLING
-  -------------------------------------------------------- */
   const handleAction = (action, row) => {
     if (mode === "templates") {
       if (action === "apply") {
@@ -114,9 +105,6 @@ export default function FormTemplateListPage() {
     }
   };
 
-  /* -------------------------------------------------------
-     DELETE TEMPLATE CONFIRM
-  -------------------------------------------------------- */
   const onHandleDelete = () => {
     if (targetId) {
       dispatch(
@@ -149,10 +137,6 @@ export default function FormTemplateListPage() {
         onConfirm={mode === "templates" ? onHandleDelete : onHandleDeleteSubmission}
         onCancel={() => dispatch(setShowModal(false))}
       />
-
-      {/* ----------------------------------------
-          HEADER AREA
-      ---------------------------------------- */}
       <div className="title-container">
         <h1>{mode === "templates" ? "Apply Form" : "Your Submitted Forms"}</h1>
 

@@ -36,13 +36,16 @@
       height: 60vh;
       overflow: scroll;
     }
+
+    .form-section > * {
+      flex: 0 0 calc(var(--col-width) - 1rem) !important;
+    }
   }
 
   .input-group {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    padding-right: 1.2rem;
 
     // Handle different widths
     .reusable-dropdown,
@@ -64,21 +67,3 @@
   }
 }
 
-// Responsive design
-@media (max-width: 768px) {
-  .create-client-container {
-    padding: 1rem;
-
-    .form-card {
-      padding: 1.5rem;
-    }
-
-    .form-actions {
-      flex-direction: column-reverse;
-
-      button {
-        width: 100%;
-      }
-    }
-  }
-}

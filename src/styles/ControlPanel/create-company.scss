@@ -66,21 +66,3 @@
   }
 }
 
-// Responsive design
-@media (max-width: 768px) {
-  .create-company-container {
-    padding: 1rem;
-
-    .form-card {
-      padding: 1.5rem;
-    }
-
-    .form-actions {
-      flex-direction: column-reverse;
-
-      button {
-        width: 100%;
-      }
-    }
-  }
-}

@@ -27,9 +27,6 @@ export default function NewInviteUser() {
   const user = useSelectUser();
   const currCompanyId = useSelectCurrCompanyId();
 
-  /** ---------------------------
-   * Permissions (boolean version)
-   * --------------------------- */
   /** Switch Component */
   const Switch = ({ checked, onChange, ariaLabel }) => (
     <label className="toggle">

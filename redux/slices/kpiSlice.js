@@ -2,23 +2,12 @@ import { createSlice } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 
 const initialState = {
-  /* ======================
-     LIST & ENTITY
-  ====================== */
   kpis: [],
   currKpi: null,
-
   publishedKpis: [],
-
-  /* ======================
-     KPI GROUPS (ADD THIS)
-  ====================== */
   kpiGroups: [],
   currKpiGroup: null,
 
-  /* ======================
-     LOADING / ERROR
-  ====================== */
   saveKpiLoading: false,
   saveKpiError: "",
 
@@ -42,7 +31,6 @@ const kpiSlice = createSlice({
   name: "kpi",
   initialState,
   reducers: {
-    /* ================= SAVE KPI ================= */
     saveKpi(state) {
       state.saveKpiLoading = true;
       state.saveKpiError = "";
@@ -54,8 +42,6 @@ const kpiSlice = createSlice({
       state.saveKpiError = payload;
       state.saveKpiLoading = false;
     },
-
-    /* ================= DELETE KPI ================= */
     deleteKpi(state) {
       state.deleteKpiLoading = true;
       state.deleteKpiError = "";
@@ -68,8 +54,6 @@ const kpiSlice = createSlice({
       state.deleteKpiError = payload;
       state.deleteKpiLoading = false;
     },
-
-    /* ================= GET KPIs ================= */
     getKpisBySource(state) {
       state.getKpisBySourceLoading = true;
       state.getKpisBySourceError = "";
@@ -82,8 +66,6 @@ const kpiSlice = createSlice({
       state.getKpisBySourceError = payload;
       state.getKpisBySourceLoading = false;
     },
-
-    /* ================= GET KPI BY ID ================= */
     getKpiById(state) {
       state.getKpiByIdLoading = true;
       state.getKpiByIdError = "";
@@ -96,8 +78,6 @@ const kpiSlice = createSlice({
       state.getKpiByIdError = payload;
       state.getKpiByIdLoading = false;
     },
-
-    /* ================= PUBLISHED KPIs ================= */
     getPublishedKpi(state) {
       state.getPublishedKpiLoading = true;
       state.getPublishedKpiError = "";
@@ -111,8 +91,6 @@ const kpiSlice = createSlice({
       state.getPublishedKpiError = payload;
       state.getPublishedKpiLoading = false;
     },
-
-    /* ================= PUBLISHED KPI BY ID ================= */
     getPublishedKpiById(state) {
       state.getPublishedKpiByIdLoading = true;
       state.getPublishedKpiByIdError = "";
@@ -134,8 +112,6 @@ const kpiSlice = createSlice({
       state.getPublishedKpiByIdError = payload;
       state.getPublishedKpiByIdLoading = false;
     },
-
-    /* ================= SETTINGS ================= */
     updateKpiSettings(state, { payload }) {
       state.kpiSettings = payload;
     },
@@ -164,7 +140,6 @@ export const {
   updateKpiSettings,
 } = kpiSlice.actions;
 
-/* ================= SELECTORS ================= */
 export const useSelectKpis = () => useSelector((state) => state.kpi.kpis);
 
 export const useSelectCurrKpi = () => useSelector((state) => state.kpi.currKpi);

@@ -57,11 +57,8 @@ const RoleList = () => {
     });
   }, [roles]);
 
-  const findRoleById = (id) => (tableData.find((r) => r.id === id) || {}).raw;
-
   const handleAction = (action, row) => {
     if (action === "edit") {
-      // route to your edit page; adapt route if you use query/body style instead
       router.push(`/control-panel/new-role?role_id=${row.id}`);
       return;
     }
@@ -126,7 +123,6 @@ const RoleList = () => {
         dynamicColumns={[]}
         onAction={handleAction}
         onSelectionChange={(ids) => console.log("Selected roles:", ids)}
-        loading={!!listLoading}
         emptyMessage="No roles found"
       />
     </div>

@@ -36,7 +36,7 @@ function* getAllRolesSaga({ payload }) {
       ApiRoute.role.getAllRoles,
       buildParams(payload)
     );
-    // depending on API client, res may be response.data; follow your API pattern:
+
     const data = res?.data ?? res;
     yield put(getAllRolesSuccess(data));
   } catch (error) {

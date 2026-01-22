@@ -39,18 +39,12 @@ export default function FormSubmissionCreateEdit() {
   const [originalAnswers, setOriginalAnswers] = useState(null); // ⭐ NEW
   const [formErrors, setFormErrors] = useState({});
 
-  /* ---------------------------------------------------
-     LOAD SUBMISSION
-  --------------------------------------------------- */
   useEffect(() => {
     if (form_submission_id) {
       dispatch(getFormSubmissionById({ form_submission_id }));
     }
   }, [form_submission_id]);
 
-  /* ---------------------------------------------------
-     INITIALIZE ANSWERS + SNAPSHOT ORIGINAL ANSWERS
-  --------------------------------------------------- */
   useEffect(() => {
     if (!submission?.questions) return;
 

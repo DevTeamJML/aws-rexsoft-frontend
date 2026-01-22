@@ -192,15 +192,5 @@
     width: 100%;
   }
 
-  /* Responsive */
-  @media (max-width: 800px) {
-    .form-row {
-      flex-direction: column;
-    }
 
-    .label {
-      min-width: 120px;
-      text-align: left;
-    }
-  }
 }

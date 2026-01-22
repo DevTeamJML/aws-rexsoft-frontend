@@ -79,8 +79,6 @@ export default function NewGraph() {
     viewableMembers: [],
   });
 
-  // ================= EFFECTS =================
-
   useEffect(() => {
     if (graphData?.data) {
       setChartData(graphData.data);
@@ -88,8 +86,6 @@ export default function NewGraph() {
       setIsLoading(false);
     }
   }, [graphData]);
-
-  // ================= HELPERS =================
 
   const memberOptions = useMemo(() => {
     return allCompanyUsers.map((u) => ({
@@ -101,7 +97,6 @@ export default function NewGraph() {
   const normalizedColumns = useMemo(() => {
     if (!selectedSourceEntity?.raw) return [];
 
-    // ===== FORM SOURCE =====
     if (isFormSource) {
       return (
         selectedSourceEntity.raw.questions?.map((q) => ({
@@ -113,7 +108,6 @@ export default function NewGraph() {
       );
     }
 
-    // ===== GROUP SOURCE (existing behavior) =====
     return (
       selectedSourceEntity.raw.columns?.map((c) => ({
         id: c.column_id,
@@ -240,8 +234,6 @@ export default function NewGraph() {
     </text>
   );
 
-  // ================= HANDLERS =================
-
   const handleGenerateGraph = () => {
     if (!graphSettings.xAxis.id || !graphSettings.yAxis.id) {
       setError("Please select X Axis and Y Axis");
@@ -314,8 +306,6 @@ export default function NewGraph() {
 
     dispatch(saveGraph(payload));
   };
-
-  // ================= RENDER =================
 
   return (
     <div className="new-graph-container">

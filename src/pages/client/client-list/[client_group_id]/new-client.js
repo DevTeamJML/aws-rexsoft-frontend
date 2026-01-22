@@ -248,7 +248,6 @@ export default function NewClientPage() {
       dispatch(createClient({ payload: finalPayload, router, logsBody }));
       return;
     } else {
-      // --- non-admin flow: perform frontend validations (required + duplicate) ---
       const errors = {};
 
       // required checks
@@ -406,7 +405,7 @@ export default function NewClientPage() {
               <div
                 key={column.column_id}
                 className="input-group"
-                style={{ width: `${column.width - 4}%` }}
+                style={{ "--col-width": `${column.width}%` }}
               >
                 <label>
                   {column.label}

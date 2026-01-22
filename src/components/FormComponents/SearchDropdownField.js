@@ -1,38 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const SearchDropdownField = ({
   dropdownList = [],
-  label,
   value,
   onChange,
   width,
-  required,
 }) => {
   const [showList, setShowList] = useState(false);
+  const [searchText, setSearchText] = useState("");
+
+  // Sync input text when value changes (selection)
+  useEffect(() => {
+    setSearchText(value ?? "");
+  }, [value]);
 
   const filtered = dropdownList.filter((opt) => {
     const label = opt.label ?? opt.value ?? opt;
-    return label.toLowerCase().includes((value ?? "").toLowerCase());
+    return label
+      .toLowerCase()
+      .includes(searchText.toLowerCase());
   });
 
   return (
     <div
       className="reusable-search-dropdown"
-      style={{ width: width, position: "relative" }}
+      style={{ width, position: "relative" }}
     >
-      {/* text input */}
       <input
         type="text"
-        value={value}
+        value={searchText}
         onChange={(e) => {
-          onChange(e.target.value);
+          setSearchText(e.target.value);
           setShowList(true);
         }}
-        onFocus={() => setShowList(true)}
+        onFocus={() => {
+          setSearchText("");        // show ALL results on focus
+          setShowList(true);
+        }}
         onBlur={() => setTimeout(() => setShowList(false), 200)}
       />
 
-      {/* dropdown suggestions */}
       {showList && filtered.length > 0 && (
         <div className="dropdown-suggestions">
           {filtered.map((option, index) => {
@@ -44,7 +51,8 @@ export const SearchDropdownField = ({
                 key={index}
                 className="dropdown-option"
                 onMouseDown={() => {
-                  onChange(optionValue);
+                  onChange(optionValue); // actual selected value
+                  setSearchText(optionLabel);
                   setShowList(false);
                 }}
               >

@@ -231,9 +231,6 @@ export default function FormSubmissionCreate() {
   );
 }
 
-/* ---------------------------------------------
-   FIELD RENDERER
----------------------------------------------- */
 function RenderField({ question, value, onChange, disabled }) {
   const opts = Array.isArray(question.options)
     ? question.options

@@ -8,9 +8,6 @@ export default function KpiGroupVisualization({
 }) {
   const [activeKpiId, setActiveKpiId] = useState(kpis[0]?.kpi_id || "");
 
-  /* ============================
-     SYNC SERIES WITH KPIs
-  ============================ */
   useEffect(() => {
     if (!kpis.length) return;
 
@@ -43,10 +40,6 @@ export default function KpiGroupVisualization({
     }
   }, [kpis]);
 
-  /* ============================
-     ACTIVE SERIES
-  ============================ */
-
   const activeSeries = useMemo(
     () => visualization.series?.find((s) => s.kpi_id === activeKpiId),
     [visualization.series, activeKpiId]
@@ -61,9 +54,6 @@ export default function KpiGroupVisualization({
     }));
   };
 
-  /* ============================
-     RENDER
-  ============================ */
   return (
     <div className="graph-content">
       {/* LEFT */}

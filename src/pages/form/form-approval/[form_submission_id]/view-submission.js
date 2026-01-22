@@ -232,7 +232,6 @@ function ReadonlyField({ question, value }) {
     ? question.options
     : JSON.parse(question.options || "[]");
 
-  // ---------- TEXT FIELDS ----------
   if (
     [
       "short_text",
@@ -253,7 +252,6 @@ function ReadonlyField({ question, value }) {
     );
   }
 
-  // ---------- MULTI SELECT ----------
   if (question.field_type === "dropdown") {
     const labels = (value || [])
       .map((id) => opts.find((o) => o.option_id === id)?.value)
@@ -266,7 +264,6 @@ function ReadonlyField({ question, value }) {
     );
   }
 
-  // ---------- CHECKBOX ----------
   if (question.field_type === "checkbox") {
     return (
       <div className="checkbox-group">
@@ -284,7 +281,6 @@ function ReadonlyField({ question, value }) {
     );
   }
 
-  // ---------- CHOICE (RADIO) ----------
   if (question.field_type === "choice") {
     return (
       <div className="choice-group">

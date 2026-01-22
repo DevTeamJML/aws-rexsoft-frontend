@@ -2,11 +2,11 @@
 
 /* TextArea Field Styles */
 .textarea-container {
-  // margin-bottom: 16px;
+  margin-bottom: 16px;
 }
 
 .textarea-field {
-  width: 94%;
+  width: -webkit-fill-available;
   padding: 10px 12px;
   border: 1px solid #ddd;
   border-radius: 6px;

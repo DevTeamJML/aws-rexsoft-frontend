@@ -9,9 +9,6 @@ export default function KpiForm({ kpis, setKpis, updateMembers }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const activeKpi = kpis[activeIndex];
 
-  /* ======================
-     HELPERS
-  ====================== */
   const updateField = (field, value) => {
     setKpis((prev) => {
       const next = [...prev];
@@ -50,12 +47,8 @@ export default function KpiForm({ kpis, setKpis, updateMembers }) {
     setActiveIndex(kpis.length);
   };
 
-  /* ======================
-     RENDER
-  ====================== */
   return (
     <div className="kpi-form-container">
-      {/* ================= KPI NAV ================= */}
       <div className="kpi-tabs">
         {kpis.map((_, idx) => (
           <button
@@ -72,18 +65,15 @@ export default function KpiForm({ kpis, setKpis, updateMembers }) {
         </button>
       </div>
 
-      {/* ================= KPI FORM ================= */}
       <div className="kpi-form">
         <strong><span>KPI Definition</span></strong>
 
-        {/* TITLE */}
         <PlainTextField
           placeholder="KPI Title"
           value={activeKpi.title}
           onChange={(value) => updateField("title", value)}
         />
 
-        {/* DEFINITION */}
         <MultilineField
           placeholder="Definition"
           value={activeKpi.definition}

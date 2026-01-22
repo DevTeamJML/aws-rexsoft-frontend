@@ -197,7 +197,6 @@ export default function BulkUpdateClient() {
     setRemoveHandler((prev) => prev.filter((h) => h !== handlerToRemove));
   };
 
-  // ---------- Helpers for merging alert objects (handles both is_complete & is_completed) ----------
   const safeParseJSON = (value) => {
     try {
       if (typeof value === "string") return JSON.parse(value);
@@ -245,7 +244,6 @@ export default function BulkUpdateClient() {
       return normalizeAlertShape(parsed);
     }
 
-    // Try mapped (your sample stores under mapped.alert or mapped[column_id])
     if (clientObj.mapped) {
       // if mapped has a keyed property equal to column_id
       if (clientObj.mapped[column_id]) {
@@ -268,11 +266,9 @@ export default function BulkUpdateClient() {
     return { is_complete: false, date: null };
   };
 
-  // ---------- Updated handleSubmit with alert merge and "ignore empty values" behavior ----------
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ---------- Guards & Validation ----------
     if (!Array.isArray(selectedClientIds) || selectedClientIds.length === 0) {
       dispatch(
         showToast({
@@ -297,7 +293,6 @@ export default function BulkUpdateClient() {
     }
 
     try {
-      // ---------- Setup ----------
       const BATCH_SIZE = 25;
       const CONCURRENCY = 3;
       const limit = pLimit(CONCURRENCY);
@@ -371,7 +366,6 @@ export default function BulkUpdateClient() {
         return { add_handler_list, remove_handler_list };
       };
 
-      // ---------- enqueue batches for columnsWithValues ----------
       for (const col of columnsWithValues) {
         const columnValue = formData[col.column_id];
 
@@ -482,7 +476,7 @@ export default function BulkUpdateClient() {
               };
 
               // dispatch and await completion. Ensure your saga returns a promise if you want to await
-              await dispatch(bulkUpdateClient({ router, payload }));
+              dispatch(bulkUpdateClient({ router, payload }));
 
               // small jitter
               await new Promise((res) =>
@@ -493,7 +487,6 @@ export default function BulkUpdateClient() {
         }
       }
 
-      // ---------- enqueue handler-only batches if no column updates ----------
       if (columnsWithValues.length === 0 && hasHandlerChanges) {
         for (let i = 0; i < selectedClientIds.length; i += BATCH_SIZE) {
           const batchClientIds = selectedClientIds.slice(i, i + BATCH_SIZE);
@@ -523,7 +516,7 @@ export default function BulkUpdateClient() {
                 created_by_admin: !!isAdmin,
               };
 
-              await dispatch(bulkUpdateClient({ router, payload }));
+              dispatch(bulkUpdateClient({ router, payload }));
               await new Promise((res) =>
                 setTimeout(res, 50 + Math.floor(Math.random() * 50))
               );
@@ -538,10 +531,8 @@ export default function BulkUpdateClient() {
         return;
       }
 
-      // ---------- run all batches concurrently (bounded by CONCURRENCY) ----------
       await Promise.all(tasks);
 
-      // ---------- after all batches succeeded, create one aggregated log entry ----------
       const affectedArray = Array.from(aggregatedAffected.entries()).map(
         ([, /* client_id */ info]) => ({
           client_name: info.client_name ?? "",
@@ -603,7 +594,7 @@ export default function BulkUpdateClient() {
           <div className="form-section">
             {/* Handler Fields */}
 
-            {/* {canManageHandler ? (
+            {canManageHandler ? (
               <Fragment>
                 <div className="input-group" style={{ width: "98%" }}>
                   <label>Add Handlers</label>
@@ -653,14 +644,14 @@ export default function BulkUpdateClient() {
                   )}
                 </div>
               </Fragment>
-            ) : null} */}
+            ) : null}
 
             {/* Regular columns */}
             {visibleColumns.map((column) => (
               <div
                 key={column.column_id}
                 className="input-group"
-                style={{ width: `${column.width - 4}%` }}
+                style={{ "--col-width": `${column.width}%` }}
               >
                 <label>{column.label}</label>
                 {renderClientInputField(formData, column, setFormData)}

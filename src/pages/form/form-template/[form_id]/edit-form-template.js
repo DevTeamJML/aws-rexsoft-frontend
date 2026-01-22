@@ -578,7 +578,6 @@ export default function NewFormTemplatePage({ params }) {
         </button>
       </div>
 
-      {/* Drawer (kept same as your original) */}
       {showDrawer && (
         <>
           <div className="drawer-overlay" onClick={handleCloseDrawer} />

@@ -52,12 +52,6 @@ export default function PublishedGraph() {
     { value: "all", label: "All time" },
   ];
 
-  //   const getRange = (graphId) => dateRanges[graphId] || "1m";
-
-  /* ======================
-     Initial load
-  ====================== */
-
   useEffect(() => {
     if (!publishedGraphs.length) return;
 
@@ -87,9 +81,6 @@ export default function PublishedGraph() {
     );
   }, [currCompanyId]);
 
-  /* ======================
-     Load more
-  ====================== */
   const handleLoadMore = () => {
     if (!currCompanyId) return;
 
@@ -123,9 +114,6 @@ export default function PublishedGraph() {
       })
     );
   };
-  /* ======================
-     Render
-  ====================== */
 
   return (
     <div className="published-graph-container">

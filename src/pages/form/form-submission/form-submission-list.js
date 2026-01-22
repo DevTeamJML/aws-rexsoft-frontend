@@ -67,7 +67,6 @@ export default function FormSubmissionListPage() {
       <div className="title-container flex justify-between items-center">
         <h1> {`Your Submitted Forms (${statusFilter})`}</h1>
 
-        {/* -------- STATUS FILTER TABS WITH COUNTS -------- */}
         <div className="form-filter-actions">
           <ActionButton
             label={`Pending (${userFormSubmissionsCount?.pending_count ?? 0})`}
@@ -101,7 +100,6 @@ export default function FormSubmissionListPage() {
         </div>
       </div>
 
-      {/* ------------------ TABLE ------------------ */}
       <ReusableTable
         tableId="form_approval_list"
         data={tableData}

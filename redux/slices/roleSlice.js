@@ -132,7 +132,6 @@ export const {
   deleteRoleSuccess,
 } = roleSlice.actions;
 
-// Selectors as hooks (same pattern as your graph slice)
 export const useSelectAllRoles = () => useSelector((state) => state.role.list);
 export const useSelectRoleListLoading = () =>
   useSelector((state) => state.role.listLoading);

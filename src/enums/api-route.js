@@ -8,6 +8,9 @@ export const ApiRoute = {
     deleteAppointment: "/appointment/deleteAppointment",
     searchClientListInAppointment: "/appointment/searchClientListInAppointment",
   },
+  dashboard: {
+    getDashboard: "/dashboard/getDashboard",
+  },
   user: {
     getUserDetailsById: "/user/getUserDetailsById",
   },

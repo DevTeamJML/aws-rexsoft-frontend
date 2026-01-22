@@ -5,14 +5,10 @@ import { updateFormSubmissionApproval, updateFormSubmissionApprovalSuccess } fro
 import { ApiRoute } from "@/enums/api-route";
 import { API } from "@/service/api";
 
-/* =====================================================================
-    APPROVE / REJECT
-===================================================================== */
 function* updateFormSubmissionApprovalSaga({ payload }) {
   try {
     const { data, router } = payload;
 
-    // call your backend approval route
     yield call(API.post, ApiRoute.formApproval.updateFormSubmissionApproval, data);
 
     yield put(updateFormSubmissionApprovalSuccess());

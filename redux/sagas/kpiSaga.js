@@ -24,9 +24,6 @@ import { ApiRoute } from "@/enums/api-route";
 import { call, delay, put, takeLatest } from "redux-saga/effects";
 import { hideToast, showToast } from "../slices/toastSlice";
 
-/* =======================
-   Save KPI
-======================= */
 function* saveKpiSaga({ payload }) {
   const { router, ...otherPayload } = payload;
 
@@ -52,9 +49,6 @@ function* saveKpiSaga({ payload }) {
   }
 }
 
-/* =======================
-   Get KPIs By Source
-======================= */
 function* getKpisBySourceSaga({ payload }) {
   try {
     const res = yield call(API.get, ApiRoute.kpi.getKpisBySource, {
@@ -73,9 +67,6 @@ function* getKpisBySourceSaga({ payload }) {
   }
 }
 
-/* =======================
-   Delete KPI
-======================= */
 function* deleteKpiSaga({ payload }) {
   try {
     yield call(API.post, ApiRoute.kpi.deleteKpi, payload);
@@ -100,9 +91,6 @@ function* deleteKpiSaga({ payload }) {
   }
 }
 
-/* =======================
-   Get KPI By ID
-======================= */
 function* getKpiByIdSaga({ payload }) {
   try {
     const res = yield call(API.get, ApiRoute.kpi.getKpiById, {
@@ -119,9 +107,6 @@ function* getKpiByIdSaga({ payload }) {
   }
 }
 
-/* =======================
-   Get Published KPIs
-======================= */
 function* getPublishedKpiSaga({ payload }) {
   try {
     yield put(
@@ -155,9 +140,6 @@ function* getPublishedKpiSaga({ payload }) {
   }
 }
 
-/* =======================
-   Get Published KPI By ID
-======================= */
 function* getPublishedKpiByIdSaga({ payload }) {
   try {
     const res = yield call(API.get, ApiRoute.kpi.getPublishedKpiById, {
@@ -176,9 +158,6 @@ function* getPublishedKpiByIdSaga({ payload }) {
   }
 }
 
-/* =======================
-   Root KPI Saga
-======================= */
 export function* kpiSaga() {
   yield takeLatest(saveKpi.type, saveKpiSaga);
   yield takeLatest(getKpisBySource.type, getKpisBySourceSaga);

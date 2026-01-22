@@ -18,6 +18,7 @@ import formTemplateReducer from "./slices/formTemplateSlice";
 import formSubmissionReducer from "./slices/formSubmissionSlice";
 import formApprovalReducer from "./slices/formApprovalSlice";
 import kpiReducer from "./slices/kpiSlice";
+import dashboardReducer from "./slices/dashboardSlice";
 
 const rootReducer = combineReducers({
     toast : toastReducer,
@@ -38,7 +39,8 @@ const rootReducer = combineReducers({
     formTemplate : formTemplateReducer,
     formSubmission : formSubmissionReducer,
     formApproval : formApprovalReducer,
-    kpi : kpiReducer
+    kpi : kpiReducer,
+    dashboard : dashboardReducer
   });
   
   export default rootReducer;

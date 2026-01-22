@@ -22,10 +22,6 @@ export default function KpiMetricBuilder({ kpi, onChange }) {
   const allClientGroups = useSelectAllClientGroups();
   const allFormTemplates = useSelectAllFormTemplates();
 
-  /* =========================
-     SOURCE OPTIONS
-  ========================= */
-
   const sourceOptions = useMemo(() => {
     return data_source_type === "form"
       ? allFormTemplates.map((f) => ({
@@ -41,11 +37,6 @@ export default function KpiMetricBuilder({ kpi, onChange }) {
   }, [data_source_type, allClientGroups, allFormTemplates]);
 
   const selectedSource = sourceOptions.find((s) => s.id === data_source_id);
-
-  /* =========================
-     METRIC VALUE OPTIONS
-     (NUMBER ONLY)
-  ========================= */
 
   const metricValueOptions = useMemo(() => {
     if (!selectedSource) return [];
@@ -77,7 +68,6 @@ export default function KpiMetricBuilder({ kpi, onChange }) {
     <div className="section">
       <h4>Metric Definition</h4>
 
-      {/* ================= SOURCE TYPE ================= */}
       <div className="settings-tabs">
         <button
           className={`tab ${data_source_type === "group" ? "active" : ""}`}
@@ -102,7 +92,6 @@ export default function KpiMetricBuilder({ kpi, onChange }) {
         </button>
       </div>
 
-      {/* ================= SOURCE SELECT ================= */}
       <DropdownField
         label="Source"
         dropdownList={sourceOptions.map((s) => ({
@@ -116,7 +105,6 @@ export default function KpiMetricBuilder({ kpi, onChange }) {
         }}
       />
 
-      {/* ================= METRIC VALUE ================= */}
       <DropdownField
         label="Metric Value"
         dropdownList={metricValueOptions.map((m) => ({
@@ -128,7 +116,6 @@ export default function KpiMetricBuilder({ kpi, onChange }) {
         disabled={!data_source_id}
       />
 
-      {/* ================= MEASUREMENT ================= */}
       <div className="row">
         <DropdownField
           label={"Measurement Rule"}
@@ -147,7 +134,6 @@ export default function KpiMetricBuilder({ kpi, onChange }) {
         />
       </div>
 
-      {/* ================= TARGET ================= */}
       <div className="row">
         <PlainTextField
           label={"Target Value"}
@@ -168,7 +154,6 @@ export default function KpiMetricBuilder({ kpi, onChange }) {
         />
       </div>
 
-      {/* ================= TEAM CONTRIBUTION ================= */}
       <div className="row">
         <label className="checkbox">
           <input

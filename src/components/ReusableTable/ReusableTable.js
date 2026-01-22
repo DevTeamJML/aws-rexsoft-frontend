@@ -93,10 +93,6 @@ const ReusableTable = ({
 
   const selectedCount = selectedRows.size;
 
-  /** ------------------------------------------
-   * ACTION BUTTON RESOLUTION (NEW + OLD SUPPORT)
-   * ------------------------------------------ */
-
   const resolvedActionButtons = useMemo(() => {
     // If caller explicitly passes array → override legacy system
     if (Array.isArray(actionButtons)) {
@@ -112,10 +108,6 @@ const ReusableTable = ({
 
     return buttons;
   }, [actionButtons, actionable, editableAction, deletableAction]);
-
-  /** ------------------------------------------
-   * COLUMN BUILDING (UNCHANGED UI STRUCTURE)
-   * ------------------------------------------ */
 
   const getColumnWidth = (columnId) => {
     // Checkbox column is always small
@@ -173,9 +165,6 @@ const ReusableTable = ({
     resolvedActionButtons,
   ]);
 
-  /** ------------------------------------------
-   * COLUMN SORTING (kept exactly as before)
-   * ------------------------------------------ */
 
   const sortedAllColumns = useMemo(() => {
     const cols = Array.isArray(allColumns) ? allColumns : [];
@@ -224,10 +213,6 @@ const ReusableTable = ({
 
     return cols;
   }, [sortedAllColumns, columnVisibility, isAdmin]);
-
-  /** ------------------------------------------
-   * SELECTION HANDLING (UI fully preserved)
-   * ------------------------------------------ */
 
   const handleSelectAll = () => {
     let newSet;
@@ -281,10 +266,6 @@ const ReusableTable = ({
       />
     );
   };
-
-  /** ------------------------------------------
-   * ACTION BUTTONS (NEW SYSTEM)
-   * ------------------------------------------ */
 
   const renderActionIcons = (row) => {
     if (!enableActions || resolvedActionButtons.length === 0) return null;
@@ -349,10 +330,6 @@ const ReusableTable = ({
     );
   };
 
-  /** ------------------------------------------
-   * SORTING LOGIC
-   * ------------------------------------------ */
-
   const handleSort = (column) => {
     if (!sortable) return;
 
@@ -372,10 +349,6 @@ const ReusableTable = ({
 
     return currentSortConfig.order === "asc" ? <FaSortUp /> : <FaSortDown />;
   };
-
-  /** ------------------------------------------
-   * ROW STYLE (alert coloring preserved)
-   * ------------------------------------------ */
 
   const getRowStyle = useMemo(() => {
     return (row) => {
@@ -413,10 +386,6 @@ const ReusableTable = ({
       return { backgroundColor: match?.fillColor || "#fff" };
     };
   }, [dynamicColumns]);
-
-  /** ------------------------------------------
-   * CELL RENDERING (kept original)
-   * ------------------------------------------ */
 
   const formatDate = (d) =>
     !d ? "-" : moment(d).format("DD/MM/YYYY HH:mm:ss");
@@ -538,9 +507,6 @@ const ReusableTable = ({
         return value ?? "-";
     }
   };
-  /** ------------------------------------------
-   * MAIN RENDER SECTION
-   * ------------------------------------------ */
 
   if (loading) {
     return <div className="table-loading">Loading...</div>;
@@ -623,9 +589,7 @@ const ReusableTable = ({
           </div>
         )}
 
-        {/* ------------------- TABLE ------------------- */}
         <div className="table-scroll-container">
-          {/* HEADER */}
           <div className="table-header-wrapper">
             <table className="reusable-table">
               <thead>
@@ -726,7 +690,6 @@ const ReusableTable = ({
         </div>
       </div>
 
-      {/* ------------------- PAGINATION ------------------- */}
       {pagination && totalPages > 1 && (
         <div className="table-pagination">
           <div className="pagination-info"></div>

@@ -12,6 +12,7 @@
   border: solid 1px #e0e0e0;
   font-size: variables.$font-s;
   height: 20px;
+  width: -webkit-fill-available;
 }
 
 .disabled-text-box {

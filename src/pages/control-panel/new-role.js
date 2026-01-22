@@ -23,10 +23,6 @@ import { useSelectAllCompanyUsers } from "../../../redux/slices/companySlice";
 import { defaultPermissions, PERMISSION_DEFINITIONS } from "@/constants/permissions";
 import { expandPermissions, flattenPermissions } from "@/utils/format";
 
-/* -------------------------
-   Helper functions
-   -------------------------*/
-
 function formatTitle(key) {
   return key
     .split("_") // split snake_case → ["control", "panel"]
@@ -43,9 +39,6 @@ function usePrevious(value) {
   return ref.current;
 }
 
-/* -------------------------
-   Component
-   -------------------------*/
 
 export default function NewRoleWithMembers({ onCreate }) {
   const dispatch = useDispatch();
@@ -174,8 +167,6 @@ export default function NewRoleWithMembers({ onCreate }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [creating, updating, roleError, prevCreating, prevUpdating]);
 
-  /* ---------- helpers ---------- */
-
   const validate = () => {
     const e = {};
     if (!roleName.trim()) e.roleName = "Role name is required";
@@ -274,7 +265,6 @@ export default function NewRoleWithMembers({ onCreate }) {
     setModalOpen(false);
   };
 
-  /* ---------- submit ---------- */
   const handleCreateRole = (ev) => {
     // no form submit auto behavior — this is explicit action only
     ev?.preventDefault?.();
@@ -331,8 +321,6 @@ export default function NewRoleWithMembers({ onCreate }) {
       })}
     </div>
   );
-
-  /* ---------- Render ---------- */
 
   return (
     <div className="new-role-container">

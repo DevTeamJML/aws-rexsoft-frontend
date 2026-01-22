@@ -11,9 +11,6 @@
     justify-content: flex-end;
   }
 
-  /* =========================
-     TITLE
-  ========================= */
   .title-container {
     margin-bottom: 20px;
 
@@ -27,9 +24,6 @@
     }
   }
 
-  /* =========================
-     TABS
-  ========================= */
   .tabs {
     display: flex;
     gap: 10px;
@@ -51,9 +45,6 @@
     }
   }
 
-  /* =========================
-     KPI CONTENT
-  ========================= */
   .kpi-form-container {
     background: white;
     border: 1px solid #e0e0e0;
@@ -181,9 +172,6 @@
     }
   }
 
-  /* =========================
-     GROUP SETTINGS (GRAPH-LIKE)
-  ========================= */
   .graph-content {
     width: 100%;
     display: flex;

@@ -27,9 +27,6 @@ import { ApiRoute } from "@/enums/api-route";
 import { call, delay, put, takeLatest } from "redux-saga/effects";
 import { hideToast, showToast } from "../slices/toastSlice";
 
-/* =======================
-   Generate Graph Data
-======================= */
 function* generateGraphDataSaga({ payload }) {
   try {
     const res = yield call(API.get, ApiRoute.graph.generateGraphData, {
@@ -48,9 +45,6 @@ function* generateGraphDataSaga({ payload }) {
   }
 }
 
-/* =======================
-   Save Graph
-======================= */
 function* saveGraphSaga({ payload }) {
   const { router, ...otherPayload } = payload;
   try {
@@ -78,9 +72,6 @@ function* saveGraphSaga({ payload }) {
   }
 }
 
-/* =======================
-   Get Graphs By Source
-======================= */
 function* getGraphsBySourceSaga({ payload }) {
   try {
     const res = yield call(API.get, ApiRoute.graph.getGraphsBySource, {
@@ -100,9 +91,6 @@ function* getGraphsBySourceSaga({ payload }) {
   }
 }
 
-/* =======================
-   Delete Graph
-======================= */
 function* deleteGraphSaga({ payload }) {
   try {
     yield call(API.post, ApiRoute.graph.deleteGraph, payload);
@@ -214,9 +202,6 @@ function* getPublishedGraphByIdSaga({ payload }) {
   }
 }
 
-/* =======================
-   Root Graph Saga
-======================= */
 export function* graphSaga() {
   yield takeLatest(generateGraphData.type, generateGraphDataSaga);
   yield takeLatest(saveGraph.type, saveGraphSaga);

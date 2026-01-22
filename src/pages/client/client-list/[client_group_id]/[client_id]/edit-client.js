@@ -37,6 +37,7 @@ import {
   getClientLogs,
   useSelectClientLogs,
 } from "../../../../../../redux/slices/logSlice";
+import { getAuth, updateProfile } from "firebase/auth";
 
 export default function EditClientPage() {
   const dispatch = useDispatch();
@@ -73,7 +74,7 @@ export default function EditClientPage() {
         showToast({
           message: "No serial number available for this client",
           status: "error",
-        })
+        }),
       );
       return;
     }
@@ -103,7 +104,7 @@ export default function EditClientPage() {
 
     const userRef = ref(
       db,
-      `UserColumnSorting/${user?.uid}/${currSelectedGroupId}`
+      `UserColumnSorting/${user?.uid}/${currSelectedGroupId}`,
     );
     const unsubUser = onValue(userRef, (snap) => {
       const val = snap.val();
@@ -199,7 +200,6 @@ export default function EditClientPage() {
       dispatch(getClientDataByClientId({ columns: clientColumns, client_id }));
     }
   }, [client_id, clientColumns]);
-
   useEffect(() => {
     const handlerList =
       allCompanyUsers.map((list) => {
@@ -236,6 +236,7 @@ export default function EditClientPage() {
 
     setFormData(initialData);
   }, [clientData]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormErrors({});
@@ -249,22 +250,22 @@ export default function EditClientPage() {
 
     const buildCustomPayloads = (columnsArr, form) => {
       const existing = columnsArr.filter((col) =>
-        rawColumnIds.includes(col.column_id)
+        rawColumnIds.includes(col.column_id),
       );
       const missing = columnsArr.filter(
-        (col) => !rawColumnIds.includes(col.column_id)
+        (col) => !rawColumnIds.includes(col.column_id),
       );
       const custom_values = generateCustomValues(
         existing,
         form,
         client_id,
-        currSelectedGroupId
+        currSelectedGroupId,
       );
       const missing_custom_values = generateCustomValues(
         missing,
         form,
         client_id,
-        currSelectedGroupId
+        currSelectedGroupId,
       );
       return { existing, missing, custom_values, missing_custom_values };
     };
@@ -307,7 +308,6 @@ export default function EditClientPage() {
       };
     };
 
-    // --- Validation (non-admin only) ---
     if (!isAdmin) {
       const errors = {};
 
@@ -342,7 +342,7 @@ export default function EditClientPage() {
               dispatch,
               currSelectedGroupId,
               col.column_id,
-              value
+              value,
             );
             if (!ok) {
               errors[col.column_id] = `${col.label} error`;
@@ -363,7 +363,6 @@ export default function EditClientPage() {
       }
     } // end non-admin validation
 
-    // --- Build custom values & handler list (common path) ---
     const {
       custom_values,
       missing_custom_values,
@@ -373,7 +372,6 @@ export default function EditClientPage() {
 
     const handlerList = getHandlerListFromForm(formData);
 
-    // --- Compute changes (diff) against existing raw values ---
     // Build prevMap from clientData.raw
     const prevMap = {};
     (clientData.raw || []).forEach((r) => {
@@ -425,17 +423,18 @@ export default function EditClientPage() {
       Array.isArray(clientData.handler) && clientData.handler.length > 0
         ? clientData.handler.map((h) => h.label ?? h.value)
         : typeof clientData.handler_name === "string" &&
-          clientData.handler_name.length
-        ? clientData.handler_name.split(",").map((s) => s.trim())
-        : [];
+            clientData.handler_name.length
+          ? clientData.handler_name.split(",").map((s) => s.trim())
+          : [];
 
-    const handlerLookup = (clientData.handler || []).reduce((acc, h) => {
-      acc[h.value] = h.label;
+    const handlerLookup = handler.reduce((acc, h) => {
+      acc[h.value] = h.name;
       return acc;
     }, {});
 
+
     const newHandlers = handlerList.map(
-      (h) => handlerLookup[h.user_id] ?? h.user_id
+      (h) => handlerLookup[h.user_id] ?? h.user_id,
     );
 
     const handlersChanged =
@@ -453,11 +452,11 @@ export default function EditClientPage() {
     // retrieve clientName fallback logic
     let clientName = "";
     const clientNameColumn = clientColumns.find(
-      (c) => c.label === "Client Name"
+      (c) => c.label === "Client Name",
     );
     if (clientNameColumn) {
       const rawItem = (clientData.raw || []).find(
-        (r) => r.column_id === clientNameColumn.column_id
+        (r) => r.column_id === clientNameColumn.column_id,
       );
       if (rawItem) {
         try {
@@ -533,7 +532,11 @@ export default function EditClientPage() {
           </div>
 
           <div>
-            <ActionButton type="primary" label={"Show Logs"} onClick={handleShowLogs} />
+            <ActionButton
+              type="primary"
+              label={"Show Logs"}
+              onClick={handleShowLogs}
+            />
 
             {/* <button
               type="button"
@@ -558,7 +561,7 @@ export default function EditClientPage() {
               <div
                 key={column.column_id}
                 className="input-group"
-                style={{ width: `${column.width - 4}%` }}
+                style={{ "--col-width": `${column.width}%` }}
               >
                 <label>
                   {column.label}

@@ -447,7 +447,6 @@
       }
     }
 
-    /* --- New: Bulk update metadata styles --- */
     .modalFieldsTouched {
       margin-top: 8px;
       h4 {
@@ -546,14 +545,5 @@
     display: flex;
     justify-content: flex-end;
   }
-  @media (max-width: 760px) {
-    .cardsWrap {
-      grid-template-columns: 1fr; // single column on small screens
-    }
-
-    .logModal {
-      width: calc(100% - 32px);
-      padding: 12px;
-    }
-  }
+  
 }

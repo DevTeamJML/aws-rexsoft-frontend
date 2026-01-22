@@ -25,14 +25,8 @@ export default function UpdateKpiGroup() {
   const kpiGroupData = useSelectCurrKpi();
   const { kpi_group_id } = router.query;
 
-  /* =========================
-     UI TABS
-  ========================= */
   const [activeTab, setActiveTab] = useState("kpi");
 
-  /* =========================
-     KPI GROUP (maps to KpiGroup)
-  ========================= */
   const [kpiGroup, setKpiGroup] = useState({
     kpi_group_id: v4(),
     created_by: user?.uid,
@@ -46,9 +40,6 @@ export default function UpdateKpiGroup() {
     series: [],
   });
 
-  /* =========================
-     KPIs (maps to Kpi + KpiUser)
-  ========================= */
   const [kpis, setKpis] = useState([
     {
       kpi_id: v4(),
@@ -81,9 +72,6 @@ export default function UpdateKpiGroup() {
   useEffect(() => {
     if (!kpiGroupData) return;
 
-    /* =====================
-     GROUP
-  ===================== */
     setKpiGroup({
       kpi_group_id: kpiGroupData.group.kpi_group_id,
       created_by: kpiGroupData.group.created_by,
@@ -92,9 +80,6 @@ export default function UpdateKpiGroup() {
       status: kpiGroupData.group.status,
     });
 
-    /* =====================
-     KPIs
-  ===================== */
     setKpis(
       kpiGroupData.kpis.map((kpi) => ({
         ...kpi,
@@ -102,9 +87,6 @@ export default function UpdateKpiGroup() {
       }))
     );
 
-    /* =====================
-     GROUP VISUALIZATION (DERIVED)
-  ===================== */
     setVisualization({
       x_axis: "member",
       series: kpiGroupData.kpis.map((kpi, index) => ({
@@ -142,9 +124,6 @@ export default function UpdateKpiGroup() {
     });
   }, [kpis]);
 
-  /* =========================
-     MEMBER RULE (important)
-  ========================= */
   const updateMembers = (kpiIndex, members) => {
     setKpis((prev) => {
       const next = [...prev];
@@ -159,16 +138,12 @@ export default function UpdateKpiGroup() {
     });
   };
 
-  /* =========================
-     SAVE HANDLER
-  ========================= */
   const handleSaveKpiGroup = () => {
     dispatch(saveKpi({ group: kpiGroup, visualization, kpis, router }));
   };
 
   return (
     <div className="new-kpi-container">
-      {/* ================= HEADER ================= */}
       <div className="title-container">
         <PlainTextField
           value={kpiGroup.kpi_group_name}
@@ -182,10 +157,8 @@ export default function UpdateKpiGroup() {
         />
       </div>
 
-      {/* ================= TABS ================= */}
       <KpiTabs active={activeTab} onChange={setActiveTab} />
 
-      {/* ================= CONTENT ================= */}
       {activeTab === "kpi" && (
         <KpiForm kpis={kpis} setKpis={setKpis} updateMembers={updateMembers} />
       )}
@@ -198,7 +171,6 @@ export default function UpdateKpiGroup() {
         />
       )}
 
-      {/* ================= ACTIONS ================= */}
       <div className="page-actions">
         <ActionButton
           type="primary"

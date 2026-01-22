@@ -80,12 +80,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   }, []);
 
   const menuItems = [
-    // {
-    //   id: "dashboard",
-    //   label: "Dashboard",
-    //   icon: <FaThLarge size={20} />,
-    //   path: "/dashboard",
-    // },
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: <FaThLarge size={20} />,
+      path: "/dashboard",
+    },
     {
       id: "kpi",
       label: "KPI",
@@ -281,7 +281,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       )}
 
       <div className={`sidebar-container ${isCollapsed ? "collapsed" : ""}`}>
-        {/* --- TOP --- */}
         <div
           className={`sidebar-top-section ${
             !isCollapsed ? "top-section-justify-end" : ""
@@ -351,7 +350,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           </div>
         </div>
 
-        {/* --- MENU --- */}
         <div className="sidebar-bottom-section">
           <div className="mid-section">
             {menu.map((menu) => {
@@ -385,7 +383,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
             })}
           </div>
 
-          {/* --- LOGOUT --- */}
           <div className="bottom-section">
             <div className="sidebar-section menu-item" onClick={handleSignOut}>
               <div className="menu-item-content">
@@ -399,7 +396,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         </div>
       </div>
 
-      {/* --- SUBMENU --- */}
       {showSubmenu && activeMenu && (
         <div className="submenu-sidebar">
           <div className="submenu-header">
