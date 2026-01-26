@@ -73,6 +73,7 @@ import "@/styles/FormComponents/search-dropdown-field.scss";
 import "@/styles/FormComponents/upload-image-field.scss";
 import "@/styles/FormComponents/switch.scss";
 import "@/styles/FormComponents/input-color.scss";
+import "@/styles/FormComponents/rich-text-field.scss";
 
 import { useRouter } from "next/router";
 import { ToastProvider } from "@/components/Misc/Toast";

@@ -1,5 +1,5 @@
 // components/ReusableTable/ReusableTable.jsx
-import React, { useState, useMemo, useEffect, Fragment } from "react";
+import React, { useState, useMemo, useEffect, Fragment, useRef } from "react";
 import { useDispatch } from "react-redux";
 import {
   FaSort,
@@ -87,6 +87,44 @@ const ReusableTable = ({
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [isAllSelected, setIsAllSelected] = useState(false);
 
+  const headerRef = useRef(null);
+
+  const rowMeasureRef = useRef(null);
+  const [rowHeight, setRowHeight] = useState(38);
+
+  const BUFFER = 5;
+
+  const [scrollTop, setScrollTop] = useState(0);
+
+  const onScroll = (e) => {
+    const { scrollTop, scrollLeft } = e.currentTarget;
+    setScrollTop(scrollTop);
+
+    if (headerRef.current) {
+      headerRef.current.scrollLeft = scrollLeft;
+    }
+  };
+
+  const visibleRange = useMemo(() => {
+    const viewportHeight = 400; // same as CSS height
+    const startIndex = Math.max(0, Math.floor(scrollTop / rowHeight) - BUFFER);
+    const endIndex = Math.min(
+      data.length,
+      Math.ceil((scrollTop + viewportHeight) / rowHeight) + BUFFER,
+    );
+
+    return { startIndex, endIndex };
+  }, [scrollTop, data.length]);
+
+  useEffect(() => {
+    if (rowMeasureRef.current) {
+      const h = rowMeasureRef.current.getBoundingClientRect().height;
+      if (h && h !== rowHeight) {
+        setRowHeight(h);
+      }
+    }
+  }, [data, visibleRange.startIndex]);
+
   const currentSortConfig = sortConfig || {};
   const effectiveTotalItems =
     typeof totalItems === "number" && totalItems > 0 ? totalItems : data.length;
@@ -124,7 +162,7 @@ const ReusableTable = ({
 
   const allColumns = useMemo(() => {
     const filteredDynamic = dynamicColumns.filter(
-      (c) => c.field_type !== "alert"
+      (c) => c.field_type !== "alert",
     );
 
     const base = [...fixedColumns, ...filteredDynamic];
@@ -164,7 +202,6 @@ const ReusableTable = ({
     enableActions,
     resolvedActionButtons,
   ]);
-
 
   const sortedAllColumns = useMemo(() => {
     const cols = Array.isArray(allColumns) ? allColumns : [];
@@ -357,7 +394,7 @@ const ReusableTable = ({
 
       const rawData = row.raw || [];
       const alertRaw = rawData.find(
-        (d) => d.column_id === alertColumn.column_id
+        (d) => d.column_id === alertColumn.column_id,
       );
 
       let alertValue;
@@ -366,7 +403,7 @@ const ReusableTable = ({
       } catch {
         alertValue = null;
       }
-      
+
       const isDone =
         alertValue === undefined ||
         alertValue === null ||
@@ -378,7 +415,7 @@ const ReusableTable = ({
       const diff = date.isValid() ? date.diff(moment(), "days") : Infinity;
 
       const sortedOptions = [...(alertColumn.options || [])].sort(
-        (a, b) => a.value - b.value
+        (a, b) => a.value - b.value,
       );
 
       const match = sortedOptions.find((o) => diff <= o.value);
@@ -407,7 +444,7 @@ const ReusableTable = ({
 
       if (column.column_id) {
         const raw = row.raw?.find(
-          (x) => x.column_id === column.column_id
+          (x) => x.column_id === column.column_id,
         )?.row_value;
         if (raw !== undefined && raw !== null) return raw;
       }
@@ -432,6 +469,14 @@ const ReusableTable = ({
       case "date":
         return formatDate(value);
 
+      case "rich_text":
+        return <div>
+          Preview
+        </div>;
+
+      case "link":
+        return (<a href={`${value}`} target={"_blank"}>{value}</a>);
+
       case "handler":
         return row.handler_name || "-";
 
@@ -449,7 +494,7 @@ const ReusableTable = ({
                 const label = item?.label ?? item;
 
                 const found = opts.find(
-                  (o) => o.value === val || o.name === val
+                  (o) => o.value === val || o.name === val,
                 );
 
                 const style = {
@@ -590,7 +635,7 @@ const ReusableTable = ({
         )}
 
         <div className="table-scroll-container">
-          <div className="table-header-wrapper">
+          <div className="table-header-wrapper" ref={headerRef}>
             <table className="reusable-table">
               <thead>
                 <tr>
@@ -643,9 +688,51 @@ const ReusableTable = ({
           </div>
 
           {/* BODY */}
-          <div className="table-body-wrapper">
+          <div className="table-body-wrapper" onScroll={onScroll}>
             <table className="reusable-table">
               <tbody>
+                <tr style={{ height: visibleRange.startIndex * rowHeight }} />
+
+                {data
+                  .slice(visibleRange.startIndex, visibleRange.endIndex)
+                  .map((row, i) => {
+                    const rowIndex = visibleRange.startIndex + i;
+                    const style = getRowStyle(row);
+
+                    return (
+                      <tr
+                        ref={i === 0 ? rowMeasureRef : null}
+                        key={row.id || rowIndex}
+                        className={`${selectable ? "selectable-row" : ""} ${
+                          selectedRows.has(row.id) ? "selected-row" : ""
+                        }`}
+                        style={style}
+                        onClick={() => onRowClick?.(row)}
+                      >
+                        {visibleSortedColumns.map((col) => (
+                          <td
+                            key={col.id}
+                            className={`table-cell ${
+                              col.fixed ? "fixed-column" : ""
+                            }`}
+                            style={{ width: getColumnWidth(col.id) }}
+                            data-fixed={col.fixedPosition}
+                          >
+                            {renderCellContent(row, col)}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+
+                <tr
+                  style={{
+                    height: (data.length - visibleRange.endIndex) * rowHeight,
+                  }}
+                />
+              </tbody>
+
+              {/* <tbody>
                 {data.length === 0 ? (
                   <tr>
                     <td
@@ -684,7 +771,7 @@ const ReusableTable = ({
                     );
                   })
                 )}
-              </tbody>
+              </tbody> */}
             </table>
           </div>
         </div>
@@ -748,4 +835,4 @@ const ReusableTable = ({
   );
 };
 
-export default ReusableTable;
+export default React.memo(ReusableTable);

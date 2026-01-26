@@ -4,7 +4,7 @@ const initialState = {
   allClients: [],
   clientPagination: {
     pageIndex: 0,
-    pageSize: 100,
+    pageSize: 250,
     currentPage: 1,
     totalPages: 0,
   },

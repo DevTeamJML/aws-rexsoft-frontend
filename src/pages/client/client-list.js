@@ -108,7 +108,7 @@ const ClientList = () => {
 
     const widthRef = ref(
       db,
-      `ClientColumnWidths/${user?.uid}/${currSelectedGroupId}`
+      `ClientColumnWidths/${user?.uid}/${currSelectedGroupId}`,
     );
     const unsubWidth = onValue(widthRef, (snap) => {
       const val = snap.val() || {};
@@ -117,7 +117,7 @@ const ClientList = () => {
 
     const userRef = ref(
       db,
-      `UserColumnSorting/${user?.uid}/${currSelectedGroupId}`
+      `UserColumnSorting/${user?.uid}/${currSelectedGroupId}`,
     );
     const unsubUser = onValue(userRef, (snap) => {
       const val = snap.val() || [];
@@ -133,7 +133,7 @@ const ClientList = () => {
 
     const viewRef = ref(
       db,
-      `ViewableClientColumn//${user?.uid}/${currSelectedGroupId}`
+      `ViewableClientColumn//${user?.uid}/${currSelectedGroupId}`,
     );
     const unsubView = onValue(viewRef, (snap) => {
       const arr = snap.val() || [];
@@ -163,29 +163,29 @@ const ClientList = () => {
         isAdmin,
         isArchivedPage,
         hasPermission: canManageHandler,
-      })
+      }),
     );
   }, [currSelectedGroup, isArchivedPage]);
 
-  useEffect(() => {
-    if (currSelectedGroup === null) return;
-    if (searchText === "" && fixedColumns.length > 0) {
-      dispatch(
-        getAllClients({
-          ...currSelectedGroup,
-          sortConfig,
-          pagination,
-          filters: filters,
-          fixedColumns,
-          searchText: searchText,
-          user_id: user?.uid,
-          isAdmin,
-          isArchivedPage,
-          hasPermission: canManageHandler,
-        })
-      );
-    }
-  }, [searchText]);
+  // useEffect(() => {
+  //   if (currSelectedGroup === null) return;
+  //   if (searchText === "" && fixedColumns.length > 0) {
+  //     dispatch(
+  //       getAllClients({
+  //         ...currSelectedGroup,
+  //         sortConfig,
+  //         pagination,
+  //         filters: filters,
+  //         fixedColumns,
+  //         searchText: searchText,
+  //         user_id: user?.uid,
+  //         isAdmin,
+  //         isArchivedPage,
+  //         hasPermission: canManageHandler,
+  //       })
+  //     );
+  //   }
+  // }, [searchText]);
 
   useEffect(() => {
     if (currCompanyId) {
@@ -196,7 +196,7 @@ const ClientList = () => {
   useEffect(() => {
     if (allGroupNames.length > 0) {
       const storedSelectedClientGroupId = getFromLocalStorage(
-        process.env.CURR_SELECTED_GROUP_ID
+        process.env.CURR_SELECTED_GROUP_ID,
       );
 
       const targetGroupId =
@@ -222,24 +222,26 @@ const ClientList = () => {
     });
   }, [currSelectedGroup]);
 
-  const handleAction = (action, row) => {
-    if (action === "edit") {
-      router.push(
-        `/client/client-list/${currSelectedGroupId}/${row.id}/edit-client`
-      );
-    }
+  const handleAction = useCallback(
+    (action, row) => {
+      if (action === "edit") {
+        router.push(
+          `/client/client-list/${currSelectedGroupId}/${row.id}/edit-client`,
+        );
+      }
 
-    if (action === "delete") {
-      dispatch(setShowModal(true));
-      setModalType("delete");
-      setTargetClientId(row.id);
-    }
-  };
+      if (action === "delete") {
+        dispatch(setShowModal(true));
+        setModalType("delete");
+        setTargetClientId(row.id);
+      }
+    },
+    [router, currSelectedGroupId, dispatch],
+  );
 
-  const handleSelectionChange = (selectedIds) => {
-    setRowSelectedIds(selectedIds);
-    // console.log("Selected clients:", selectedIds);
-  };
+  const handleSelectionChange = useCallback((ids) => {
+    setRowSelectedIds(ids);
+  }, []);
 
   const handlePageChange = (newPage) => {
     dispatch(
@@ -254,7 +256,7 @@ const ClientList = () => {
         isAdmin,
         isArchivedPage,
         hasPermission: canManageHandler,
-      })
+      }),
     );
   };
 
@@ -290,20 +292,20 @@ const ClientList = () => {
         isAdmin,
         isArchivedPage,
         hasPermission: canManageHandler,
-      })
+      }),
     );
   };
 
   const handleOnChangeGroup = (groupId) => {
     const selectedGroup = allGroupNames.find(
-      (g) => g.client_group_id === groupId
+      (g) => g.client_group_id === groupId,
     );
     if (selectedGroup) {
       dispatch(
         handleOnChangeClientGroup({
           client_group_id: groupId,
           targetGroup: selectedGroup,
-        })
+        }),
       );
     }
   };
@@ -315,14 +317,14 @@ const ClientList = () => {
           deleteClient({
             client_id: targetClientId,
             client_group_id: currSelectedGroupId,
-          })
+          }),
         );
       } else {
         dispatch(
           archiveClient({
             client_id: targetClientId,
             client_group_id: currSelectedGroupId,
-          })
+          }),
         );
       }
     }
@@ -334,7 +336,7 @@ const ClientList = () => {
         showToast({
           message: "At least 2 client must be selected for bulk update !",
           status: "error",
-        })
+        }),
       );
       return;
     } else {
@@ -367,7 +369,7 @@ const ClientList = () => {
             isArchivedPage,
             hasPermission: canManageHandler,
           },
-        })
+        }),
       );
     } else {
       dispatch(
@@ -385,7 +387,7 @@ const ClientList = () => {
             isArchivedPage,
             hasPermission: canManageHandler,
           },
-        })
+        }),
       );
     }
 
@@ -405,7 +407,7 @@ const ClientList = () => {
         isAdmin,
         isArchivedPage,
         hasPermission: canManageHandler,
-      })
+      }),
     );
   };
 
@@ -422,7 +424,7 @@ const ClientList = () => {
         isAdmin,
         isArchivedPage,
         hasPermission: canManageHandler,
-      })
+      }),
     );
   };
 
@@ -437,14 +439,14 @@ const ClientList = () => {
     if (user?.uid && currSelectedGroupId) {
       await set(
         ref(db, `UserColumnSorting/${user?.uid}/${currSelectedGroupId}`),
-        newOrder
+        newOrder,
       );
     }
     dispatch(
       showToast({
         message: "Save column position successfully !",
         status: "success",
-      })
+      }),
     );
 
     setTimeout(() => {
@@ -470,7 +472,7 @@ const ClientList = () => {
           isArchivedPage,
           hasPermission: canManageHandler,
         },
-      })
+      }),
     );
   };
 
@@ -483,7 +485,7 @@ const ClientList = () => {
         console.error("Error saving widths:", err);
       }
     }, 2000),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -572,7 +574,7 @@ const ClientList = () => {
               type="primary"
               onClick={() =>
                 router.push(
-                  `/client/client-list/${currSelectedGroupId}/import-client`
+                  `/client/client-list/${currSelectedGroupId}/import-client`,
                 )
               }
             />
@@ -584,7 +586,7 @@ const ClientList = () => {
               type="primary"
               onClick={() =>
                 router.push(
-                  `/client/client-list/${currSelectedGroupId}/new-client`
+                  `/client/client-list/${currSelectedGroupId}/new-client`,
                 )
               }
             />

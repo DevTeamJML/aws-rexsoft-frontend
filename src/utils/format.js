@@ -91,3 +91,12 @@ export function expandPermissions(keysArr, defaultPermissions) {
   }
   return next;
 }
+
+
+export const decodeHTML = (html) => {
+  if (typeof html !== "string") return "";
+
+  const textarea = document.createElement("textarea");
+  textarea.innerHTML = html;
+  return textarea.value;
+};

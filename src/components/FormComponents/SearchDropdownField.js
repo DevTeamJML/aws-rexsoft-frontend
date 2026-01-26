@@ -34,7 +34,7 @@ export const SearchDropdownField = ({
           setShowList(true);
         }}
         onFocus={() => {
-          setSearchText("");        // show ALL results on focus
+          setSearchText("");    
           setShowList(true);
         }}
         onBlur={() => setTimeout(() => setShowList(false), 200)}

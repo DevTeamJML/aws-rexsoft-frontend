@@ -54,10 +54,13 @@ export default function NewClientGroupPage({ params }) {
     { label: "Short Text", value: "short_text" },
     { label: "Date", value: "date" },
     { label: "Multiline", value: "multiline" },
-    // { label: "Rich Text", value: "rich_text" },
     { label: "Dropdown", value: "dropdown" },
-    { label: "Alert", value: "alert" },
+    { label: "Countdown", value: "alert" },
     { label: "Number", value: "number" },
+    { label: "Rich Text", value: "rich_text" },
+    { label: "Multiple Choice", value: "choice" },
+    { label: "Checkbox", value: "checkbox" },
+    { label: "Link", value: "link" },
   ];
 
   const permissions = [

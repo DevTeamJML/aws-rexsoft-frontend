@@ -1,5 +1,15 @@
 @use "../_variables.scss";
 
+.backdrop {
+  display: flex;
+  position: absolute;
+  z-index: 100;
+  background-color: #333;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+}
+
 .new-client-group-container {
   width: 80%;
   margin: 2rem auto;
@@ -118,7 +128,7 @@
             position: absolute;
             right: -2%;
             top: 50%;
-            z-index: 300;
+            z-index: 50;
             transform: translateY(-50%);
             background: white;
             border: 2px solid #f03e3e;
@@ -165,7 +175,7 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+    z-index: 100;
   }
 
   .drawer {

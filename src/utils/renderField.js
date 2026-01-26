@@ -5,6 +5,8 @@ import MultiSelectDropdownField from "@/components/FormComponents/MultiSelectDro
 import { PlainTextField } from "@/components/FormComponents/PlainTextField";
 import { SearchDropdownField } from "@/components/FormComponents/SearchDropdownField";
 import { safeParseJSON } from "./validation";
+import { RichTextField } from "@/components/FormComponents/RichTextField";
+import { decodeHTML } from "./format";
 
 const handleInputChange = (columnId, value, setFormData, isMulti = false) => {
   setFormData((prev) => {
@@ -49,7 +51,7 @@ export const renderClientInputField = (
   formData,
   column,
   setFormData,
-  extraProps = {}
+  extraProps = {},
 ) => {
   const { disabled = false, error = null } = extraProps;
 
@@ -77,10 +79,11 @@ export const renderClientInputField = (
       );
 
     case "rich_text":
+      // const decodedValue = decodeHTML(commonProps.value);
       return (
-        <MultilineField
+        <RichTextField
           {...commonProps}
-          rows={6}
+          // value={decodedValue}
           placeholder={`Enter ${column.label}...`}
         />
       );
