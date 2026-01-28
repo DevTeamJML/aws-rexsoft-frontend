@@ -56,6 +56,7 @@ import { onValue, ref, set } from "firebase/database";
 import { db } from "@/config/firebaseConfig";
 import { debounce } from "lodash";
 import ExportModal from "@/components/Misc/ExportModal";
+import RtePreviewModal from "@/components/Misc/RtePreviewModal";
 
 const ClientList = () => {
   const dispatch = useDispatch();
@@ -81,6 +82,7 @@ const ClientList = () => {
   const [sortConfig, setSortConfig] = useState({});
   const [isArchivedPage, setIsArchivedPage] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [rtePreviewContent, setRtePreviewContent] = useState("");
 
   const fixedColumns = getColumnsForPage("client-list");
   const userPermissions = useSelectUserPermissions();
@@ -546,6 +548,13 @@ const ClientList = () => {
           dispatch(setShowModal(false));
         }}
       />
+      <RtePreviewModal
+        open={(rtePreviewContent !== "" && rtePreviewContent !== undefined) ? true : false}
+        content={rtePreviewContent}
+        onCancel={() => {
+          setRtePreviewContent("");
+        }}
+      />
       <div className="title-container">
         <h1>{isArchivedPage ? "Archived List" : "Client List"}</h1>
         <div className="title-actions">
@@ -682,6 +691,8 @@ const ClientList = () => {
         setColumnWidths={setColumnWidths}
         canManageHandler={canManageHandler}
         isAdmin={isAdmin}
+        rtePreviewContent={rtePreviewContent}
+        setRtePreviewContent={setRtePreviewContent}
       />
     </div>
   );

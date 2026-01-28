@@ -16,6 +16,7 @@ import "@/styles/Misc/export-modal.scss";
 import "@/styles/Misc/client-logs-drawer.scss";
 import "@/styles/Misc/reset-password-modal.scss";
 import "@/styles/Misc/appointment-drawer.scss";
+import "@/styles/Misc/rte-preview-modal.scss";
 
 // Form
 import "@/styles/Form/new-form-template.scss";
@@ -65,7 +66,7 @@ import "@/styles/FormComponents/multi-entry-field.scss";
 import "@/styles/FormComponents/text-field.scss";
 import "@/styles/FormComponents/link-field.scss";
 import "@/styles/FormComponents/multiline-field.scss";
-import "@/styles/FormComponents/checkbox-field.scss";
+import "@/styles/FormComponents/multiple-checkbox-field.scss";
 import "@/styles/FormComponents/multi-select-dropdown-field.scss";
 import "@/styles/FormComponents/min-max-field.scss";
 import "@/styles/FormComponents/date-range-field.scss";
@@ -74,6 +75,7 @@ import "@/styles/FormComponents/upload-image-field.scss";
 import "@/styles/FormComponents/switch.scss";
 import "@/styles/FormComponents/input-color.scss";
 import "@/styles/FormComponents/rich-text-field.scss";
+import "@/styles/FormComponents/multiple-choice-field.scss";
 
 import { useRouter } from "next/router";
 import { ToastProvider } from "@/components/Misc/Toast";

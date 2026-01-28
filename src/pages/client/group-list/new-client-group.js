@@ -129,7 +129,12 @@ export default function NewClientGroupPage({ params }) {
   }, [selectedColumnId]);
 
   useEffect(() => {
-    if (newField.field_type === "dropdown" || newField.field_type === "alert") {
+    if (
+      newField.field_type === "dropdown" ||
+      newField.field_type === "choice" ||
+      newField.field_type === "checkbox" ||
+      newField.field_type === "alert"
+    ) {
       setNewField((prev) => ({
         ...prev,
         options: [
@@ -423,7 +428,9 @@ export default function NewClientGroupPage({ params }) {
               </div>
 
               {/* Options Section for Dropdown */}
-              {newField.field_type === "dropdown" && (
+              {(newField.field_type === "dropdown" ||
+                newField.field_type === "choice" ||
+                newField.field_type === "checkbox") && (
                 <>
                   <div className="divider"></div>
                   <div className="form-section">
@@ -441,7 +448,7 @@ export default function NewClientGroupPage({ params }) {
                                   (opt) =>
                                     opt.option_id === option.option_id
                                       ? { ...opt, color: value }
-                                      : opt
+                                      : opt,
                                 );
                                 setNewField((prev) => ({
                                   ...prev,
@@ -457,7 +464,7 @@ export default function NewClientGroupPage({ params }) {
                                   (opt) =>
                                     opt.option_id === option.option_id
                                       ? { ...opt, fillColor: value }
-                                      : opt
+                                      : opt,
                                 );
                                 setNewField((prev) => ({
                                   ...prev,
@@ -474,7 +481,7 @@ export default function NewClientGroupPage({ params }) {
                                   (opt) =>
                                     opt.option_id === option.option_id
                                       ? { ...opt, value: value }
-                                      : opt
+                                      : opt,
                                 );
                                 setNewField((prev) => ({
                                   ...prev,
@@ -525,7 +532,7 @@ export default function NewClientGroupPage({ params }) {
                                   (opt) =>
                                     opt.option_id === option.option_id
                                       ? { ...opt, fillColor: value }
-                                      : opt
+                                      : opt,
                                 );
                                 setNewField((prev) => ({
                                   ...prev,
@@ -542,7 +549,7 @@ export default function NewClientGroupPage({ params }) {
                                   (opt) =>
                                     opt.option_id === option.option_id
                                       ? { ...opt, value: value }
-                                      : opt
+                                      : opt,
                                 );
                                 setNewField((prev) => ({
                                   ...prev,
@@ -558,7 +565,7 @@ export default function NewClientGroupPage({ params }) {
                                   (opt) =>
                                     opt.option_id === option.option_id
                                       ? { ...opt, unit: value }
-                                      : opt
+                                      : opt,
                                 );
                                 setNewField((prev) => ({
                                   ...prev,

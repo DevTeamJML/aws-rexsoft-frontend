@@ -72,6 +72,9 @@ const ReusableTable = ({
   columnWidths = {},
   setColumnWidths = () => {},
 
+  rtePreviewContent = "",
+  setRtePreviewContent = () => {},
+
   /** Admin override */
   isAdmin = false,
 }) => {
@@ -91,10 +94,12 @@ const ReusableTable = ({
 
   const rowMeasureRef = useRef(null);
   const [rowHeight, setRowHeight] = useState(38);
+  const [scrollTop, setScrollTop] = useState(0);
 
   const BUFFER = 5;
-
-  const [scrollTop, setScrollTop] = useState(0);
+  const currentSortConfig = sortConfig || {};
+  const effectiveTotalItems =
+    typeof totalItems === "number" && totalItems > 0 ? totalItems : data.length;
 
   const onScroll = (e) => {
     const { scrollTop, scrollLeft } = e.currentTarget;
@@ -124,12 +129,6 @@ const ReusableTable = ({
       }
     }
   }, [data, visibleRange.startIndex]);
-
-  const currentSortConfig = sortConfig || {};
-  const effectiveTotalItems =
-    typeof totalItems === "number" && totalItems > 0 ? totalItems : data.length;
-
-  const selectedCount = selectedRows.size;
 
   const resolvedActionButtons = useMemo(() => {
     // If caller explicitly passes array → override legacy system
@@ -437,7 +436,7 @@ const ReusableTable = ({
     return `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
   };
 
-  const renderCellContent = (row, column) => {
+  const renderCellContent = (row, column, setRtePreviewContent) => {
     const getCellValue = () => {
       if (column.field_type === "checkbox" || column.field_type === "action")
         return null;
@@ -470,12 +469,32 @@ const ReusableTable = ({
         return formatDate(value);
 
       case "rich_text":
-        return <div>
-          Preview
-        </div>;
+        const style = {
+          backgroundColor: "#eef2ff",
+          color: "#3730a3",
+          cursor: "pointer",
+        };
+
+        if (!value) return <span>No data</span>;
+        return (
+          <div
+            className="dropdown-chip-group"
+            onClick={() => {
+              setRtePreviewContent(value);
+            }}
+          >
+            <span className="dropdown-chip" style={style}>
+              Preview
+            </span>
+          </div>
+        );
 
       case "link":
-        return (<a href={`${value}`} target={"_blank"}>{value}</a>);
+        return (
+          <a href={`${value}`} target={"_blank"}>
+            {value}
+          </a>
+        );
 
       case "handler":
         return row.handler_name || "-";
@@ -718,7 +737,7 @@ const ReusableTable = ({
                             style={{ width: getColumnWidth(col.id) }}
                             data-fixed={col.fixedPosition}
                           >
-                            {renderCellContent(row, col)}
+                            {renderCellContent(row, col, setRtePreviewContent)}
                           </td>
                         ))}
                       </tr>
@@ -731,47 +750,6 @@ const ReusableTable = ({
                   }}
                 />
               </tbody>
-
-              {/* <tbody>
-                {data.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={visibleSortedColumns.length}
-                      className="empty-message"
-                    >
-                      {emptyMessage}
-                    </td>
-                  </tr>
-                ) : (
-                  data.map((row, rowIndex) => {
-                    const style = getRowStyle(row);
-
-                    return (
-                      <tr
-                        key={row.id || rowIndex}
-                        className={`${selectable ? "selectable-row" : ""} ${
-                          selectedRows.has(row.id) ? "selected-row" : ""
-                        }`}
-                        style={style}
-                        onClick={() => onRowClick?.(row)}
-                      >
-                        {visibleSortedColumns.map((col) => (
-                          <td
-                            key={col.id}
-                            className={`table-cell ${
-                              col.fixed ? "fixed-column" : ""
-                            }`}
-                            data-fixed={col.fixedPosition}
-                            style={{ width: `${getColumnWidth(col.id)}px` }}
-                          >
-                            {renderCellContent(row, col)}
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody> */}
             </table>
           </div>
         </div>

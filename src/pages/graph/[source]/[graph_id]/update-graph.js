@@ -112,7 +112,7 @@ export default function NewGraphClient() {
     setVisualSettings(currGraph.visualSettings || visualSettings);
 
     const group = allGroups.find(
-      (g) => g.client_group_id === currGraph.source_id
+      (g) => g.client_group_id === currGraph.source_id,
     );
     setSelectedGroup(group || null);
   }, [currGraph, allGroups]);
@@ -148,11 +148,21 @@ export default function NewGraphClient() {
 
   const normalizedColumns = useMemo(() => {
     if (!selectedGroup?.columns) return [];
-    return selectedGroup.columns.map((c) => ({
-      id: c.column_id,
-      label: c.label,
-      field_type: c.field_type,
-    }));
+    return [
+      {
+        is_system: 0,
+        id: "handler",
+        label: "Handler",
+        field_type: "handler",
+        userList: memberOptions,
+      },
+      ...selectedGroup.columns.map((c) => ({
+        is_system: c.is_system,
+        id: c.column_id,
+        label: c.label,
+        field_type: c.field_type,
+      })),
+    ];
   }, [selectedGroup]);
 
   const dateColumns = useMemo(() => {
@@ -272,7 +282,7 @@ export default function NewGraphClient() {
         series: graphSettings.series.id ? graphSettings.series : null,
         dateFilter: graphSettings.dateFilter,
         sort: graphSettings.sort,
-      })
+      }),
     );
   };
 
@@ -440,6 +450,7 @@ export default function NewGraphClient() {
 
                     {!hasSeries && (
                       <Line
+                        type="monotone"
                         dataKey="y"
                         stroke={visualSettings.single.color}
                         strokeWidth={visualSettings.single.strokeWidth}
@@ -449,6 +460,7 @@ export default function NewGraphClient() {
                     {hasSeries &&
                       seriesKeys.map((k, idx) => (
                         <Line
+                          type="monotone"
                           key={k}
                           dataKey={k}
                           name={visualSettings.series[k]?.label || k}
@@ -499,12 +511,18 @@ export default function NewGraphClient() {
                     <Legend wrapperStyle={{ fontSize: 11 }} />
 
                     {!hasSeries && (
-                      <Area dataKey="y" fill="#4F46E5" fillOpacity={0.3} />
+                      <Area
+                        type="monotone"
+                        dataKey="y"
+                        fill="#4F46E5"
+                        fillOpacity={0.3}
+                      />
                     )}
 
                     {hasSeries &&
                       seriesKeys.map((k, idx) => (
                         <Area
+                          type="monotone"
                           key={k}
                           dataKey={k}
                           name={visualSettings.series[k]?.label || k}
@@ -532,7 +550,7 @@ export default function NewGraphClient() {
               value={graphSettings.meta.selectedClientGroup}
               onChange={(e) => {
                 const group = allGroups.find(
-                  (g) => g.client_group_id === e.target.value
+                  (g) => g.client_group_id === e.target.value,
                 );
                 setSelectedGroup(group || null);
                 setGraphSettings((p) => ({
@@ -563,7 +581,7 @@ export default function NewGraphClient() {
                 value={graphSettings.xAxis.id}
                 onChange={(e) => {
                   const opt = normalizedColumns.find(
-                    (o) => o.id === e.target.value
+                    (o) => o.id === e.target.value,
                   );
                   setGraphSettings((p) => ({
                     ...p,
@@ -582,12 +600,12 @@ export default function NewGraphClient() {
             </div>
 
             <div className="setting-group">
-              <label>Y Axis (Numeric)</label>
+              <label>Y Axis (Count)</label>
               <select
                 value={graphSettings.yAxis.id}
                 onChange={(e) => {
                   const opt = normalizedColumns.find(
-                    (o) => o.id === e.target.value
+                    (o) => o.id === e.target.value,
                   );
                   setGraphSettings((p) => ({
                     ...p,
@@ -598,7 +616,7 @@ export default function NewGraphClient() {
               >
                 <option value="">Select Y Axis</option>
                 {normalizedColumns
-                  .filter((c) => c.field_type === "number")
+                  .filter((c) => c.field_type !== "handler")
                   .map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.label}
@@ -613,7 +631,7 @@ export default function NewGraphClient() {
                 value={graphSettings.series.id}
                 onChange={(e) => {
                   const opt = normalizedColumns.find(
-                    (o) => o.id === e.target.value
+                    (o) => o.id === e.target.value,
                   );
                   setGraphSettings((p) => ({
                     ...p,
@@ -624,7 +642,12 @@ export default function NewGraphClient() {
               >
                 <option value="">None</option>
                 {normalizedColumns
-                  .filter((c) => c.field_type !== "number")
+                  .filter(
+                    (c) =>
+                      c.field_type !== "number" &&
+                      c.is_system !== 1 &&
+                      c.field_type !== "date",
+                  )
                   .map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.label}
@@ -829,7 +852,7 @@ export default function NewGraphClient() {
                   setGraphSettings((p) => ({
                     ...p,
                     viewableMembers: p.viewableMembers.filter(
-                      (id) => id !== userId
+                      (id) => id !== userId,
                     ),
                   }))
                 }

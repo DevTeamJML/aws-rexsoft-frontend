@@ -7,21 +7,40 @@ import { SearchDropdownField } from "@/components/FormComponents/SearchDropdownF
 import { safeParseJSON } from "./validation";
 import { RichTextField } from "@/components/FormComponents/RichTextField";
 import { decodeHTML } from "./format";
+import { MultipleCheckBoxField } from "@/components/FormComponents/MultipleCheckboxField";
+import { MultipleChoiceField } from "@/components/FormComponents/MultipleChoiceField";
 
-const handleInputChange = (columnId, value, setFormData, isMulti = false) => {
+const handleInputChange = (
+  columnId,
+  value,
+  setFormData,
+  isMulti = false,
+  field,
+) => {
   setFormData((prev) => {
-    if (!isMulti) {
+    if (isMulti) {
       return {
         ...prev,
-        [columnId]: value,
+        [columnId]: prev[columnId].includes(value)
+          ? prev[columnId].filter((o) => o.value !== value)
+          : [...prev[columnId], value],
+      };
+    }
+
+    if (field === "checkbox") {
+      const curr = prev[columnId] || [];
+
+      return {
+        ...prev,
+        [columnId]: curr.includes(value)
+          ? curr.filter((v) => v !== value)
+          : [...curr, value],
       };
     }
 
     return {
       ...prev,
-      [columnId]: prev[columnId].includes(value)
-        ? prev[columnId].filter((o) => o.value !== value)
-        : [...prev[columnId], value],
+      [columnId]: value,
     };
   });
 };
@@ -34,7 +53,7 @@ const handleRemoveDropdownValue = (columnId, value, setFormData) => {
 };
 
 // Parse dropdown options from string to array
-const parseDropdownOptions = (optionsString) => {
+const parseOptions = (optionsString) => {
   try {
     const options = optionsString;
     return options.map((option) => ({
@@ -61,7 +80,13 @@ export const renderClientInputField = (
   const commonProps = {
     value: formData[column.column_id] ?? (isMulti ? [] : ""),
     onChange: (value) =>
-      handleInputChange(column.column_id, value, setFormData, isMulti),
+      handleInputChange(
+        column.column_id,
+        value,
+        setFormData,
+        isMulti,
+        column.field_type,
+      ),
     required: !!column.is_required,
     placeholder: `Enter ${column.label.toLowerCase()}`,
     disabled,
@@ -136,8 +161,31 @@ export const renderClientInputField = (
       );
     }
 
+    case "choice": {
+      const choiceOptions = parseOptions(column.options);
+
+      return (
+        <MultipleChoiceField
+          {...commonProps}
+          options={choiceOptions}
+          selected={formData[column.column_id] || []}
+        />
+      );
+    }
+
+    case "checkbox": {
+      const checkboxOptions = parseOptions(column.options);
+      return (
+        <MultipleCheckBoxField
+          {...commonProps}
+          options={checkboxOptions}
+          selected={formData[column.column_id] || []}
+        />
+      );
+    }
+
     case "dropdown": {
-      const dropdownOptions = parseDropdownOptions(column.options);
+      const dropdownOptions = parseOptions(column.options);
 
       if (column.multi_select_dropdown) {
         return (
@@ -163,7 +211,7 @@ export const renderClientInputField = (
     }
 
     case "handler": {
-      const handlerOptions = parseDropdownOptions(column.options);
+      const handlerOptions = parseOptions(column.options);
       return (
         <MultiSelectDropdownField
           {...commonProps}

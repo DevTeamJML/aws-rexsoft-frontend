@@ -208,7 +208,7 @@ export default function EditClientGroupPage({ params }) {
   }, [selectedColumnId]);
 
   useEffect(() => {
-    if (newField.field_type === "dropdown" || newField.field_type === "alert") {
+    if (newField.field_type === "dropdown" || newField.field_type === "alert" || newField.field_type === "choice" || newField.field_type === "checkbox") {
       setNewField((prev) => ({
         ...prev,
         options: prev.options || [
@@ -509,7 +509,9 @@ export default function EditClientGroupPage({ params }) {
                 </div>
 
                 {/* Options Section for Dropdown */}
-                {newField.field_type === "dropdown" && (
+                {(newField.field_type === "dropdown" || newField.field_type === "choice" 
+                  || newField.field_type === "checkbox"
+                ) && (
                   <>
                     <div className="divider"></div>
                     <div className="form-section">

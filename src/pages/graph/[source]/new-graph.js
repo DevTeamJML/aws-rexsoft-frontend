@@ -98,23 +98,38 @@ export default function NewGraph() {
     if (!selectedSourceEntity?.raw) return [];
 
     if (isFormSource) {
-      return (
-        selectedSourceEntity.raw.questions?.map((q) => ({
+      return [
+        {
+          is_system: 0,
+          id: "handler",
+          label: "Handler",
+          field_type: "handler",
+          userList: memberOptions,
+        },
+        ...(selectedSourceEntity.raw.questions?.map((q) => ({
           id: q.form_question_id,
           label: q.label,
           field_type: q.field_type,
           options: q.options,
-        })) || []
-      );
+        })) || []),
+      ];
     }
 
-    return (
-      selectedSourceEntity.raw.columns?.map((c) => ({
+    return [
+      {
+        is_system: 0,
+        id: "handler",
+        label: "Handler",
+        field_type: "handler",
+        userList: memberOptions,
+      },
+      ...(selectedSourceEntity.raw.columns?.map((c) => ({
+        is_system: c.is_system,
         id: c.column_id,
         label: c.label,
         field_type: c.field_type,
-      })) || []
-    );
+      })) || []),
+    ];
   }, [selectedSourceEntity, isFormSource]);
 
   const dateColumns = useMemo(() => {
@@ -254,7 +269,7 @@ export default function NewGraph() {
 
         dateFilter: graphSettings.dateFilter,
         sort: graphSettings.sort,
-      })
+      }),
     );
   };
 
@@ -316,7 +331,6 @@ export default function NewGraph() {
       {/* GRAPH HEADER */}
       <div className="graph-header">
         <div className="graph-actions">
-
           <div className="publish-toggle">
             <button
               className={`action-btn ${
@@ -422,6 +436,7 @@ export default function NewGraph() {
 
                     {!hasSeries && (
                       <Line
+                        type="monotone"
                         dataKey="y"
                         stroke={visualSettings.single.color}
                         strokeWidth={visualSettings.single.strokeWidth}
@@ -431,6 +446,7 @@ export default function NewGraph() {
                     {hasSeries &&
                       seriesKeys.map((k, idx) => (
                         <Line
+                          type="monotone"
                           key={k}
                           dataKey={k}
                           name={visualSettings.series[k]?.label || k}
@@ -481,12 +497,18 @@ export default function NewGraph() {
                     <Legend wrapperStyle={{ fontSize: 11 }} />
 
                     {!hasSeries && (
-                      <Area dataKey="y" fill="#4F46E5" fillOpacity={0.3} />
+                      <Area
+                        type="monotone"
+                        dataKey="y"
+                        fill="#4F46E5"
+                        fillOpacity={0.3}
+                      />
                     )}
 
                     {hasSeries &&
                       seriesKeys.map((k, idx) => (
                         <Area
+                          type="monotone"
                           key={k}
                           dataKey={k}
                           name={visualSettings.series[k]?.label || k}
@@ -514,7 +536,7 @@ export default function NewGraph() {
               value={graphSettings.meta.selectedClientGroup}
               onChange={(e) => {
                 const entity = sourceOptions.find(
-                  (s) => s.id === e.target.value
+                  (s) => s.id === e.target.value,
                 );
 
                 setSelectedSourceEntity(entity || null);
@@ -553,7 +575,7 @@ export default function NewGraph() {
                 value={graphSettings.xAxis.id}
                 onChange={(e) => {
                   const opt = normalizedColumns.find(
-                    (o) => o.id === e.target.value
+                    (o) => o.id === e.target.value,
                   );
                   setGraphSettings((p) => ({
                     ...p,
@@ -572,12 +594,12 @@ export default function NewGraph() {
             </div>
 
             <div className="setting-group">
-              <label>Y Axis (Numeric)</label>
+              <label>Y Axis (Count)</label>
               <select
                 value={graphSettings.yAxis.id}
                 onChange={(e) => {
                   const opt = normalizedColumns.find(
-                    (o) => o.id === e.target.value
+                    (o) => o.id === e.target.value,
                   );
                   setGraphSettings((p) => ({
                     ...p,
@@ -588,7 +610,7 @@ export default function NewGraph() {
               >
                 <option value="">Select Y Axis</option>
                 {normalizedColumns
-                  .filter((c) => c.field_type === "number")
+                  .filter((c) => c.field_type !== "handler")
                   .map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.label}
@@ -603,7 +625,7 @@ export default function NewGraph() {
                 value={graphSettings.series.id}
                 onChange={(e) => {
                   const opt = normalizedColumns.find(
-                    (o) => o.id === e.target.value
+                    (o) => o.id === e.target.value,
                   );
                   setGraphSettings((p) => ({
                     ...p,
@@ -614,7 +636,12 @@ export default function NewGraph() {
               >
                 <option value="">None</option>
                 {normalizedColumns
-                  .filter((c) => c.field_type !== "number")
+                  .filter(
+                    (c) =>
+                      c.field_type !== "number" &&
+                      c.is_system !== 1 &&
+                      c.field_type !== "date",
+                  )
                   .map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.label}
@@ -819,7 +846,7 @@ export default function NewGraph() {
                   setGraphSettings((p) => ({
                     ...p,
                     viewableMembers: p.viewableMembers.filter(
-                      (id) => id !== userId
+                      (id) => id !== userId,
                     ),
                   }))
                 }

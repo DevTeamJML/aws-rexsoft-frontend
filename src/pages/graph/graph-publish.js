@@ -77,7 +77,7 @@ export default function PublishedGraph() {
         offset: 0,
         isAdmin: isAdmin,
         user_id: user?.uid,
-      })
+      }),
     );
   }, [currCompanyId]);
 
@@ -95,7 +95,7 @@ export default function PublishedGraph() {
         offset: nextOffset,
         isAdmin: isAdmin,
         user_id: user?.uid,
-      })
+      }),
     );
     setIsLoading(false);
   };
@@ -111,7 +111,7 @@ export default function PublishedGraph() {
         graph_id: graph_id,
         company_id: currCompanyId,
         dateRange: range,
-      })
+      }),
     );
   };
 
@@ -147,7 +147,28 @@ export default function PublishedGraph() {
                   <XAxis dataKey="x" />
                   <YAxis />
                   <Tooltip />
-                  <Line dataKey="y" stroke="#4F46E5" />
+                  {g.series ? (
+                    Object.keys(g.visualSettings?.series || {}).map((key) => (
+                      <Line
+                        key={key}
+                        type="monotone"
+                        dataKey={key}
+                        stroke={
+                          g.visualSettings.series[key]?.color || "#4F46E5"
+                        }
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    ))
+                  ) : (
+                    <Line
+                      type="monotone"
+                      dataKey="y"
+                      stroke={g.visualSettings?.single?.color || "#4F46E5"}
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  )}
                 </LineChart>
               )}
 
@@ -157,7 +178,20 @@ export default function PublishedGraph() {
                   <XAxis dataKey="x" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="y" fill="#4F46E5" />
+                  {g.series ? (
+                    Object.keys(g.visualSettings?.series || {}).map((key) => (
+                      <Bar
+                        key={key}
+                        dataKey={key}
+                        fill={g.visualSettings.series[key]?.color || "#4F46E5"}
+                      />
+                    ))
+                  ) : (
+                    <Bar
+                      dataKey="y"
+                      fill={g.visualSettings?.single?.color || "#4F46E5"}
+                    />
+                  )}
                 </BarChart>
               )}
 
@@ -167,7 +201,30 @@ export default function PublishedGraph() {
                   <XAxis dataKey="x" />
                   <YAxis />
                   <Tooltip />
-                  <Area dataKey="y" fill="#4F46E5" fillOpacity={0.3} />
+                  {g.series ? (
+                    Object.keys(g.visualSettings?.series || {}).map((key) => (
+                      <Area
+                        key={key}
+                        type="monotone"
+                        dataKey={key}
+                        stroke={
+                          g.visualSettings.series[key]?.color || "#4F46E5"
+                        }
+                        fill={g.visualSettings.series[key]?.color || "#4F46E5"}
+                        fillOpacity={
+                          g.visualSettings.series[key]?.fillOpacity ?? 0.3
+                        }
+                      />
+                    ))
+                  ) : (
+                    <Area
+                      type="monotone"
+                      dataKey="y"
+                      stroke={g.visualSettings?.single?.color || "#4F46E5"}
+                      fill={g.visualSettings?.single?.color || "#4F46E5"}
+                      fillOpacity={g.visualSettings?.single?.fillOpacity ?? 0.3}
+                    />
+                  )}
                 </AreaChart>
               )}
             </ResponsiveContainer>

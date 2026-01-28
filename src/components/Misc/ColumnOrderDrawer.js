@@ -72,7 +72,6 @@ export default function ColumnOrderDrawer({
     if (isEditMode) return;
 
     setColumnVisibility((prev) => {
-      console.log(prev);
       if (prev) {
         if (prev.includes(columnId)) {
           return prev.filter((id) => id !== columnId);

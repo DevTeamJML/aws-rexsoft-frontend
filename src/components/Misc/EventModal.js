@@ -43,7 +43,7 @@ const EventModal = ({
   const time = moment(selectedEvent.time, "HH:mm:ss").format("HH:mm");
 
   return (
-    <div className="event-modal-overlay modal-overlay">
+    <div className="event-modal-overlay">
       <div className="modal-content">
         <div className="event-title">
           <p className="">{selectedEvent.event_name}</p>
