@@ -178,9 +178,7 @@ export function ClientLogsDrawer({ open, onClose, loading, logs }) {
       </div>
 
       <div className="drawerContent">
-        {loading ? (
-          <div>Loading…</div>
-        ) : logs.length === 0 ? (
+        {logs.length === 0 ? (
           <div>No logs found</div>
         ) : (
           logs.map(renderLogRow)
