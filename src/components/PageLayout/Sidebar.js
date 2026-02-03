@@ -81,12 +81,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   }, []);
 
   const menuItems = [
-    {
-      id: "dashboard",
-      label: "Dashboard",
-      icon: <FaThLarge size={20} />,
-      path: "/dashboard",
-    },
+    // {
+    //   id: "dashboard",
+    //   label: "Dashboard",
+    //   icon: <FaThLarge size={20} />,
+    //   path: "/dashboard",
+    // },
     // {
     //   id: "conversation",
     //   label: "Conversation",
