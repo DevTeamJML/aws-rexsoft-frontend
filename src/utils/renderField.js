@@ -226,7 +226,7 @@ export const renderClientInputField = (
     }
 
     case "date":
-      return <DateField {...commonProps} disabled={disabled} />;
+      return <DateField {...commonProps} disabled={disabled} type="datetime-local" />;
 
     case "number":
       return (

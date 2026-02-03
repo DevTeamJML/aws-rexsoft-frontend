@@ -393,15 +393,40 @@ export default function EditClientPage() {
 
     // existingColumns contains column meta objects (those that existed in schema)
     existingColumns.forEach((col) => {
-      const colId = col.column_id;
-      let newRaw = formData[colId];
-      let newVal = newRaw;
-
-      if (col.field_type === "alert") {
-        newVal = newRaw || {};
+      if (col.field_type === "rich_text" || col.field_type === "alert") {
+        return;
       }
 
-      const oldVal = prevMap[colId] ?? "";
+      const colId = col.column_id;
+      let newVal = formData[colId];
+      let oldVal = prevMap[colId] ?? "";
+
+      if (col.field_type === "checkbox") {
+        // ---------- Normalize OLD ----------
+        if (typeof oldVal === "string") {
+          oldVal = oldVal.replace(/[\[\]"]/g, "").trim();
+        }
+
+        if (Array.isArray(oldVal)) {
+          oldVal = oldVal.join(",");
+        }
+
+        // ---------- Normalize NEW ----------
+        // Case 1: real array → join
+        if (Array.isArray(newVal)) {
+          newVal = newVal.join(", ");
+        }
+
+        // Case 2: string that LOOKS like ["a","b"]
+        if (typeof newVal === "string" && newVal.trim().startsWith("[")) {
+          newVal = newVal
+            .replace(/[\[\]"]/g, "") // remove [ ] and quotes
+            .trim();
+        }
+
+        oldVal = oldVal ?? "";
+        newVal = newVal ?? "";
+      }
 
       const equal =
         typeof oldVal === "object" || typeof newVal === "object"
@@ -431,7 +456,6 @@ export default function EditClientPage() {
       acc[h.value] = h.name;
       return acc;
     }, {});
-
 
     const newHandlers = handlerList.map(
       (h) => handlerLookup[h.user_id] ?? h.user_id,

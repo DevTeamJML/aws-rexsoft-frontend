@@ -1,0 +1,728 @@
+// import React, { useContext, useState, useEffect } from "react";
+// import Img from "./img/img.png";
+// import Attach from "./img/attach.png";
+// import { userAuthContext } from "../context/UserAuthContext";
+// import { db, storage } from "../firebaseInit";
+// import { v4 as uuid, v4 } from "uuid";
+// import { getDownloadURL, uploadBytesResumable, ref as ref_storage  } from "firebase/storage";
+// import { useUserAuth } from "../context/UserAuthContext";
+// import { ChatContext } from "../context/UserChatContext";
+// import { set, child, push, ref, update, get } from "firebase/database";
+// // import messaging from '../firebaseInit'
+// import API from "../constants/API";
+// import ApiClient from "../util/ApiClient";
+// import SendNotification from "../components/Notifications/SendNotification";
+// import C_Button from "../components/C_Button";
+// import { FiSend } from "react-icons/fi";
+// import { setInputData } from "../redux/actions/chat.actions";
+// import { NotificationContext } from "../context/NotificationContext";
+// import { messageContext } from '../context/ChatScrollContext';
+// import { BsImages, BsPaperclip } from 'react-icons/bs'
+// import moment from "moment";
+// import { MentionsInput, Mention } from 'react-mentions'
+// import mentionStyles from "./mentionStyles";
+// import mentionsInputStyles from "./mentionsInputStyles";
+
+// const Input = () => {
+
+//   const { dispatchDoc, doc, imageInputRef, fileInputRef, unreadMessages, dispatchQuote, quote, loadingChat, dispatchLoadingChat } = useContext(messageContext);
+  
+//   const { user } = useUserAuth();
+//   const { data, groupUser } = useContext(ChatContext);
+//   const { allUserList } = useContext(NotificationContext);
+//   const [taggableList, setTaggableList] = useState([]);
+//   const [tagList, setTagList] = useState(null);
+
+//   const dbRef = ref(db);
+
+//   const [ text, setText ] = useState("");
+//   // const [showTaggableList, setShowTaggableList] = useState(false);
+
+//   useEffect(() => {
+//     var newGroupTarget = [];
+//     if(groupUser.length > 0){
+//       newGroupTarget.push({
+//         id: "alluser1001",
+//         display: "All",
+//         photoURL: ''
+//       })
+//     }
+//     const newSets = groupUser.filter(item => item.uid !== user.uid)
+//     newSets.map(item => {
+//       if(!item?.remove){
+//         newGroupTarget.push({
+//           id: item.uid,
+//           display: item.displayName,
+//           photoURL: item.photoURL
+//         })
+//       }
+//     });
+//     setTaggableList(newGroupTarget)
+    
+//   },[groupUser])
+
+//   const handleAddImage = (source) => {
+
+//     var newArray = [];
+
+//     for(var i = 0; i < source.target.files.length; i++){
+//       const fileSize = source.target.files[i].size;
+//       const fileMB = Math.round((fileSize / 1024));
+//       if(fileMB <= 5120){
+//         newArray.push(source.target.files[i])
+//       }
+//     }
+
+//     if(newArray.length > 0){
+//       dispatchDoc({ type:"CHOOSEN_FILE", payload: {
+//         type: "image",
+//         data: newArray
+//       } })
+//     }
+    
+//   }
+
+//   const handleAddFile = (source) => {
+
+//     var newArray = [];
+
+//     for(var i = 0; i < source.target.files.length; i++){
+//       const fileSize = source.target.files[i].size;
+//       const fileMB = Math.round((fileSize / 1024));
+//       if(fileMB <= 5120){
+//         newArray.push(source.target.files[i])
+//       }
+//     }
+
+//     if(newArray.length > 0){
+//       dispatchDoc({ type:"CHOOSEN_FILE", payload: {
+//         type: "file",
+//         data: newArray
+//       } })
+//     }
+
+//   }
+
+//   const processMessage = () => {
+
+//       const dateNow = Date.now()
+//       const uniqueID = uuid();
+//       const combineID = dateNow + uniqueID;
+
+//       const formatMessageLeftBrac = text.replaceAll("[-", "@");
+//       const removeStringID = formatMessageLeftBrac.replaceAll("-]", "");
+
+//       const formatMessage = removeStringID.replaceAll(/-{.*?}-/g, "");
+
+//       if(doc && doc.type === "image"){
+//         dispatchLoadingChat({ type:"LOADING", payload: true })
+//         handleSendImage({ dateNow, uniqueID, combineID, formatMessage })
+//       }
+//       else if(doc && doc.type === "file"){
+//         dispatchLoadingChat({ type:"LOADING", payload: true })
+//         handleSendFile({ dateNow, uniqueID, combineID, formatMessage })
+//       }
+//       else if(!doc){
+//         dispatchLoadingChat({ type:"LOADING", payload: true })
+//         handleSendText({ dateNow, uniqueID, combineID, formatMessage })
+//       }
+
+//   }
+
+//   function handleSendFile({ dateNow, uniqueID, combineID, formatMessage }){
+    
+//     if(formatMessage){
+
+//       const postData = {
+//         id: uniqueID,
+//         senderId: user.uid,
+//         date: dateNow,
+//         text: formatMessage,
+//         img: false,
+//         fileSize: false,
+//         fileName: false,
+//         file: false,
+//         analytics: false,
+//         appointment: false,
+//         hasRead: false
+//       };
+
+//       if(groupUser.length > 0){
+
+//         set(ref(db, 'chats/' + data.chatId + '/messages/' + uniqueID + '/' + user.uid ), postData)
+
+//         set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'lastMessage/text'), formatMessage)
+//         set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'date'), dateNow)
+//         set(ref(db, 'userChats/' + user.uid + '/' + data.chatId + '/lastMessage/recall' ), false);
+
+//         for(var y = 0; y < groupUser.length; y++){
+//           set(ref(db, 'chats/' + data.chatId + '/messages/' + uniqueID + '/' + groupUser[y].uid), postData)
+//           set(ref(db, '/userChats/' + groupUser[y].uid + '/' + data.chatId + '/' + 'date'), dateNow)
+//           set(ref(db, '/userChats/' + groupUser[y].uid + '/' + data.chatId + '/' + 'lastMessage/text'), formatMessage)
+//           set(ref(db, 'userChats/' + groupUser[y].uid + '/' + data.chatId + '/lastMessage/recall' ), false);
+
+//           if(tagList){
+//             const tagAll = tagList.find(e => e === "alluser1001");
+//             if(tagAll === "alluser1001"){
+//               const targetUser = allUserList.find(e => ( e.uid === groupUser[y].uid ))
+//               if(targetUser.fcm && targetUser.uid !== user.uid){
+//                 SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//               }
+//             }else{
+//               const targetMention = allUserList.filter(element => tagList.includes(element.uid));
+//               const targetUser = targetMention.find(e => ( e.uid === groupUser[y].uid ))
+//               if(targetUser){
+//                 if(targetUser.fcm){
+//                   SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//                 }
+//               }
+//             }
+//           }
+
+//           if(groupUser[y].uid !== user.uid && groupUser[y].mute === false){
+//             if(tagList){
+//               const tagAll = tagList.find(e => e === "alluser1001");
+//               if(tagAll !== "alluser1001"){
+//                 const newUserList = allUserList.filter(element => !tagList.includes(element.uid));
+//                 const targetUser = newUserList.find(e => ( e.uid === groupUser[y].uid ))
+//                 if(targetUser){
+//                   SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//                 }
+//               }
+//             }else{
+//               const targetUser = allUserList.find(e => ( e.uid === groupUser[y].uid ))
+//               SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//             }
+//           }
+
+//         }
+//         setText("")
+//       }
+//       else{
+
+//         set(ref(db, 'chats/' + data.chatId + '/messages/' + uniqueID ), postData)
+
+//         set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'lastMessage/text'), formatMessage)
+//         set(ref(db, '/userChats/' + data.user.uid + '/' + data.chatId + '/' + 'lastMessage/text'), formatMessage)
+//         set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'date'), dateNow)
+//         set(ref(db, '/userChats/' + data.user.uid + '/' + data.chatId + '/' + 'date'), dateNow)
+
+//         const targetUser = allUserList.find(e => ( e.uid === data.user.uid ))
+        
+//         get(child(dbRef, `userChats/${data.user.uid}/${data.chatId}/mute`)).then((snapshot) => {
+//           if (snapshot.exists()){
+//             if(!snapshot.val()){
+//               SendNotification({ fcm: targetUser.fcm, title: user.displayName, body: formatMessage, profileImg: user.photoURL, imgContent: null })
+//             }
+//           }
+//         })
+
+//         setText("")
+        
+//       }
+//     }
+//     ////////////////////////////////////////////Send image below
+//     for(var x = 0; x < doc.data.length; x++){
+//       const storageRef = ref_storage(storage, "/conversation/file/" + doc.data[x].name);
+//       const uploadTask = uploadBytesResumable(storageRef, doc.data[x]);
+//       const newUniqueID = uniqueID + x
+//       const fileName = doc.data[x].name
+//       const fileSize = doc.data[x].size
+
+//       uploadTask.on('state_changed',
+//         (snapshot) => {
+//           // Observe state change events such as progress, pause, and resume
+//           // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+//           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+//           console.log('Upload is ' + progress + '% done');
+//         },
+//         (error) => {
+//           // Handle unsuccessful uploads
+//         },  () => {
+//           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+//             const postData = {
+//               id: newUniqueID,
+//               senderId: user.uid,
+//               date: dateNow,
+//               text: false,
+//               img: false,
+//               fileName: fileName,
+//               fileSize: fileSize,
+//               file: downloadURL,
+//               analytics: false,
+//               appointment: false,
+//               hasRead: false
+//             };
+
+//             if(groupUser.length > 0){
+
+//               set(ref(db, 'chats/' + data.chatId + '/messages/' + newUniqueID + '/' + user.uid ), postData)
+      
+//               set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'lastMessage/text'), "[file]")
+//               set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'date'), dateNow)
+//               set(ref(db, 'userChats/' + user.uid + '/' + data.chatId + '/lastMessage/recall' ), false);
+              
+      
+//               for(var y = 0; y < groupUser.length; y++){
+//                 set(ref(db, 'userChats/' + groupUser[y].uid + '/' + data.chatId + '/lastMessage/recall' ), false);
+//                 set(ref(db, 'chats/' + data.chatId + '/messages/' + newUniqueID + '/' + groupUser[y].uid), postData)
+//                 set(ref(db, '/userChats/' + groupUser[y].uid + '/' + data.chatId + '/' + 'date'), dateNow)
+//                 set(ref(db, '/userChats/' + groupUser[y].uid + '/' + data.chatId + '/' + 'lastMessage/text'), "[file]")
+
+//                 if(tagList){
+//                   const tagAll = tagList.find(e => e === "alluser1001");
+//                   if(tagAll === "alluser1001"){
+//                     const targetUser = allUserList.find(e => ( e.uid === groupUser[y].uid ))
+//                     if(targetUser.fcm && targetUser.uid !== user.uid){
+//                       SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//                     }
+//                   }else{
+//                     const targetMention = allUserList.filter(element => tagList.includes(element.uid));
+//                     const targetUser = targetMention.find(e => ( e.uid === groupUser[y].uid ))
+//                     if(targetUser){
+//                       if(targetUser.fcm){
+//                         SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//                       }
+//                     }
+//                   }
+//                 }
+      
+//                 if(groupUser[y].uid !== user.uid && groupUser[y].mute === false){
+//                   if(tagList){
+//                     const tagAll = tagList.find(e => e === "alluser1001");
+//                     if(tagAll !== "alluser1001"){
+//                       const newUserList = allUserList.filter(element => !tagList.includes(element.uid));
+//                       const targetUser = newUserList.find(e => ( e.uid === groupUser[y].uid ))
+//                       if(targetUser){
+//                         SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//                       }
+//                     }
+//                   }else{
+//                     const targetUser = allUserList.find(e => ( e.uid === groupUser[y].uid ))
+//                     SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + fileName, profileImg: user.photoURL, imgContent: null })
+//                   }
+//                 }
+//               }
+//             }
+//             else{
+
+//               set(ref(db, 'userChats/' + user.uid + '/' + data.chatId + '/lastMessage/recall' ), false);
+//               set(ref(db, 'userChats/' + data.user.uid + '/' + data.chatId + '/lastMessage/recall' ), false);
+      
+//               set(ref(db, 'chats/' + data.chatId + '/messages/' + newUniqueID ), postData)
+      
+//               set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'lastMessage/text'), "[file]")
+//               set(ref(db, '/userChats/' + data.user.uid + '/' + data.chatId + '/' + 'lastMessage/text'), "[file]")
+//               set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'date'), dateNow)
+//               set(ref(db, '/userChats/' + data.user.uid + '/' + data.chatId + '/' + 'date'), dateNow)
+              
+//               const targetUser = allUserList.find(e => ( e.uid === data.user.uid ))
+//               get(child(dbRef, `userChats/${data.user.uid}/${data.chatId}/mute`)).then((snapshot) => {
+//                 if (snapshot.exists()) {
+//                   if(!snapshot.val()){
+//                     SendNotification({ fcm: targetUser.fcm, title: user.displayName, body: fileName, profileImg: user.photoURL, imgContent: null })
+//                   }
+//                 }
+//               })
+              
+//             }
+
+//           })
+//         }
+//       );
+//     }
+
+//     fileInputRef.current.value = null
+//     dispatchDoc({ type:"CHOOSEN_FILE", payload: null })
+
+//   }
+
+//   function handleSendImage({ dateNow, uniqueID, combineID, formatMessage }){
+
+//     //Send text first
+//     if(formatMessage){
+
+//       const postData = {
+//         id: uniqueID,
+//         senderId: user.uid,
+//         date: dateNow,
+//         text: formatMessage,
+//         img: false,
+//         fileSize: false,
+//         fileName: false,
+//         file: false,
+//         analytics: false,
+//         appointment: false,
+//         hasRead: false
+//       };
+
+//       if(groupUser.length > 0){
+
+//         set(ref(db, 'chats/' + data.chatId + '/messages/' + uniqueID + '/' + user.uid ), postData)
+
+//         set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'lastMessage/text'), formatMessage)
+//         set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'date'), dateNow)
+
+//         for(var y = 0; y < groupUser.length; y++){
+//           set(ref(db, 'chats/' + data.chatId + '/messages/' + uniqueID + '/' + groupUser[y].uid), postData)
+//           set(ref(db, '/userChats/' + groupUser[y].uid + '/' + data.chatId + '/' + 'lastMessage/text'), formatMessage)
+//           set(ref(db, '/userChats/' + groupUser[y].uid + '/' + data.chatId + '/' + 'date'), dateNow)
+//           set(ref(db, 'userChats/' + groupUser[y].uid + '/' + data.chatId + '/lastMessage/recall' ), false);
+
+//           if(tagList){
+//             const tagAll = tagList.find(e => e === "alluser1001");
+//             if(tagAll === "alluser1001"){
+//               const targetUser = allUserList.find(e => ( e.uid === groupUser[y].uid ))
+//               if(targetUser.fcm && targetUser.uid !== user.uid){
+//                 SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//               }
+//             }else{
+//               const targetMention = allUserList.filter(element => tagList.includes(element.uid));
+//               const targetUser = targetMention.find(e => ( e.uid === groupUser[y].uid ))
+//               if(targetUser){
+//                 if(targetUser.fcm){
+//                   SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//                 }
+//               }
+//             }
+//           }
+
+//           if(groupUser[y].uid !== user.uid && groupUser[y].mute === false){
+//             if(tagList){
+//               const tagAll = tagList.find(e => e === "alluser1001");
+//               if(tagAll !== "alluser1001"){
+//                 const newUserList = allUserList.filter(element => !tagList.includes(element.uid));
+//                 const targetUser = newUserList.find(e => ( e.uid === groupUser[y].uid ))
+//                 if(targetUser){
+//                   SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//                 }
+//               }
+//             }else{
+//               const targetUser = allUserList.find(e => ( e.uid === groupUser[y].uid ))
+//               SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//             }
+//           }
+
+//         }
+//         setText("")
+//       }
+//       else{
+
+//         set(ref(db, 'chats/' + data.chatId + '/messages/' + uniqueID ), postData)
+
+//         set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'lastMessage/text'), formatMessage)
+//         set(ref(db, '/userChats/' + data.user.uid + '/' + data.chatId + '/' + 'date'), dateNow)
+
+//         const targetUser = allUserList.find(e => ( e.uid === data.user.uid ))
+//         get(child(dbRef, `userChats/${data.user.uid}/${data.chatId}/mute`)).then((snapshot) => {
+//           if (snapshot.exists()) {
+//             if(!snapshot.val()){
+//               SendNotification({ fcm: targetUser.fcm, title: user.displayName, body: formatMessage, profileImg: user.photoURL, imgContent: null })
+//             }
+//           }
+//         })
+
+//         setText("")
+        
+//       }
+//     }
+//     ////////////////////////////////////////////Send image below
+//     for(var x = 0; x < doc.data.length; x++){
+//       const storageRef = ref_storage(storage, "/conversation/image/" + combineID + x);
+//       const uploadTask = uploadBytesResumable(storageRef, doc.data[x]);
+//       const newUniqueID = uniqueID + x
+
+//       uploadTask.on('state_changed',
+//         (snapshot) => {
+//           // Observe state change events such as progress, pause, and resume
+//           // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+//           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+//           console.log('Upload is ' + progress + '% done');
+//         },
+//         (error) => {
+//           // Handle unsuccessful uploads
+//         },  () => {
+//           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+//             const postData = {
+//               id: newUniqueID,
+//               senderId: user.uid,
+//               date: dateNow,
+//               text: false,
+//               img: downloadURL,
+//               fileSize: false,
+//               fileName: false,
+//               file: false,
+//               analytics: false,
+//               appointment: false,
+//               hasRead: false
+//             };
+
+//             if(groupUser.length > 0){
+
+//               set(ref(db, 'chats/' + data.chatId + '/messages/' + newUniqueID + '/' + user.uid ), postData)
+      
+//               set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'lastMessage/text'), "[image]")
+//               set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'date'), dateNow)
+//               set(ref(db, 'userChats/' + user.uid + '/' + data.chatId + '/lastMessage/recall' ), false);
+      
+//               for(var y = 0; y < groupUser.length; y++){
+//                 set(ref(db, 'chats/' + data.chatId + '/messages/' + newUniqueID + '/' + groupUser[y].uid), postData)
+//                 set(ref(db, 'userChats/' + groupUser[y].uid + '/' + data.chatId + '/lastMessage/recall' ), false);
+
+//                 set(ref(db, '/userChats/' + groupUser[y].uid + '/' + data.chatId + '/' + 'lastMessage/text'), "[image]")
+//                 set(ref(db, '/userChats/' + groupUser[y].uid + '/' + data.chatId + '/' + 'date'), dateNow)
+
+//                 if(tagList){
+//                   const tagAll = tagList.find(e => e === "alluser1001");
+//                   if(tagAll === "alluser1001"){
+//                     const targetUser = allUserList.find(e => ( e.uid === groupUser[y].uid ))
+//                     if(targetUser.fcm && targetUser.uid !== user.uid){
+//                       SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//                     }
+//                   }else{
+//                     const targetMention = allUserList.filter(element => tagList.includes(element.uid));
+//                     const targetUser = targetMention.find(e => ( e.uid === groupUser[y].uid ))
+//                     if(targetUser){
+//                       if(targetUser.fcm){
+//                         SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//                       }
+//                     }
+//                   }
+//                 }
+      
+//                 if(groupUser[y].uid !== user.uid && groupUser[y].mute === false){
+//                   if(tagList){
+//                     const tagAll = tagList.find(e => e === "alluser1001");
+//                     if(tagAll !== "alluser1001"){
+//                       const newUserList = allUserList.filter(element => !tagList.includes(element.uid));
+//                       const targetUser = newUserList.find(e => ( e.uid === groupUser[y].uid ))
+//                       if(targetUser){
+//                         SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//                       }
+//                     }
+//                   }else{
+//                     const targetUser = allUserList.find(e => ( e.uid === groupUser[y].uid ))
+//                     SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: "", profileImg: user.photoURL, imgContent: downloadURL })
+//                   }
+//                 }
+
+//               }
+              
+//             }
+//             else{
+
+//               set(ref(db, 'userChats/' + user.uid + '/' + data.chatId + '/lastMessage/recall' ), false);
+//               set(ref(db, 'userChats/' + data.user.uid + '/' + data.chatId + '/lastMessage/recall' ), false);
+      
+//               set(ref(db, 'chats/' + data.chatId + '/messages/' + newUniqueID ), postData)
+              
+//               set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'lastMessage/text'), "[image]")
+//               set(ref(db, '/userChats/' + data.user.uid + '/' + data.chatId + '/' + 'lastMessage/text'), "[image]")
+//               set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'date'), dateNow)
+//               set(ref(db, '/userChats/' + data.user.uid + '/' + data.chatId + '/' + 'date'), dateNow)
+      
+//               const targetUser = allUserList.find(e => ( e.uid === data.user.uid ))
+//               get(child(dbRef, `userChats/${data.user.uid}/${data.chatId}/mute`)).then((snapshot) => {
+//                 if (snapshot.exists()) {
+//                   if(!snapshot.val()){
+//                     SendNotification({ fcm: targetUser.fcm, title: user.displayName, body: "", profileImg: user.photoURL, imgContent: downloadURL })
+//                   }
+//                 }
+//               })
+//             }
+
+//           })
+//         }
+//       );
+//     };
+
+//     imageInputRef.current.value = null
+//     dispatchDoc({ type:"CHOOSEN_FILE", payload: null })
+
+//   };
+  
+//   async function handleSendText({ dateNow, uniqueID, formatMessage }) {
+
+//     const postData = {
+//         id: uniqueID,
+//         senderId: user.uid,
+//         quoteType: quote ? ( quote.text ? "TEXT" : quote.file ? "FILE" : "IMG" ) : false,
+//         quote: quote ? ( quote.text ? quote.text : quote.file ? quote.file : quote.img ) : false,
+//         quoteSender: quote ? quote.senderId : false,
+//         quoteId: quote ? quote.id : false,
+//         date: dateNow,
+//         text: formatMessage,
+//         img: false,
+//         fileSize: false,
+//         fileName: false,
+//         file: false,
+//         analytics: false,
+//         appointment: false,
+//         hasRead: false
+//       };
+
+//       if(groupUser.length > 0){
+
+//         set(ref(db, 'chats/' + data.chatId + '/messages/' + uniqueID + '/' + user.uid ), postData)
+
+//         set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'date'), dateNow)
+//         set(ref(db, '/userChats/' + user.uid + '/' + data.chatId + '/' + 'lastMessage/text'), formatMessage)
+//         set(ref(db, 'userChats/' + user.uid + '/' + data.chatId + '/lastMessage/recall' ), false);
+
+//         for(var y = 0; y < groupUser.length; y++){
+//           set(ref(db, 'chats/' + data.chatId + '/messages/' + uniqueID + '/' + groupUser[y].uid), postData)
+//           set(ref(db, 'userChats/' + groupUser[y].uid + '/' + data.chatId + '/lastMessage/recall' ), false);
+
+//           set(ref(db, '/userChats/' + groupUser[y].uid + '/' + data.chatId + '/' + 'date'), dateNow)
+//           set(ref(db, '/userChats/' + groupUser[y].uid + '/' + data.chatId + '/' + 'lastMessage/text'), formatMessage)
+
+//           if(tagList){
+//             const tagAll = tagList.find(e => e === "alluser1001");
+//             if(tagAll === "alluser1001"){
+//               const targetUser = allUserList.find(e => ( e.uid === groupUser[y].uid ));
+//               if(targetUser.fcm && targetUser.uid !== user.uid){
+//                 SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//               }
+//             }else{
+//               const targetMention = allUserList.filter(element => tagList.includes(element.uid));
+//               const targetUser = targetMention.find(e => ( e.uid === groupUser[y].uid ))
+//               if(targetUser){
+//                 if(targetUser.fcm){
+//                   SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//                 }
+//               }
+//             }
+//           }
+
+//           if(groupUser[y].uid !== user.uid && groupUser[y].mute === false){
+//             if(tagList){
+//               const tagAll = tagList.find(e => e === "alluser1001");
+//               if(tagAll !== "alluser1001"){
+//                 const newUserList = allUserList.filter(element => !tagList.includes(element.uid));
+//                 const targetUser = newUserList.find(e => ( e.uid === groupUser[y].uid ))
+//                 if(targetUser){
+//                   SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//                 }
+//               }
+//             }else{
+//               const targetUser = allUserList.find(e => ( e.uid === groupUser[y].uid ))
+//                 SendNotification({ fcm: targetUser.fcm, title: data.user?.groupInfo.groupName, body: user.displayName + ": " + formatMessage, profileImg: user.photoURL, imgContent: null })
+//             }
+//           }
+
+//         }
+//         setText("")
+//       }
+//       else{
+
+//         //Bug occurred in this function
+
+//         set(ref(db, 'chats/' + data.chatId + '/messages/' + uniqueID ), postData)
+
+//         const targetUser = allUserList.find(e => ( e.uid === data.user.uid ))
+
+//         get(child(dbRef, `userChats/${data.user.uid}/${data.chatId}/mute`)).then((snapshot) => {
+//           if(snapshot.exists()){
+//             if(!snapshot.val()){
+//               SendNotification({ fcm: targetUser.fcm, title: user.displayName, body: formatMessage, profileImg: user.photoURL, imgContent: null })
+//             }
+//           }
+//         })
+
+//         setText("")
+
+//         var chatsData = {
+//           recall: false,
+//           text: formatMessage
+//         }
+
+//         set(ref(db, 'userChats/' + user.uid + '/' + data.chatId + '/date'), dateNow)
+//         set(ref(db, 'userChats/' + data.user.uid + '/' + data.chatId + '/date'), dateNow)
+
+//         set(ref(db, 'userChats/' + user.uid + '/' + data.chatId + '/lastMessage'), chatsData)
+//         set(ref(db, 'userChats/' + data.user.uid + '/' + data.chatId + '/lastMessage'), chatsData);
+        
+//       }
+
+//       dispatchQuote({ type:"QUOTE", payload: null})
+
+//   }
+
+//   const handleKey = (e) => {
+//     if(e.code === "Enter"){
+//       if(doc || text !== ""){
+//         processMessage();
+//       }else{
+//         console.log('invalid Input')
+//       }
+//     }
+//   };
+
+//   function handleTextChange(value){
+
+//     setText(value);
+    
+//     const regex = /[^-{}]+(?=}-)/g;
+//     const mentions = value.match(regex);
+//     setTagList(mentions);
+
+//   };
+
+//   return (
+//     <div className="input-container">
+//       <div className="input-subContainer">
+//         <div className="inputField">
+//           <MentionsInput
+//             // multiLine={true}
+//             singleLine
+//             style={mentionsInputStyles}
+//             forceSuggestionsAboveCursor
+//             allowSpaceInQuery
+//             value={text}
+//             className="mentions"
+//             onChange={e => handleTextChange(e.target.value)}
+//             onKeyDown={handleKey}
+//             placeholder={"Type something here..."}
+//             a11ySuggestionsListLabel={"Suggested tag"}
+//           >
+//             <Mention
+//               displayTransform={(id, display) => `@${display}`}
+//               style={mentionStyles}
+//               data={taggableList}
+//               className="mentions__mention"
+//               markup="[-__display__-]-{__id__}-"
+//               // onAdd={(id, display, startPos, endPos) => { addUserToTag(id, display, startPos, endPos) }}
+//             />
+//           </MentionsInput>
+//         </div>
+//         {/* <input type="text" placeholder="Type something..." onChange={e => setText(e.target.value)} value={text} onKeyDown={handleKey}/> */}
+//         <div className="send">
+//           <input ref={fileInputRef} type="file" style={{ display: 'none' }} id="attachForConversation" onChange={e => 
+//             handleAddFile(e)
+//           } multiple/>
+//           <label htmlFor="attachForConversation" style={doc || quote && { display: 'none' }}>
+//             <BsPaperclip className={`fileContainer ${doc || quote && 'fileContainer-deactive'}`} size={20}/>
+//           </label>
+//           <input ref={imageInputRef} type="file" accept="image/*" style={{ display: 'none' }} id="imageForConversation" onInput={e => 
+//             handleAddImage(e)
+//           } multiple/>
+//           <label htmlFor="imageForConversation" style={doc || quote && { display: 'none' }}>
+//             <BsImages className={`imgContainer ${doc || quote && 'imgContainer-deactive'}`} size={20}/>
+//           </label>
+//           <C_Button
+//             disabled={doc || text !== "" ? false : true}
+//             backgroundColor={"#381256"}
+//             width={"100px"}
+//             buttonText={"SEND"}
+//             justify={"space-evenly"}
+//             onClick={processMessage}
+//             icon={<FiSend size={16} />}
+//             textColor={"#FFFFFF"}
+//           />
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Input;

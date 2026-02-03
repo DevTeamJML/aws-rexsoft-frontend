@@ -172,7 +172,7 @@ const ReusableTable = ({
       result.unshift({
         id: "_checkbox",
         label: "",
-        field_type: "checkbox",
+        field_type: "_checkbox",
         sortable: false,
         fixed: true,
         fixedPosition: "left",
@@ -438,7 +438,7 @@ const ReusableTable = ({
 
   const renderCellContent = (row, column, setRtePreviewContent) => {
     const getCellValue = () => {
-      if (column.field_type === "checkbox" || column.field_type === "action")
+      if (column.field_type === "_checkbox" || column.field_type === "action")
         return null;
 
       if (column.column_id) {
@@ -456,7 +456,7 @@ const ReusableTable = ({
     const value = getCellValue();
 
     switch (column.field_type) {
-      case "checkbox":
+      case "_checkbox":
         return renderCheckbox(row);
 
       case "action":
@@ -551,6 +551,18 @@ const ReusableTable = ({
           </span>
         );
       }
+
+      case "checkbox":
+        const parsedValue =
+          typeof value === "string" ? JSON.parse(value) : value;
+
+        if (Array.isArray(parsedValue)) {
+          if (!parsedValue.length) return <span>-</span>;
+
+          return <span>{parsedValue.join(", ")}</span>;
+        }
+
+        return <span>-</span>;
 
       case "multiline":
         return (
@@ -675,7 +687,7 @@ const ReusableTable = ({
                       }}
                     >
                       <div className="header-content">
-                        {col.field_type === "checkbox" ? (
+                        {col.field_type === "_checkbox" ? (
                           renderCheckbox()
                         ) : (
                           <>

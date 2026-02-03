@@ -1,3 +1,4 @@
+import moment from "moment";
 import dynamic from "next/dynamic";
 import { Fragment, useRef } from "react";
 
@@ -7,8 +8,19 @@ export const DateField = ({
   onChange,
   width,
   required,
-  type,
+  type = "date",
 }) => {
+  
+  const formatDate = (val) => {
+    if (!val) return "";
+
+    if (type === "datetime-local") {
+      return moment(val).format("YYYY-MM-DDTHH:mm");
+    }
+
+    return moment(val).format("YYYY-MM-DD");
+  };
+
   const inputRef = useRef(null);
 
   const handleFocus = () => {
@@ -30,7 +42,7 @@ export const DateField = ({
           ref={inputRef}
           className="date-field"
           type={type ? type : "date"}
-          value={value}
+          value={formatDate(value)}
           onChange={(e) => onChange(e.target.value)}
         />
       </div>

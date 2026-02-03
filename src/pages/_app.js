@@ -5,6 +5,9 @@ import "@/styles/sidebar.scss";
 import "@/styles/layout.scss";
 import "@/styles/reusable-table.scss";
 
+// Chat
+import "@/styles/Conversation/conversation.scss";
+
 // Misc
 import "@/styles/Misc/action-button.scss";
 import "@/styles/Misc/toast.scss";

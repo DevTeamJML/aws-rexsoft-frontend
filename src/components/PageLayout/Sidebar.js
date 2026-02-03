@@ -26,6 +26,7 @@ import {
   FaBuilding,
   FaChevronDown,
   FaPlus,
+  FaComment,
 } from "react-icons/fa";
 import { ImHammer2 } from "react-icons/im";
 import { useState, useRef, useEffect } from "react";
@@ -86,6 +87,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       icon: <FaThLarge size={20} />,
       path: "/dashboard",
     },
+    // {
+    //   id: "conversation",
+    //   label: "Conversation",
+    //   icon: <FaComment size={20} />,
+    //   path: "/conversation",
+    // },
     {
       id: "kpi",
       label: "KPI",

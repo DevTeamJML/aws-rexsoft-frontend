@@ -63,7 +63,7 @@ export default function BulkUpdateClient() {
 
     const userRef = ref(
       db,
-      `UserColumnSorting/${user?.uid}/${currSelectedGroupId}`
+      `UserColumnSorting/${user?.uid}/${currSelectedGroupId}`,
     );
     const unsubUser = onValue(userRef, (snap) => {
       const val = snap.val();
@@ -216,21 +216,21 @@ export default function BulkUpdateClient() {
       typeof obj.is_complete === "boolean"
         ? obj.is_complete
         : typeof obj.is_completed === "boolean"
-        ? obj.is_completed
-        : false;
+          ? obj.is_completed
+          : false;
 
     return {
       ...obj,
       is_complete: isComplete,
       // ensure date exists (string or null)
-      date: typeof obj.date === "string" ? obj.date : obj.date ?? "",
+      date: typeof obj.date === "string" ? obj.date : (obj.date ?? ""),
     };
   };
 
   // Find existing alert row_value for a given client and column
   const getExistingAlertForClient = (client_id, column_id) => {
     const clientObj = (clients || []).find(
-      (c) => (c.id ?? c.client_id) === client_id
+      (c) => (c.id ?? c.client_id) === client_id,
     );
     if (!clientObj) return { is_complete: false, date: "" };
 
@@ -274,20 +274,20 @@ export default function BulkUpdateClient() {
         showToast({
           message: "No clients selected for bulk update.",
           status: "error",
-        })
+        }),
       );
       return;
     }
 
     const conflictingHandlers = (addHandler || []).filter((id) =>
-      (removeHandler || []).includes(id)
+      (removeHandler || []).includes(id),
     );
     if (conflictingHandlers.length > 0) {
       const labels = conflictingHandlers
         .map((id) => (handler || []).find((h) => h.value === id)?.label || id)
         .join(", ");
       alert(
-        `Error: The same handler cannot be in both Add and Remove lists. Conflicting handlers: ${labels}`
+        `Error: The same handler cannot be in both Add and Remove lists. Conflicting handlers: ${labels}`,
       );
       return;
     }
@@ -303,8 +303,7 @@ export default function BulkUpdateClient() {
       (clients || []).forEach((c) => {
         const id = c.id ?? c.client_id;
         const serial = c.serial_number ?? c.mapped?.serial_number ?? "";
-        const clientName =
-          c.mapped?.client_name ?? "";
+        const clientName = c.mapped?.client_name ?? "";
 
         clientInfoMap[id] = {
           serial_number: serial,
@@ -317,7 +316,7 @@ export default function BulkUpdateClient() {
         (col) =>
           typeof formData[col.column_id] !== "undefined" &&
           formData[col.column_id] !== null &&
-          !(String(formData[col.column_id]).trim() === "")
+          !(String(formData[col.column_id]).trim() === ""),
       );
 
       const hasHandlerChanges =
@@ -358,16 +357,20 @@ export default function BulkUpdateClient() {
       // helper to create per-batch handler lists
       const handlerListsForBatch = (batchClientIds) => {
         const add_handler_list = batchClientIds.flatMap((client_id) =>
-          (addHandler || []).map((user_id) => ({ client_id, user_id }))
+          (addHandler || []).map((user_id) => ({ client_id, user_id })),
         );
         const remove_handler_list = batchClientIds.flatMap((client_id) =>
-          (removeHandler || []).map((user_id) => ({ client_id, user_id }))
+          (removeHandler || []).map((user_id) => ({ client_id, user_id })),
         );
         return { add_handler_list, remove_handler_list };
       };
 
       for (const col of columnsWithValues) {
-        const columnValue = formData[col.column_id];
+        let columnValue = formData[col.column_id];
+
+        if (col.field_type === "rich_text") {
+          columnValue = "";
+        }
 
         for (let i = 0; i < selectedClientIds.length; i += BATCH_SIZE) {
           const batchClientIds = selectedClientIds.slice(i, i + BATCH_SIZE);
@@ -395,10 +398,17 @@ export default function BulkUpdateClient() {
                 Object.entries(columnValue).forEach(([k, v]) => {
                   const isBoolean = typeof v === "boolean";
                   const isNumber = typeof v === "number" && !Number.isNaN(v);
-                  const isNonEmptyString = typeof v === "string" && v.trim() !== "";
-                  const isValidObject = v !== null && typeof v === "object" && !Array.isArray(v);
+                  const isNonEmptyString =
+                    typeof v === "string" && v.trim() !== "";
+                  const isValidObject =
+                    v !== null && typeof v === "object" && !Array.isArray(v);
 
-                  if (isBoolean || isNumber || isNonEmptyString || isValidObject) {
+                  if (
+                    isBoolean ||
+                    isNumber ||
+                    isNonEmptyString ||
+                    isValidObject
+                  ) {
                     normalizedNew[k] = v;
                   }
                   // otherwise ignore (treat as "no change")
@@ -423,7 +433,10 @@ export default function BulkUpdateClient() {
               }
 
               // get existing object for this client+column
-              const existing = getExistingAlertForClient(client_id, col.column_id);
+              const existing = getExistingAlertForClient(
+                client_id,
+                col.column_id,
+              );
 
               // merge: incoming fields overwrite existing; unspecified fields preserved
               const mergedRowValue = { ...existing, ...normalizedNew };
@@ -480,9 +493,9 @@ export default function BulkUpdateClient() {
 
               // small jitter
               await new Promise((res) =>
-                setTimeout(res, 50 + Math.floor(Math.random() * 50))
+                setTimeout(res, 50 + Math.floor(Math.random() * 50)),
               );
-            })
+            }),
           );
         }
       }
@@ -518,9 +531,9 @@ export default function BulkUpdateClient() {
 
               dispatch(bulkUpdateClient({ router, payload }));
               await new Promise((res) =>
-                setTimeout(res, 50 + Math.floor(Math.random() * 50))
+                setTimeout(res, 50 + Math.floor(Math.random() * 50)),
               );
-            })
+            }),
           );
         }
       }
@@ -537,7 +550,7 @@ export default function BulkUpdateClient() {
         ([, /* client_id */ info]) => ({
           client_name: info.client_name ?? "",
           serial_number: info.serial_number ?? "",
-        })
+        }),
       );
 
       const logsBody = {
@@ -569,7 +582,7 @@ export default function BulkUpdateClient() {
         showToast({
           message: "Bulk update failed. Check console for details.",
           status: "error",
-        })
+        }),
       );
     }
   };
@@ -611,7 +624,7 @@ export default function BulkUpdateClient() {
                       {addHandler
                         .map((userId) => {
                           const handlerObj = handler.find(
-                            (h) => h.value === userId
+                            (h) => h.value === userId,
                           );
                           return handlerObj?.label || userId;
                         })
@@ -635,7 +648,7 @@ export default function BulkUpdateClient() {
                       {removeHandler
                         .map((userId) => {
                           const handlerObj = handler.find(
-                            (h) => h.value === userId
+                            (h) => h.value === userId,
                           );
                           return handlerObj?.label || userId;
                         })
