@@ -87,12 +87,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     //   icon: <FaThLarge size={20} />,
     //   path: "/dashboard",
     // },
-    // {
-    //   id: "conversation",
-    //   label: "Conversation",
-    //   icon: <FaComment size={20} />,
-    //   path: "/conversation",
-    // },
+    {
+      id: "conversation",
+      label: "Conversation",
+      icon: <FaComment size={20} />,
+      path: "/conversation",
+    },
     {
       id: "kpi",
       label: "KPI",

@@ -1,127 +1,22 @@
-// Filter Drawer Styles
-.filter-drawer {
-  position: fixed;
-  top: 0;
-  right: -400px;
-  width: 400px;
-  height: 100vh;
-  background: white;
-  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-  transition: right 0.3s ease;
-  z-index: 1001;
-  display: flex;
-  flex-direction: column;
+@use "../_variables.scss";
 
-  &.open {
-    right: 0;
-  }
-
-  .drawer-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    border-bottom: 1px solid #e0e0e0;
-    background: #f8f9fa;
-
-    h3 {
-      margin: 0;
-      font-size: 1.25rem;
-      font-weight: 600;
-    }
-
-    .close-btn {
-      background: none;
-      border: none;
-      font-size: 1.25rem;
-      cursor: pointer;
-      color: #6c757d;
-      padding: 0.25rem;
-      border-radius: 4px;
-
-      &:hover {
-        background: #e9ecef;
-        color: #495057;
-      }
-    }
-  }
-
-  .drawer-content {
-    flex: 1;
-    padding: 1.5rem;
-    overflow-y: auto;
-  }
-
-  .drawer-footer {
-    padding: 1.5rem;
-    border-top: 1px solid #e0e0e0;
-    display: flex;
-    gap: 1rem;
-
-    .btn-clear {
-      flex: 1;
-      padding: 0.75rem;
-      background: #6c757d;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s ease;
-
-      &:hover {
-        background: #5a6268;
-      }
-    }
-
-    .btn-apply {
-      flex: 1;
-      padding: 0.75rem;
-      background: #1976d2;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s ease;
-
-      &:hover {
-        background: #1565c0;
-      }
-    }
-  }
+.column-filter-arrow.active {
+  color: #1976d2;
 }
 
-// Add Filter Section
-.add-filter-section {
-  margin-bottom: 1rem;
-
-  .add-filter-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    background: #f8f9fa;
-    border: 2px dashed #dee2e6;
-    border-radius: 6px;
-    color: #6c757d;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    width: 100%;
-
-    &:hover {
-      background: #e9ecef;
-      border-color: #1976d2;
-      color: #1976d2;
-    }
-  }
-}
-
-// Filter Block
-.filter-block {
+.column-filter-popover {
+  width: 350px;
   background: white;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 0.5rem;
+  // padding: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: variables.$font-s;
+
+  // Filter Block
 
   .filter-header {
     display: flex;
@@ -196,14 +91,12 @@
       padding-left: 2rem;
     }
   }
-
-  .date-range-fields {
-    // display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
 }
-
+.date-range-fields {
+  // display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
 /* Dropdown Options Styles */
 .dropdown-options-grid {
   display: grid;
@@ -284,46 +177,31 @@
   background: #a8a8a8;
 }
 
-/* Responsive design */
-@media (max-width: 480px) {
-  .dropdown-options-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 6px;
-  }
-
-  .dropdown-option-btn {
-    padding: 6px 8px;
-    font-size: 0.8rem;
-  }
+.filter-header {
+  margin-bottom: 10px;
+  font-size: variables.$font-m !important;
 }
 
-// Drawer Overlay
-.drawer-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
+.popover-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
 
-  &.active {
-    opacity: 1;
-    visibility: visible;
-  }
-}
-
-// Responsive Design
-@media (max-width: 768px) {
-  .filter-drawer {
-    width: 100%;
-    right: -100%;
+  .btn-clear {
+    flex: 1;
+    padding: 6px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
   }
 
-  .filter-block .date-range-fields {
-    grid-template-columns: 1fr;
+  .btn-apply {
+    flex: 1;
+    padding: 6px;
+    background: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 4px;
   }
 }

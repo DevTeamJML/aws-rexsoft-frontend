@@ -1,6 +1,9 @@
 import { getUserRoles } from "../../redux/slices/roleAuthSlice";
 
 export const ApiRoute = {
+  message : {
+    sendChatNotifcation: "/message/sendChatNotifcation"
+  },
   appointment: {
     getAppointments: "/appointment/getAppointments",
     createAppointment: "/appointment/createAppointment",

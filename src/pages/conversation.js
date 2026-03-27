@@ -2,6 +2,7 @@ import React, { useState, useEffect, Fragment, useContext } from "react";
 import { useSelectIsAdmin } from "../../redux/slices/companySlice";
 import ChatSidebar from "@/components/Conversation/chats/ChatSidebar";
 import Chat from "@/components/Conversation/chats/Chat";
+import { MessageContextProvider } from "@/components/Conversation/ChatScrollContext";
 
 function Conversations(props) {
   const isSuperAdmin = useSelectIsAdmin();
@@ -23,7 +24,10 @@ function Conversations(props) {
           </div>
 
           <div className="container">
-            {/* <Chat /> */}
+            <MessageContextProvider>
+              <Chat />
+            </MessageContextProvider>
+
             {/* <ChatSidebar
               isSuperAdmin={isSuperAdmin}
             //   Conversation_Group={Conversation_Group}

@@ -6,11 +6,11 @@ export default function FilterDrawer({
   open,
   onClose,
   dynamicColumns = [],
-  fixedColumns = [], // Add fixedColumns prop
+  fixedColumns = [],
+  filters,
+  setFilters,
   onApplyFilters,
 }) {
-  const [filters, setFilters] = useState([]);
-
   const addFilter = () => {
     setFilters((prev) => [
       ...prev,
@@ -35,8 +35,8 @@ export default function FilterDrawer({
   const updateFilter = (filterId, field, value) => {
     setFilters((prev) =>
       prev.map((filter) =>
-        filter.id === filterId ? { ...filter, [field]: value } : filter
-      )
+        filter.id === filterId ? { ...filter, [field]: value } : filter,
+      ),
     );
   };
 
@@ -45,25 +45,25 @@ export default function FilterDrawer({
     setFilters((prev) =>
       prev.map((filter) => {
         if (filter.id !== filterId) return filter;
-        
+
         const currentSelected = filter.selectedOptions || [];
         const isSelected = currentSelected.includes(optionValue);
-        
+
         let newSelected;
         if (isSelected) {
           // Remove option if already selected
-          newSelected = currentSelected.filter(val => val !== optionValue);
+          newSelected = currentSelected.filter((val) => val !== optionValue);
         } else {
           // Add option if not selected
           newSelected = [...currentSelected, optionValue];
         }
-        
+
         return {
           ...filter,
           selectedOptions: newSelected,
-          searchText: newSelected.join(',') // Keep searchText for backward compatibility
+          searchText: newSelected.join(","), // Keep searchText for backward compatibility
         };
-      })
+      }),
     );
   };
 
@@ -115,7 +115,7 @@ export default function FilterDrawer({
                 onUpdate={(field, value) =>
                   updateFilter(filter.id, field, value)
                 }
-                onOptionSelect={(optionValue) => 
+                onOptionSelect={(optionValue) =>
                   handleOptionSelection(filter.id, optionValue)
                 }
                 onRemove={() => removeFilter(filter.id)}
@@ -138,14 +138,23 @@ export default function FilterDrawer({
 }
 
 // Individual Filter Block Component
-const FilterBlock = ({ filter, dynamicColumns, fixedColumns, onUpdate, onOptionSelect, onRemove }) => {
+const FilterBlock = ({
+  filter,
+  dynamicColumns,
+  fixedColumns,
+  onUpdate,
+  onOptionSelect,
+  onRemove,
+}) => {
   const getColumnType = (column_id) => {
     // Check fixed columns first
     const fixedColumn = fixedColumns.find((col) => col.id === column_id);
     if (fixedColumn) return fixedColumn.field_type;
-    
+
     // Then check dynamic columns
-    const dynamicColumn = dynamicColumns.find((col) => col.column_id === column_id);
+    const dynamicColumn = dynamicColumns.find(
+      (col) => col.column_id === column_id,
+    );
     return dynamicColumn?.field_type || "";
   };
 
@@ -153,9 +162,11 @@ const FilterBlock = ({ filter, dynamicColumns, fixedColumns, onUpdate, onOptionS
     // Check fixed columns first
     const fixedColumn = fixedColumns.find((col) => col.id === column_id);
     if (fixedColumn) return fixedColumn;
-    
+
     // Then check dynamic columns
-    const dynamicColumn = dynamicColumns.find((col) => col.column_id === column_id);
+    const dynamicColumn = dynamicColumns.find(
+      (col) => col.column_id === column_id,
+    );
     return dynamicColumn;
   };
 
@@ -163,26 +174,26 @@ const FilterBlock = ({ filter, dynamicColumns, fixedColumns, onUpdate, onOptionS
   const columnType = getColumnType(filter.column_id);
 
   // Check if this is a fixed column
-  const isFixedColumn = fixedColumns.some(col => col.id === filter.column_id);
+  const isFixedColumn = fixedColumns.some((col) => col.id === filter.column_id);
 
   // Parse dropdown options
   const getDropdownOptions = () => {
     if (columnType !== "dropdown" || !column || !column.options) return [];
-    
+
     try {
       // If options is already an array, return it
       if (Array.isArray(column.options)) {
         return column.options;
       }
-      
+
       // If options is a string, try to parse it as JSON
-      if (typeof column.options === 'string') {
+      if (typeof column.options === "string") {
         return JSON.parse(column.options);
       }
-      
+
       return [];
     } catch (error) {
-      console.error('Error parsing dropdown options:', error);
+      console.error("Error parsing dropdown options:", error);
       return [];
     }
   };
@@ -202,6 +213,7 @@ const FilterBlock = ({ filter, dynamicColumns, fixedColumns, onUpdate, onOptionS
       "rich_text",
       "alert",
       "dropdown",
+      "number",
       "text", // For fixed columns like serial_number
       "handler", // Handler uses search too
     ];
@@ -215,7 +227,7 @@ const FilterBlock = ({ filter, dynamicColumns, fixedColumns, onUpdate, onOptionS
 
   // Check if this column type should show number range
   const shouldShowNumberRange = () => {
-    return columnType === "number";
+    return columnType === "number" || column.id === "serial_number";
   };
 
   // Check if this column type should show date range
@@ -267,7 +279,7 @@ const FilterBlock = ({ filter, dynamicColumns, fixedColumns, onUpdate, onOptionS
       </div>
 
       {/* Filter Type (All, Filled, Unfilled) - Only for dynamic columns */}
-      {filter.column_id && !isFixedColumn && (
+      {/* {filter.column_id && !isFixedColumn && ( */}
         <div className="filter-field">
           <label>Filter Type</label>
           <select
@@ -279,7 +291,7 @@ const FilterBlock = ({ filter, dynamicColumns, fixedColumns, onUpdate, onOptionS
             <option value="unfilled">Unfilled</option>
           </select>
         </div>
-      )}
+      {/* )} */}
 
       {/* Search Text (for all text-based columns except dropdown) */}
       {filter.column_id && shouldShowSearchField() && (
@@ -292,7 +304,9 @@ const FilterBlock = ({ filter, dynamicColumns, fixedColumns, onUpdate, onOptionS
             <input
               type="text"
               placeholder={
-                columnType === "handler" ? "Search handler names..." : "Search..."
+                columnType === "handler"
+                  ? "Search handler names..."
+                  : "Search..."
               }
               value={filter.searchText}
               onChange={(e) => onUpdate("searchText", e.target.value)}
@@ -310,16 +324,16 @@ const FilterBlock = ({ filter, dynamicColumns, fixedColumns, onUpdate, onOptionS
               <button
                 key={index}
                 type="button"
-                className={`dropdown-option-btn ${isOptionSelected(option.value) ? 'selected' : ''}`}
+                className={`dropdown-option-btn ${isOptionSelected(option.value) ? "selected" : ""}`}
                 onClick={() => onOptionSelect(option.value)}
               >
                 {option.value}
               </button>
             ))}
           </div>
-          {(filter.selectedOptions && filter.selectedOptions.length > 0) && (
+          {filter.selectedOptions && filter.selectedOptions.length > 0 && (
             <div className="selected-options-info">
-              <strong>Selected:</strong> {filter.selectedOptions.join(', ')}
+              <strong>Selected:</strong> {filter.selectedOptions.join(", ")}
             </div>
           )}
         </div>

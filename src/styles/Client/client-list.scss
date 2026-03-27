@@ -63,6 +63,26 @@
     gap: 0.5rem;
     cursor: pointer;
 
+    .filter-icon-wrapper {
+      position: relative;
+
+      .running-filters-count {
+        position: absolute;
+        background-color: red;
+        color: white;
+        width: 18px;
+        height: 18px;
+        border-radius: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: variables.$font-xs;
+        top: -50%;
+        right: -10%;
+        z-index: 10;
+      }
+    }
+
     .icon-group {
       display: flex;
       align-items: center;
@@ -123,4 +143,3 @@
     }
   }
 }
-

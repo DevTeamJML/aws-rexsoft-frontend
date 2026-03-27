@@ -19,6 +19,8 @@ import formSubmissionReducer from "./slices/formSubmissionSlice";
 import formApprovalReducer from "./slices/formApprovalSlice";
 import kpiReducer from "./slices/kpiSlice";
 import dashboardReducer from "./slices/dashboardSlice";
+import chatReducer from "./slices/chatSlice";
+import messageReducer from "./slices/messageSlice";
 
 const rootReducer = combineReducers({
     toast : toastReducer,
@@ -40,7 +42,9 @@ const rootReducer = combineReducers({
     formSubmission : formSubmissionReducer,
     formApproval : formApprovalReducer,
     kpi : kpiReducer,
-    dashboard : dashboardReducer
+    dashboard : dashboardReducer,
+    chat : chatReducer,
+    message : messageReducer
   });
   
   export default rootReducer;

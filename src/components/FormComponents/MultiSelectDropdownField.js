@@ -9,6 +9,7 @@ export default function MultiSelectDropdownField({
   onRemove = () => {},
   onCreate,
   width,
+  hasOthersInput,
 }) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
@@ -45,14 +46,11 @@ export default function MultiSelectDropdownField({
   }, [options, search, selected]);
 
   const toggleSelect = (option) => {
-    onChange(option);
-    // setSelected((prev) => {
-    //   const newSelected = prev.includes(option)
-    //     ? prev.filter((o) => o !== option)
-    //     : [...prev, option];
+    const normalized =
+      typeof option === "object" ? option : { value: option, label: option };
 
-    //   return newSelected;
-    // });
+    onChange(normalized);
+
     setSearch("");
   };
 
@@ -70,9 +68,14 @@ export default function MultiSelectDropdownField({
       {/* Input + selected items */}
       <div className="multi-select-input">
         {selected.map((value, index) => {
-          const found = options.find((o) => (o.value ?? o) === value);
+          // const found = options.find((o) => (o.value ?? o) === value);
 
-          const label = found?.label ?? value;
+          // const label = found?.label ?? value;
+          const valueKey = value?.value ?? value;
+
+          const found = options.find((o) => (o.value ?? o) === valueKey);
+
+          const label = value?.label ?? found?.label ?? valueKey;
 
           return (
             <div key={index} className="chip">
@@ -116,14 +119,45 @@ export default function MultiSelectDropdownField({
       {/* Dropdown */}
       {open && (
         <ul className="multi-select-dropdown">
-          {filteredOptions.length > 0 ? (
-            filteredOptions.map((opt, index) => (
-              <li key={index} onClick={() => toggleSelect(opt.value)}>
-                {opt.label}
+
+          {filteredOptions.map((opt, index) => (
+            <li key={index} onClick={() => toggleSelect(opt.value)}>
+              {opt.label}
+            </li>
+          ))}
+
+          {/* Add custom option */}
+          {hasOthersInput ?
+            search.trim() &&
+            !options.some(
+              (opt) =>
+                (opt.value ?? opt).toLowerCase() === search.toLowerCase(),
+            ) &&
+            !selected.some(
+              (val) =>
+                (val.value ?? val).toLowerCase() === search.toLowerCase(),
+            ) && (
+              <li
+                className="create-option"
+                onClick={() => {
+                  const newValue = search.trim();
+
+                  toggleSelect({
+                    label: newValue,
+                    value: newValue
+                  });
+
+                  setSearch("");
+                  setOpen(false);
+                }}
+              >
+                ➕ Add "{search}"
               </li>
-            ))
-          ) : (
-            <li className="no-results">No results</li>
+            ) : null}
+
+          {/* No results fallback */}
+          {filteredOptions.length === 0 && !search && (
+            <li className="no-results">No options</li>
           )}
         </ul>
       )}

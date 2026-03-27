@@ -19,11 +19,13 @@ const handleInputChange = (
 ) => {
   setFormData((prev) => {
     if (isMulti) {
+      const current = prev[columnId] || [];
+
       return {
         ...prev,
-        [columnId]: prev[columnId].includes(value)
-          ? prev[columnId].filter((o) => o.value !== value)
-          : [...prev[columnId], value],
+        [columnId]: current.some((o) => o.value === value.value)
+          ? current.filter((o) => o.value !== value.value)
+          : [...current, value],
       };
     }
 
@@ -43,6 +45,32 @@ const handleInputChange = (
       [columnId]: value,
     };
   });
+};
+
+const getEmptyValueByField = (column) => {
+  switch (column.field_type) {
+    case "handler":
+      return [];
+
+    case "checkbox":
+    case "choice":
+      return [];
+
+    case "dropdown":
+      return column.multi_select_dropdown ? [] : "";
+
+    case "alert":
+      return { date: "", is_complete: false };
+
+    case "date":
+      return "";
+
+    case "number":
+      return "";
+
+    default:
+      return "";
+  }
 };
 
 const handleRemoveDropdownValue = (columnId, value, setFormData) => {
@@ -72,21 +100,33 @@ export const renderClientInputField = (
   setFormData,
   extraProps = {},
 ) => {
-  const { disabled = false, error = null } = extraProps;
+  const {
+    disabled = false,
+    error = null,
+    isAdmin = false,
+    updateType = "single",
+  } = extraProps;
 
   const isMulti =
     column.field_type === "handler" || column.multi_select_dropdown;
 
+  const hasOthersInput = column.has_others;
+
   const commonProps = {
-    value: formData[column.column_id] ?? (isMulti ? [] : ""),
-    onChange: (value) =>
+    // value: formData[column.column_id] ?? (isMulti ? [] : ""),
+    value:
+      updateType === "bulk" && formData[column.column_id] === "__CLEAR__"
+        ? ""
+        : (formData[column.column_id] ?? (isMulti ? [] : "")),
+    onChange: (value) => {
       handleInputChange(
         column.column_id,
         value,
         setFormData,
         isMulti,
         column.field_type,
-      ),
+      );
+    },
     required: !!column.is_required,
     placeholder: `Enter ${column.label.toLowerCase()}`,
     disabled,
@@ -191,6 +231,7 @@ export const renderClientInputField = (
         return (
           <MultiSelectDropdownField
             {...commonProps}
+            hasOthersInput={hasOthersInput}
             options={dropdownOptions}
             selected={formData[column.column_id] || []}
             onRemove={(value) =>
@@ -204,6 +245,7 @@ export const renderClientInputField = (
       return (
         <SearchDropdownField
           {...commonProps}
+          hasOthersInput={hasOthersInput}
           dropdownList={dropdownOptions}
           disabled={disabled}
         />
@@ -226,7 +268,9 @@ export const renderClientInputField = (
     }
 
     case "date":
-      return <DateField {...commonProps} disabled={disabled} type="datetime-local" />;
+      return (
+        <DateField {...commonProps} disabled={disabled} type="datetime-local" />
+      );
 
     case "number":
       return (

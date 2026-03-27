@@ -30,6 +30,7 @@ export default function NewClientGroupPage({ params }) {
       label: "Client Name",
       field_type: "short_text",
       multi_select_dropdown: false,
+      has_others: false,
       permission: "editable",
       width: "100",
       is_required: false,
@@ -43,6 +44,7 @@ export default function NewClientGroupPage({ params }) {
     label: "",
     field_type: "short_text",
     multi_select_dropdown: false,
+    has_others: false,
     permission: "editable",
     width: "100",
     is_required: false,
@@ -157,6 +159,7 @@ export default function NewClientGroupPage({ params }) {
       label: "",
       field_type: "short_text",
       multi_select_dropdown: false,
+      has_others: false,
       permission: "editable",
       width: "100",
       is_required: false,
@@ -183,6 +186,7 @@ export default function NewClientGroupPage({ params }) {
         label: "",
         field_type: "short_text",
         multi_select_dropdown: false,
+        has_others: false,
         permission: "editable",
         width: "100",
         is_required: false,
@@ -385,6 +389,21 @@ export default function NewClientGroupPage({ params }) {
                     dropdownList={widths}
                   />
                 </div>
+
+                {newField.field_type === "dropdown" && (
+                  <div className="input-group row-layout">
+                    <label>Others Input</label>
+                    <SwitchField
+                      checked={newField.has_others}
+                      onChange={(e) =>
+                        setNewField((prev) => ({
+                          ...prev,
+                          has_others: e.target.checked,
+                        }))
+                      }
+                    />
+                  </div>
+                )}
 
                 {newField.field_type === "dropdown" && (
                   <div className="input-group row-layout">

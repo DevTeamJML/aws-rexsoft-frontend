@@ -587,16 +587,75 @@ export default function EditClientPage() {
                 className="input-group"
                 style={{ "--col-width": `${column.width}%` }}
               >
-                <label>
+                {/* <label>
                   {column.label}
                   {column.is_required ? (
                     <span style={{ color: "red" }}> *</span>
                   ) : null}
-                </label>
+                </label> */}
+
+                <div style={isAdmin ? {display: "flex", justifyContent:"space-between", alignItems:"center"} : {}}>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    {column.label}
+                    {column.is_required ? (
+                      <span style={{ color: "red" }}>*</span>
+                    ) : null}
+                  </label>
+                  {isAdmin ? (
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: "#999",
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }}
+                      onClick={() => {
+                        let emptyValue = "";
+
+                        switch (column.field_type) {
+                          case "handler":
+                          case "checkbox":
+                          case "choice":
+                            emptyValue = [];
+                            break;
+
+                          case "number":
+                            emptyValue = 0;
+                            break;
+                          case "dropdown":
+                            emptyValue = column.multi_select_dropdown ? [] : "";
+                            break;
+
+                          case "alert":
+                            emptyValue = { date: "", is_complete: false };
+                            break;
+
+                          default:
+                            emptyValue = "";
+                        }
+
+                        setFormData((prev) => ({
+                          ...prev,
+                          [column.column_id]: emptyValue,
+                        }));
+                      }}
+                    >
+                      clear
+                    </span>
+                  ) : null}
+                </div>
 
                 {renderClientInputField(formData, column, setFormData, {
                   disabled: column.permission === "view_only",
                   error: formErrors[column.column_id],
+                  isAdmin,
+                  updateType: "single",
                 })}
 
                 {formErrors[column.column_id] && (

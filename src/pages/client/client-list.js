@@ -395,6 +395,27 @@ const ClientList = () => {
 
     dispatch(setSelectedClientIdsSuccess([]));
   };
+  const handleColumnFilter = (filter) => {
+    const newFilters = filters.filter((f) => f.column_id !== filter.column_id);
+
+    newFilters.push(filter);
+
+    setFilters(newFilters);
+
+    dispatch(
+      getAllClients({
+        ...currSelectedGroup,
+        sortConfig,
+        pagination,
+        filters: newFilters,
+        fixedColumns,
+        user_id: user?.uid,
+        isAdmin,
+        isArchivedPage,
+        hasPermission: canManageHandler,
+      }),
+    );
+  };
 
   const handleApplyFilters = (targetFilters) => {
     setFilters(targetFilters);
@@ -533,6 +554,8 @@ const ClientList = () => {
         onClose={() => setIsFilterOpen(false)}
         dynamicColumns={dynamicColumns}
         fixedColumns={fixedColumns}
+        filters={filters}
+        setFilters={setFilters}
         onApplyFilters={handleApplyFilters}
       />
       <ConfirmModal
@@ -549,7 +572,11 @@ const ClientList = () => {
         }}
       />
       <RtePreviewModal
-        open={(rtePreviewContent !== "" && rtePreviewContent !== undefined) ? true : false}
+        open={
+          rtePreviewContent !== "" && rtePreviewContent !== undefined
+            ? true
+            : false
+        }
         content={rtePreviewContent}
         onCancel={() => {
           setRtePreviewContent("");
@@ -648,8 +675,11 @@ const ClientList = () => {
           ) : null}
 
           {/* Filter Icon */}
-          <div className="icon-group" onClick={() => setIsFilterOpen(true)}>
-            <FaSlidersH className="icon" />
+          <div className="filter-icon-wrapper">
+            <div className="icon-group" onClick={() => setIsFilterOpen(true)}>
+              <FaSlidersH className="icon" />
+            </div>
+            {filters.length > 0 ? <div className="running-filters-count">{filters.length}</div> : null}
           </div>
 
           {/* Show/Hide Columns */}
@@ -666,6 +696,7 @@ const ClientList = () => {
         data={clients}
         fixedColumns={fixedColumns}
         dynamicColumns={dynamicColumns}
+        filter={true}
         sortable={true}
         resizable={true}
         selectable={true}
@@ -693,6 +724,8 @@ const ClientList = () => {
         isAdmin={isAdmin}
         rtePreviewContent={rtePreviewContent}
         setRtePreviewContent={setRtePreviewContent}
+        onColumnFilter={handleColumnFilter}
+        filters={filters}
       />
     </div>
   );

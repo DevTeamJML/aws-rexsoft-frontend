@@ -20,6 +20,7 @@ import "@/styles/Misc/client-logs-drawer.scss";
 import "@/styles/Misc/reset-password-modal.scss";
 import "@/styles/Misc/appointment-drawer.scss";
 import "@/styles/Misc/rte-preview-modal.scss";
+import "@/styles/Misc/column-filter-popover.scss";
 
 // Form
 import "@/styles/Form/new-form-template.scss";
@@ -79,12 +80,14 @@ import "@/styles/FormComponents/switch.scss";
 import "@/styles/FormComponents/input-color.scss";
 import "@/styles/FormComponents/rich-text-field.scss";
 import "@/styles/FormComponents/multiple-choice-field.scss";
+import "@/styles/FormComponents/search-field.scss";
 
 import { useRouter } from "next/router";
 import { ToastProvider } from "@/components/Misc/Toast";
 import { Provider } from "react-redux";
 import store from "../../redux/store";
 import { AuthProvider } from "@/components/Provider/AuthProvider";
+import { ChatContextProvider } from "@/components/Conversation/UserChatContext";
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
@@ -101,13 +104,15 @@ export default function App({ Component, pageProps }) {
     <Provider store={store}>
       <AuthProvider>
         <ToastProvider>
-          {shouldShowSidebar ? (
-            <Layout>
+          <ChatContextProvider>
+            {shouldShowSidebar ? (
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            ) : (
               <Component {...pageProps} />
-            </Layout>
-          ) : (
-            <Component {...pageProps} />
-          )}
+            )}
+          </ChatContextProvider>
         </ToastProvider>
       </AuthProvider>
     </Provider>

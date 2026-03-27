@@ -17,6 +17,7 @@ import {
 import moment from "moment";
 import { useSelectAllCompanyUsers } from "../../../redux/slices/companySlice";
 import { safeParseJSON } from "@/utils/validation";
+import ColumnFilterPopover from "./ColumnFilterPopover";
 
 const ReusableTable = ({
   tableId,
@@ -28,6 +29,7 @@ const ReusableTable = ({
   /** Sorting & Column Behavior */
   sortable = true,
   resizable = false,
+  filter = false,
 
   /** Selection */
   selectable = false,
@@ -77,6 +79,8 @@ const ReusableTable = ({
 
   /** Admin override */
   isAdmin = false,
+  onColumnFilter = () => {},
+  filters = [],
 }) => {
   const dispatch = useDispatch();
   const allCompanyUsers = useSelectAllCompanyUsers();
@@ -95,6 +99,14 @@ const ReusableTable = ({
   const rowMeasureRef = useRef(null);
   const [rowHeight, setRowHeight] = useState(38);
   const [scrollTop, setScrollTop] = useState(0);
+
+  const [filterColumn, setFilterColumn] = useState(null);
+  const [filterAnchor, setFilterAnchor] = useState(null);
+
+  const openColumnFilter = (column, e) => {
+    setFilterColumn(column);
+    setFilterAnchor(e.currentTarget);
+  };
 
   const BUFFER = 5;
   const currentSortConfig = sortConfig || {};
@@ -670,49 +682,75 @@ const ReusableTable = ({
             <table className="reusable-table">
               <thead>
                 <tr>
-                  {visibleSortedColumns.map((col) => (
-                    <th
-                      key={col.id}
-                      className={`table-header ${sortable ? "sortable" : ""} ${
-                        col.fixed ? "fixed-column" : ""
-                      }`}
-                      data-fixed={col.fixedPosition}
-                      style={{ width: `${getColumnWidth(col.id)}px` }}
-                      onClick={() => {
-                        if (resizing) return;
+                  {visibleSortedColumns.map((col) => {
+                    const isFiltered = filters.some(
+                      (f) => f.column_id === col.id,
+                    );
 
-                        if (col.id !== "_checkbox" && col.id !== "actions") {
-                          handleSort(col);
-                        }
-                      }}
-                    >
-                      <div className="header-content">
-                        {col.field_type === "_checkbox" ? (
-                          renderCheckbox()
-                        ) : (
-                          <>
-                            <span className="header-label">{col.label}</span>
-                            {sortable &&
-                              col.field_type !== "action" &&
-                              renderSortIcon(col)}
-                          </>
-                        )}
-                      </div>
+                    return (
+                      <th
+                        key={col.id}
+                        className={`table-header ${sortable ? "sortable" : ""} ${
+                          col.fixed ? "fixed-column" : ""
+                        }`}
+                        data-fixed={col.fixedPosition}
+                        style={{ width: `${getColumnWidth(col.id)}px` }}
+                        onClick={() => {
+                          if (resizing) return;
 
-                      {resizable &&
-                        col.field_type !== "checkbox" &&
-                        col.field_type !== "action" && (
-                          <div
-                            className="column-resizer"
-                            onMouseDown={(e) => {
-                              e.stopPropagation();
-                              handleResizeStart(col.id, e);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        )}
-                    </th>
-                  ))}
+                          if (col.id !== "_checkbox" && col.id !== "actions") {
+                            handleSort(col);
+                          }
+                        }}
+                      >
+                        <div className="header-content">
+                          {col.field_type === "_checkbox" ? (
+                            renderCheckbox()
+                          ) : (
+                            <>
+                              {filter ? (
+                                <div className="header-label-wrapper">
+                                  <span className="header-label">
+                                    {col.label}
+                                  </span>
+
+                                  <span
+                                    className={`column-filter-arrow ${isFiltered ? "active" : ""}`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openColumnFilter(col, e);
+                                    }}
+                                  >
+                                    ▾
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="header-label">
+                                  {col.label}
+                                </span>
+                              )}
+                              {sortable &&
+                                col.field_type !== "action" &&
+                                renderSortIcon(col)}
+                            </>
+                          )}
+                        </div>
+
+                        {resizable &&
+                          col.field_type !== "checkbox" &&
+                          col.field_type !== "action" && (
+                            <div
+                              className="column-resizer"
+                              onMouseDown={(e) => {
+                                e.stopPropagation();
+                                handleResizeStart(col.id, e);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          )}
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
             </table>
@@ -766,6 +804,21 @@ const ReusableTable = ({
           </div>
         </div>
       </div>
+      {filterColumn && (
+        <ColumnFilterPopover
+          column={filterColumn}
+          anchorEl={filterAnchor}
+          existingFilter={filters?.find(
+            (f) => f.column_id === filterColumn?.id,
+          )}
+          onClose={() => setFilterColumn(null)}
+          onApply={(filter) => {
+            onColumnFilter?.(filter);
+            setFilterColumn(null);
+          }}
+          fixedColumns={fixedColumns}
+        />
+      )}
 
       {pagination && totalPages > 1 && (
         <div className="table-pagination">

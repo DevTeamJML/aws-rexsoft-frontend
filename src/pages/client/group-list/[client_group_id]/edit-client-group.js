@@ -39,6 +39,7 @@ export default function EditClientGroupPage({ params }) {
       label: "Client Name",
       field_type: "short_text",
       multi_select_dropdown: false,
+      has_others: false,
       permission: "editable",
       width: "100",
       is_required: false,
@@ -52,6 +53,7 @@ export default function EditClientGroupPage({ params }) {
     label: "",
     field_type: "short_text",
     multi_select_dropdown: false,
+    has_others: false,
     permission: "editable",
     width: "100",
     is_required: false,
@@ -208,7 +210,12 @@ export default function EditClientGroupPage({ params }) {
   }, [selectedColumnId]);
 
   useEffect(() => {
-    if (newField.field_type === "dropdown" || newField.field_type === "alert" || newField.field_type === "choice" || newField.field_type === "checkbox") {
+    if (
+      newField.field_type === "dropdown" ||
+      newField.field_type === "alert" ||
+      newField.field_type === "choice" ||
+      newField.field_type === "checkbox"
+    ) {
       setNewField((prev) => ({
         ...prev,
         options: prev.options || [
@@ -231,6 +238,7 @@ export default function EditClientGroupPage({ params }) {
       label: "",
       field_type: "short_text",
       multi_select_dropdown: false,
+      has_others: false,
       permission: "editable",
       width: "100",
       is_required: false,
@@ -257,6 +265,7 @@ export default function EditClientGroupPage({ params }) {
         label: "",
         field_type: "short_text",
         multi_select_dropdown: false,
+        has_others: false,
         permission: "editable",
         width: "100",
         is_required: false,
@@ -315,7 +324,6 @@ export default function EditClientGroupPage({ params }) {
 
   return (
     <Fragment>
-   
       {showDrawer ? <div className="backdrop"></div> : null}
       <div className="new-client-group-container">
         {/* Top Card */}
@@ -468,6 +476,21 @@ export default function EditClientGroupPage({ params }) {
 
                   {newField.field_type === "dropdown" && (
                     <div className="input-group row-layout">
+                      <label>Others Input</label>
+                      <SwitchField
+                        checked={newField.has_others}
+                        onChange={(e) =>
+                          setNewField((prev) => ({
+                            ...prev,
+                            has_others: e.target.checked,
+                          }))
+                        }
+                      />
+                    </div>
+                  )}
+
+                  {newField.field_type === "dropdown" && (
+                    <div className="input-group row-layout">
                       <label>Multi Select</label>
                       <SwitchField
                         checked={newField.multi_select_dropdown}
@@ -509,9 +532,9 @@ export default function EditClientGroupPage({ params }) {
                 </div>
 
                 {/* Options Section for Dropdown */}
-                {(newField.field_type === "dropdown" || newField.field_type === "choice" 
-                  || newField.field_type === "checkbox"
-                ) && (
+                {(newField.field_type === "dropdown" ||
+                  newField.field_type === "choice" ||
+                  newField.field_type === "checkbox") && (
                   <>
                     <div className="divider"></div>
                     <div className="form-section">

@@ -316,7 +316,8 @@ export default function BulkUpdateClient() {
         (col) =>
           typeof formData[col.column_id] !== "undefined" &&
           formData[col.column_id] !== null &&
-          !(String(formData[col.column_id]).trim() === ""),
+          (String(formData[col.column_id]).trim() !== "" ||
+            formData[col.column_id] === "__CLEAR__"),
       );
 
       const hasHandlerChanges =
@@ -366,7 +367,34 @@ export default function BulkUpdateClient() {
       };
 
       for (const col of columnsWithValues) {
+        // let columnValue = formData[col.column_id];
         let columnValue = formData[col.column_id];
+
+        // convert CLEAR to actual value
+        if (columnValue === "__CLEAR__") {
+          switch (col.field_type) {
+            case "handler":
+            case "checkbox":
+            case "choice":
+              columnValue = [];
+              break;
+
+            case "number":
+              columnValue = 0;
+              break;
+
+            case "dropdown":
+              columnValue = col.multi_select_dropdown ? [] : "";
+              break;
+
+            case "alert":
+              columnValue = { date: "", is_complete: false };
+              break;
+
+            default:
+              columnValue = "";
+          }
+        }
 
         if (col.field_type === "rich_text") {
           columnValue = "";
@@ -666,8 +694,61 @@ export default function BulkUpdateClient() {
                 className="input-group"
                 style={{ "--col-width": `${column.width}%` }}
               >
-                <label>{column.label}</label>
-                {renderClientInputField(formData, column, setFormData)}
+                <div
+                  style={
+                    isAdmin
+                      ? {
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }
+                      : {}
+                  }
+                >
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    {column.label}
+                    {column.is_required ? (
+                      <span style={{ color: "red" }}>*</span>
+                    ) : null}
+                  </label>
+                  {isAdmin ? (
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: "#999",
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }}
+                      onClick={() => {
+                        let emptyValue;
+
+                        emptyValue = "__CLEAR__";
+                        setFormData((prev) => ({
+                          ...prev,
+                          [column.column_id]: emptyValue,
+                        }));
+                      }}
+                    >
+                      clear
+                    </span>
+                  ) : null}
+                </div>
+
+                {renderClientInputField(formData, column, setFormData, {
+                  isAdmin,
+                  updateType: "bulk",
+                })}
+                {formData[column.column_id] === "__CLEAR__" && (
+                  <div style={{ fontSize: 12, color: "red" }}>
+                    This will clear for all selected clients
+                  </div>
+                )}
               </div>
             ))}
           </div>

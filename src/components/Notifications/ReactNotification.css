@@ -1,0 +1,84 @@
+.noti-container {
+    display: flex;
+    transition: all 0.5s;
+    width: 250px;
+    background-color: rgb(255, 255, 255);
+    flex-direction: row;
+    position: absolute;
+    bottom: 0;
+    margin-bottom: 20px;
+    right: 0;
+    margin-right: -2000px;
+    border-radius: 10px;
+    z-index: 10000;
+    padding-inline: 1rem;
+    padding-block: 1rem;
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+}
+
+.show-noti{
+    display: flex;
+    margin-right: 20px;
+}
+
+.noti-content-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.noti-img-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.noti-text-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-image {
+    height: 45px;
+    width: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.noti-title {
+    font-size: 14px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    width: 100%;
+}
+
+.noti-body {
+    font-size: 13px;
+    font-weight: lighter;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    width: 100%;
+}
+
+.noti-imgContent {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 5px;
+}
+
+.content-image {
+    height: 100%;
+    width: 100%;
+    border-radius: 5px;
+    object-fit: cover;
+}
