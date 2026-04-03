@@ -11,23 +11,30 @@ import {
 } from "react-icons/ai";
 import { useSelectUser } from "../../../../redux/slices/authSlice";
 import { MessageContext } from "../ChatScrollContext";
-import { ChatContext } from "../UserChatContext";
+import { setDoc, setQuote } from "../../../../redux/slices/messageSlice";
+import { ConstructionOutlined } from "@mui/icons-material";
 
 const Messages = ({}) => {
   const { fileInputRef, imageInputRef } = useContext(MessageContext);
+  const bottomRef = useRef(null);
 
   const dispatch = useDispatch();
 
-  const messages = useSelector((state) => state.chat.messages);
-  const doc = useSelector((state) => state.chat.doc);
-  const quote = useSelector((state) => state.chat.quote);
+  const messages = useSelector((state) => state.message.messages);
+  const doc = useSelector((state) => state.message.doc);
+  const quote = useSelector((state) => state.message.quote);
   const user = useSelectUser();
-  const { data, groupUser } = useContext(ChatContext);
+  const chat = useSelector((state) => state.chat.selectedChat);
+  const groupUser = useSelector((state) => state.chat.groupUsers);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const groups = messages?.reduce((groups, item) => {
     if (groupUser.length > 0) {
       Object.entries(item).map((data) => {
-        if (data[0] === user.uid) {
+        if (data[0] === user?.uid) {
           var date = moment(data[1].date).format();
           const newDate = date.split("T")[0];
           if (!groups[newDate]) {
@@ -57,7 +64,7 @@ const Messages = ({}) => {
       // GROUP CHAT
       if (groupUser?.length > 0 && user?.uid) {
         Object.entries(item || {}).forEach(([key, value]) => {
-          if (!value || key !== user.uid) return;
+          if (!value || key !== user?.uid) return;
 
           const rawDate = value?.date;
           if (!rawDate) return;
@@ -100,11 +107,11 @@ const Messages = ({}) => {
     const newDoc = doc.data.filter((_, pos) => pos !== index);
 
     if (newDoc.length === 0) {
-      dispatch(setChosenFile(null));
+      dispatch(setDoc(null));
       imageInputRef.current.value = null;
     } else {
       dispatch(
-        setChosenFile({
+        setDoc({
           type: "image",
           data: newDoc,
         }),
@@ -116,11 +123,11 @@ const Messages = ({}) => {
     const newDoc = doc.data.filter((_, pos) => pos !== index);
 
     if (newDoc.length === 0) {
-      dispatch(setChosenFile(null));
+      dispatch(setDoc(null));
       fileInputRef.current.value = null;
     } else {
       dispatch(
-        setChosenFile({
+        setDoc({
           type: "file",
           data: newDoc,
         }),
@@ -189,6 +196,8 @@ const Messages = ({}) => {
                           }
                           return <Message message={m} key={m.id} />;
                         })}
+
+                      <div ref={bottomRef} />
                     </>
                   );
                 })}
@@ -252,10 +261,10 @@ const Messages = ({}) => {
                     return <span className="name">{item.displayName}</span>;
                   }
                 })
-              ) : quote.senderId === user.uid ? (
-                <span>{user.displayName}</span>
+              ) : quote.senderId === user?.uid ? (
+                <span>{user?.displayName}</span>
               ) : (
-                <span>{data.user.displayName}</span>
+                <span>{chat?.userInfo?.displayName}</span>
               )}
               <span className="text">{quote.text}</span>
             </div>
@@ -270,10 +279,10 @@ const Messages = ({}) => {
                     return <span className="name">{item.displayName}</span>;
                   }
                 })
-              ) : quote.senderId === user.uid ? (
-                <span>{user.displayName}</span>
+              ) : quote.senderId === user?.uid ? (
+                <span>{user?.displayName}</span>
               ) : (
-                <span>{data.user.displayName}</span>
+                <span>{chat?.userInfo?.displayName}</span>
               )}
               <div className="image">
                 <AiFillCamera size={15} />
@@ -292,10 +301,10 @@ const Messages = ({}) => {
                     return <span className="name">{item.displayName}</span>;
                   }
                 })
-              ) : quote.senderId === user.uid ? (
-                <span>{user.displayName}</span>
+              ) : quote.senderId === user?.uid ? (
+                <span>{user?.displayName}</span>
               ) : (
-                <span>{data.user.displayName}</span>
+                <span>{chat?.userInfo?.displayName}</span>
               )}
               <div className="file">
                 <AiFillFile size={15} />

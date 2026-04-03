@@ -3,6 +3,10 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   selectedChat: null,
   chatId: null,
+  chats: {},
+  unreadCount: [],
+  conversationGroup: false,
+  groupUsers: [],
 };
 
 const chatSlice = createSlice({
@@ -10,21 +14,28 @@ const chatSlice = createSlice({
   initialState,
   reducers: {
     setPrivateChat: (state, action) => {
-      const { currentUserId, user } = action.payload;
+      const { user, chatId } = action.payload;
 
-      const chatId =
-        currentUserId > user.uid
-          ? currentUserId + user.uid
-          : user.uid + currentUserId;
+      state.selectedChat = {
+        chatId,
+        isGroup: false,
+        userInfo: user,
+        groupInfo: null,
+      };
 
-      state.selectedChat = user;
       state.chatId = chatId;
     },
 
     setGroupChat: (state, action) => {
       const { group } = action.payload;
 
-      state.selectedChat = group;
+      state.selectedChat = {
+        chatId: group.userInfo,
+        isGroup: true,
+        userInfo: null,
+        groupInfo: group.groupInfo,
+      };
+
       state.chatId = group.userInfo;
     },
 
@@ -32,11 +43,28 @@ const chatSlice = createSlice({
       state.selectedChat = null;
       state.chatId = null;
     },
+
+    setChats: (state, action) => {
+      state.chats = action.payload;
+    },
+
+    setUnreadCount: (state, action) => {
+      state.unreadCount = action.payload;
+    },
+
+    setConversationGroup: (state, action) => {
+      state.conversationGroup = action.payload;
+    },
   },
 });
 
-export const { setPrivateChat, setGroupChat, clearChat } = chatSlice.actions;
+export const {
+  setPrivateChat,
+  setGroupChat,
+  clearChat,
+  setChats,
+  setUnreadCount,
+  setConversationGroup,
+} = chatSlice.actions;
 
-const chatReducer = chatSlice.reducer;
-
-export default chatReducer;
+export default chatSlice.reducer;

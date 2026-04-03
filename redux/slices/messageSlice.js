@@ -4,11 +4,10 @@ const initialState = {
   messages: [],
   unreadMessages: [],
   unreadMessagesGroup: [],
-  selectedMessage: null,
   doc: null,
   quote: null,
   loading: false,
-  sendChatNotificationLoading : false,
+  sendChatNotificationLoading: false,
 };
 
 const messageSlice = createSlice({
@@ -24,9 +23,6 @@ const messageSlice = createSlice({
     setUnreadMessagesGroup(state, action) {
       state.unreadMessagesGroup = action.payload;
     },
-    setSelectedMessage(state, action) {
-      state.selectedMessage = action.payload;
-    },
     setDoc(state, action) {
       state.doc = action.payload;
     },
@@ -40,12 +36,12 @@ const messageSlice = createSlice({
     sendChatNotification(state) {
       state.sendChatNotificationLoading = true;
     },
-    sendChatNotificationSuccess(state, { payload }) {
+    sendChatNotificationSuccess(state) {
       state.sendChatNotificationLoading = false;
     },
 
-    // trigger saga
-    fetchMessages(state, action) {},
+    // saga trigger
+    fetchMessages() {},
   },
 });
 
@@ -53,14 +49,13 @@ export const {
   setMessages,
   setUnreadMessages,
   setUnreadMessagesGroup,
-  setSelectedMessage,
   setDoc,
   setQuote,
   setLoading,
   fetchMessages,
   sendChatNotification,
-  sendChatNotificationSuccess
+  sendChatNotificationSuccess,
 } = messageSlice.actions;
 
-const messageReducer = messageSlice.reducer
+const messageReducer = messageSlice.reducer;
 export default messageReducer;

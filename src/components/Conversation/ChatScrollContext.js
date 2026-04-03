@@ -15,6 +15,8 @@ export const MessageContextProvider = ({ children }) => {
 
     // add new refs
     messages.forEach((msg) => {
+      if (!msg || !msg.id) return;
+
       if (!messageRefs.current[msg.id]) {
         messageRefs.current[msg.id] = React.createRef();
       }

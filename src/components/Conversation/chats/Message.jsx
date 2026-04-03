@@ -6,21 +6,38 @@ import { ref as ref_database, set } from "firebase/database";
 import moment from "moment";
 import { MessageContext } from "../ChatScrollContext";
 import { useSelectUser } from "../../../../redux/slices/authSlice";
-import { ChatContext } from "../UserChatContext";
 import { db } from "@/config/firebaseConfig";
+import { useDispatch, useSelector } from "react-redux";
+import { setDoc, setQuote } from "../../../../redux/slices/messageSlice";
 
 const Message = ({ message }) => {
   const user = useSelectUser();
-  const { data, groupUser } = useContext(ChatContext);
+  const dispatch = useDispatch();
+
+  const chat = useSelector((state) => state.chat.selectedChat);
+  const chatId = useSelector((state) => state.chat.chatId);
+  const groupUser = useSelector((state) => state.chat.groupUsers);
+
+  const unreadMessages = useSelector((state) => state.message.unreadMessages);
+  const unreadMessagesGroup = useSelector(
+    (state) => state.message.unreadMessagesGroup,
+  );
+  const selectedMessage = useSelector(
+    (state) => state.message.highlightedMessageId,
+  );
+
   const [showTools, setShowTools] = useState(false);
   const { messageRefs } = useContext(MessageContext);
+
+  const messages = useSelector((state) => state.message.messages);
+
   const [groupedUnread, setGroupedUnread] = useState([]);
 
   useEffect(() => {
-    if (groupUser.length > 0 && user.uid) {
+    if (groupUser.length > 0 && user?.uid) {
       const groupReadMessage = unreadMessagesGroup.reduce((groups, item) => {
         for (var y = 0; y < groupUser.length; y++) {
-          if (groupUser[y].uid !== user.uid) {
+          if (groupUser[y].uid !== user?.uid) {
             if (!groups[item[groupUser[y].uid]?.id]) {
               groups[item[groupUser[y].uid]?.id] = [];
             }
@@ -58,20 +75,22 @@ const Message = ({ message }) => {
     }
   }, [unreadMessagesGroup]);
 
-  useEffect(() => {
-    messageRefs[message.id].current?.scrollIntoView({ behavior: "auto" });
-  }, []);
+  // useEffect(() => {
+  //   const ref = messageRefs?.[message.id];
+  //   ref?.current?.scrollIntoView({ behavior: "auto" });
+  // }, [messageRefs, message.id]);
+
 
   useEffect(() => {
     if (groupUser.length === 0) {
       if (unreadMessages.length !== 0) {
         for (var x = 0; x < unreadMessages.length; x++) {
-          if (unreadMessages[x].senderId !== user.uid) {
+          if (unreadMessages[x].senderId !== user?.uid) {
             set(
               ref_database(
                 db,
                 "chats/" +
-                  data.chatId +
+                  chatId +
                   "/messages/" +
                   unreadMessages[x].id +
                   "/hasRead",
@@ -83,18 +102,18 @@ const Message = ({ message }) => {
       }
     } else if (
       groupUser.length > 0 &&
-      message.senderId !== user.uid &&
+      message.senderId !== user?.uid &&
       message.hasRead === false
     ) {
       set(
         ref_database(
           db,
           "chats/" +
-            data.chatId +
+            chatId +
             "/messages/" +
             message.id +
             "/" +
-            user.uid +
+            user?.uid +
             "/hasRead",
         ),
         true,
@@ -103,28 +122,17 @@ const Message = ({ message }) => {
   }, [unreadMessagesGroup]);
 
   function recallMessage(item) {
+    set(ref_database(db, `chats/${chatId}/messages/${item.id}/recall`), true);
+
     set(
-      ref_database(
-        db,
-        "chats/" + data.chatId + "/messages/" + item.id + "/recall",
-      ),
+      ref_database(db, `userChats/${user?.uid}/${chatId}/lastMessage/recall`),
       true,
     );
+
     set(
       ref_database(
         db,
-        "userChats/" + user.uid + "/" + data.chatId + "/lastMessage/recall",
-      ),
-      true,
-    );
-    set(
-      ref_database(
-        db,
-        "userChats/" +
-          data.user.uid +
-          "/" +
-          data.chatId +
-          "/lastMessage/recall",
+        `userChats/${chat?.userInfo?.uid}/${chatId}/lastMessage/recall`,
       ),
       true,
     );
@@ -137,7 +145,7 @@ const Message = ({ message }) => {
           ref_database(
             db,
             "chats/" +
-              data.chatId +
+              chatId +
               "/messages/" +
               item.id +
               "/" +
@@ -152,7 +160,7 @@ const Message = ({ message }) => {
             "userChats/" +
               groupUser[x].uid +
               "/" +
-              data.chatId +
+              chatId +
               "/lastMessage/recall",
           ),
           true,
@@ -163,7 +171,7 @@ const Message = ({ message }) => {
 
   function quoteText(data) {
     dispatch(setQuote(data));
-    dispatch(setChosenFile(null));
+    dispatch(setDoc(null));
   }
 
   const handleFindMessage = (id) => {
@@ -171,7 +179,7 @@ const Message = ({ message }) => {
       behavior: "smooth",
       block: "end",
     });
-    dispatch(setSelectedMessage(id))
+    dispatch(setHighlightedMessage(id));
   };
 
   return (
@@ -182,10 +190,10 @@ const Message = ({ message }) => {
             <div
               ref={messageRefs[message.id]}
               key={message.id}
-              className={`message ${message.senderId === user.uid && "owner"}`}
+              className={`message ${message.senderId === user?.uid && "owner"}`}
             >
               <div className="messageInfo">
-                {message.senderId === user.uid ? (
+                {message.senderId === user?.uid ? (
                   <img src={user.photoURL} alt="" />
                 ) : (
                   groupUser &&
@@ -208,7 +216,7 @@ const Message = ({ message }) => {
                 {message.text && (
                   <div className="MessageContainer">
                     <div
-                      className={`MessageToolBox ${message.senderId === user.uid && showTools && !message.recall && "MessageToolBox-active"}`}
+                      className={`MessageToolBox ${message.senderId === user?.uid && showTools && !message.recall && "MessageToolBox-active"}`}
                     >
                       {parseInt(
                         moment
@@ -246,7 +254,7 @@ const Message = ({ message }) => {
                         groupUser.map((element) => {
                           if (
                             element.uid === message.senderId &&
-                            message.senderId !== user.uid
+                            message.senderId !== user?.uid
                           ) {
                             return (
                               <span className="GroupUserName">
@@ -257,7 +265,6 @@ const Message = ({ message }) => {
                         })}
                       {!message.recall ? (
                         <div
-                          ref={messageRefs[message.id]}
                           className={`MessageInfoContainer ${message.quote && "quoted"} ${selectedMessage === message.id && "spotlight"}`}
                         >
                           {message.quote && (
@@ -271,7 +278,7 @@ const Message = ({ message }) => {
                                   }}
                                 >
                                   <span className="name">
-                                    {message.quoteSender !== user.uid
+                                    {message.quoteSender !== user?.uid
                                       ? groupUser &&
                                         groupUser.map((element) => {
                                           if (
@@ -280,7 +287,7 @@ const Message = ({ message }) => {
                                             return element.displayName;
                                           }
                                         })
-                                      : user.displayName}
+                                      : user?.displayName}
                                   </span>
                                   <span className="text">{message.quote}</span>
                                 </div>
@@ -295,7 +302,7 @@ const Message = ({ message }) => {
                                 >
                                   <div className="containerForText">
                                     <span className="name">
-                                      {message.quoteSender !== user.uid
+                                      {message.quoteSender !== user?.uid
                                         ? groupUser &&
                                           groupUser.map((element) => {
                                             if (
@@ -326,7 +333,7 @@ const Message = ({ message }) => {
                                   }}
                                 >
                                   <span className="name">
-                                    {message.quoteSender !== user.uid
+                                    {message.quoteSender !== user?.uid
                                       ? groupUser &&
                                         groupUser.map((element) => {
                                           if (
@@ -359,7 +366,7 @@ const Message = ({ message }) => {
                     </div>
 
                     <div
-                      className={`MessageToolBox ${message.senderId !== user.uid && showTools && !message.recall && "MessageToolBox-active"}`}
+                      className={`MessageToolBox ${message.senderId !== user?.uid && showTools && !message.recall && "MessageToolBox-active"}`}
                     >
                       {/* <div className="emojiContainer">
                   <BiHappyHeartEyes className="emoji" size={18} onClick={() => { }}/>
@@ -381,7 +388,7 @@ const Message = ({ message }) => {
                     {!message.recall ? (
                       <div className="MessageContainerImg">
                         <div
-                          className={`MessageToolBox ${message.senderId === user.uid && showTools && !message.recall && "MessageToolBox-active"}`}
+                          className={`MessageToolBox ${message.senderId === user?.uid && showTools && !message.recall && "MessageToolBox-active"}`}
                         >
                           {parseInt(
                             moment
@@ -419,7 +426,7 @@ const Message = ({ message }) => {
                           <img src={message.img} alt="" />
                         </a>
                         <div
-                          className={`MessageToolBox ${message.senderId !== user.uid && showTools && !message.recall && "MessageToolBox-active"}`}
+                          className={`MessageToolBox ${message.senderId !== user?.uid && showTools && !message.recall && "MessageToolBox-active"}`}
                         >
                           {/* <div className="emojiContainer">
                   <BiHappyHeartEyes className="emoji" size={18} onClick={() => { }}/>
@@ -447,7 +454,7 @@ const Message = ({ message }) => {
                     {!message.recall ? (
                       <div className="fileContainer">
                         <div
-                          className={`MessageToolBox ${message.senderId === user.uid && showTools && !message.recall && "MessageToolBox-active"}`}
+                          className={`MessageToolBox ${message.senderId === user?.uid && showTools && !message.recall && "MessageToolBox-active"}`}
                         >
                           {parseInt(
                             moment
@@ -504,7 +511,7 @@ const Message = ({ message }) => {
                           </div>
                         </a>
                         <div
-                          className={`MessageToolBox ${message.senderId !== user.uid && showTools && !message.recall && "MessageToolBox-active"}`}
+                          className={`MessageToolBox ${message.senderId !== user?.uid && showTools && !message.recall && "MessageToolBox-active"}`}
                         >
                           {/* <div className="emojiContainer">
                   <BiHappyHeartEyes className="emoji" size={18} onClick={() => { }}/>
@@ -531,7 +538,7 @@ const Message = ({ message }) => {
                   <span className="MessageTime">
                     {moment(message.date).format("hh:mm A")}
                   </span>
-                  {message.senderId === user.uid && (
+                  {message.senderId === user?.uid && (
                     <BiCheckDouble
                       className={`unreadMessage ${groupedUnread[message.id] && "messageRead"}`}
                       size={20}
@@ -544,14 +551,14 @@ const Message = ({ message }) => {
             <div
               ref={messageRefs[message.id]}
               key={message.id}
-              className={`message ${message.senderId === user.uid && "owner"}`}
+              className={`message ${message.senderId === user?.uid && "owner"}`}
             >
               <div className="messageInfo">
                 <img
                   src={
-                    message.senderId === user.uid
+                    message.senderId === user?.uid
                       ? user.photoURL
-                      : data.user.photoURL
+                      : chat?.userInfo?.photoURL
                   }
                   alt=""
                 />
@@ -568,7 +575,7 @@ const Message = ({ message }) => {
                 {message.text && (
                   <div className="MessageContainer">
                     <div
-                      className={`MessageToolBox ${message.senderId === user.uid && showTools && !message.recall && "MessageToolBox-active"}`}
+                      className={`MessageToolBox ${message.senderId === user?.uid && showTools && !message.recall && "MessageToolBox-active"}`}
                     >
                       {parseInt(
                         moment
@@ -615,8 +622,8 @@ const Message = ({ message }) => {
                                 }}
                               >
                                 <span className="name">
-                                  {message.quoteSender !== user.uid
-                                    ? data.user.displayName
+                                  {message.quoteSender !== user?.uid
+                                    ? chat?.userInfo?.displayName
                                     : "You"}
                                 </span>
                                 <span className="text">{message.quote}</span>
@@ -632,8 +639,8 @@ const Message = ({ message }) => {
                               >
                                 <div className="containerForText">
                                   <span className="name">
-                                    {message.quoteSender !== user.uid
-                                      ? data.user.displayName
+                                    {message.quoteSender !== user?.uid
+                                      ? chat?.userInfo?.displayName
                                       : "You"}
                                   </span>
                                   <div className="infoContainer">
@@ -655,8 +662,8 @@ const Message = ({ message }) => {
                                 }}
                               >
                                 <span className="name">
-                                  {message.quoteSender !== user.uid
-                                    ? data.user.displayName
+                                  {message.quoteSender !== user?.uid
+                                    ? chat?.userInfo?.displayName
                                     : "You"}
                                 </span>
                                 <div className="quoteFileContainer">
@@ -679,7 +686,7 @@ const Message = ({ message }) => {
                       </span>
                     )}
                     <div
-                      className={`MessageToolBox ${message.senderId !== user.uid && showTools && !message.recall && "MessageToolBox-active"}`}
+                      className={`MessageToolBox ${message.senderId !== user?.uid && showTools && !message.recall && "MessageToolBox-active"}`}
                     >
                       {/* <div className="emojiContainer">
                   <BiHappyHeartEyes className="emoji" size={18} onClick={() => { }}/>
@@ -701,7 +708,7 @@ const Message = ({ message }) => {
                     {!message.recall ? (
                       <div className="MessageContainerImg">
                         <div
-                          className={`MessageToolBox ${message.senderId === user.uid && showTools && !message.recall && "MessageToolBox-active"}`}
+                          className={`MessageToolBox ${message.senderId === user?.uid && showTools && !message.recall && "MessageToolBox-active"}`}
                         >
                           {parseInt(
                             moment
@@ -739,7 +746,7 @@ const Message = ({ message }) => {
                           <img src={message.img} alt="" />
                         </a>
                         <div
-                          className={`MessageToolBox ${message.senderId !== user.uid && showTools && !message.recall && "MessageToolBox-active"}`}
+                          className={`MessageToolBox ${message.senderId !== user?.uid && showTools && !message.recall && "MessageToolBox-active"}`}
                         >
                           {/* <div className="emojiContainer">
                   <BiHappyHeartEyes className="emoji" size={18} onClick={() => { }}/>
@@ -767,7 +774,7 @@ const Message = ({ message }) => {
                     {!message.recall ? (
                       <div className="fileContainer">
                         <div
-                          className={`MessageToolBox ${message.senderId === user.uid && showTools && !message.recall && "MessageToolBox-active"}`}
+                          className={`MessageToolBox ${message.senderId === user?.uid && showTools && !message.recall && "MessageToolBox-active"}`}
                         >
                           {parseInt(
                             moment
@@ -824,7 +831,7 @@ const Message = ({ message }) => {
                           </div>
                         </a>
                         <div
-                          className={`MessageToolBox ${message.senderId !== user.uid && showTools && !message.recall && "MessageToolBox-active"}`}
+                          className={`MessageToolBox ${message.senderId !== user?.uid && showTools && !message.recall && "MessageToolBox-active"}`}
                         >
                           {/* <div className="emojiContainer">
                     <BiHappyHeartEyes className="emoji" size={18} onClick={() => { }}/>
@@ -851,7 +858,7 @@ const Message = ({ message }) => {
                   <span className="MessageTime">
                     {moment(message.date).format("hh:mm A")}
                   </span>
-                  {message.senderId === user.uid && (
+                  {message.senderId === user?.uid && (
                     <BiCheckDouble
                       className={`unreadMessage ${message.hasRead && "messageRead"}`}
                       size={20}

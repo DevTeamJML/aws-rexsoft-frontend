@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { db } from "@/config/firebaseConfig";
 import { useSelectAllCompanyUsers } from "../../../redux/slices/companySlice";
 import { useSelectUser } from "../../../redux/slices/authSlice";
+import { setChats } from "../../../redux/slices/chatSlice";
 
 export const ChatContext = createContext();
 
@@ -18,7 +19,7 @@ export const ChatContextProvider = ({ children }) => {
   const allUserList = useSelectAllCompanyUsers();
   const [groupUserInfo, setGroupUserInfo] = useState([]);
 
-  const [chats, setChats] = useState([]);
+  // const [chats, setChats] = useState([]);
   const [ChatMessages, setChatMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState([]);
 
@@ -30,7 +31,7 @@ export const ChatContextProvider = ({ children }) => {
     if (action.type === "CHANGE_USER") {
       reduxDispatch(
         setPrivateChat({
-          currentUserId: user.uid,
+          currentUserId: user?.uid,
           user: action.payload,
         }),
       );
@@ -44,6 +45,8 @@ export const ChatContextProvider = ({ children }) => {
       );
     }
   };
+
+
   useEffect(() => {
     const groupChatsRef = ref(db, "groupChats/" + chatId);
     const unsub = onValue(groupChatsRef, (snapshot) => {
@@ -54,7 +57,7 @@ export const ChatContextProvider = ({ children }) => {
           allUser.push(data[x][1]);
         }
         const filteredUsers = allUser.filter((user) => {
-          return allUserList.some((listUser) => listUser.uid === user.uid);
+          return allUserList.some((listUser) => listUser.uid === user?.uid);
         });
 
         setGroupUserInfo(filteredUsers);
@@ -74,7 +77,8 @@ export const ChatContextProvider = ({ children }) => {
     const chatsRef = ref(db, "userChats/" + user?.uid);
     const unsub = onValue(chatsRef, (snapshot) => {
       const data = snapshot.val();
-      setChats(data);
+      reduxDispatch(setChats(data))
+      // setChats(data);
       data &&
         Object.entries(data).map((item) => {
           tempData.push(item[0]);
@@ -88,19 +92,40 @@ export const ChatContextProvider = ({ children }) => {
   }, [user]);
 
   useEffect(() => {
-    if (chatIdList?.length > 0) {
-      const unreadRef = ref(db, "chats");
-      onValue(unreadRef, (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          const intersection = Object.entries(data).filter((element) =>
-            chatIdList.includes(element[0]),
-          );
-          setChatMessages(intersection);
+    if (!chatId || !user?.uid) return;
+
+    const messagesRef = ref(db, "chats/" + chatId + "/messages");
+
+    const unsub = onValue(messagesRef, (snapshot) => {
+      if (!snapshot.exists()) {
+        setChatMessages([]);
+        return;
+      }
+
+      const data = snapshot.val();
+
+      let parsedMessages = [];
+
+      Object.values(data).forEach((msg) => {
+        // ✅ GROUP / YOUR STRUCTURE
+        if (typeof msg === "object" && !msg.text) {
+          // msg = { userId: message }
+          if (msg[user.uid]) {
+            parsedMessages.push(msg[user.uid]);
+          }
+        }
+        // ✅ PRIVATE (fallback)
+        else {
+          parsedMessages.push(msg);
         }
       });
-    }
-  }, [chatId]);
+
+      setChatMessages(parsedMessages);
+    });
+
+    return () => unsub();
+  }, [chatId, user?.uid]);
+
 
   useEffect(() => {
     if (ChatMessages?.length > 0) {
@@ -170,7 +195,7 @@ export const ChatContextProvider = ({ children }) => {
         },
         groupUser: groupUserInfo,
         dispatch, // still works!
-        chats,
+        // chats,
         unreadCount,
       }}
     >

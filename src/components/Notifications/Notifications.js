@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
-import { messaging, db } from "../../firebaseInit.js";
+
 import { ref, set } from "firebase/database";
+import { messaging } from "@/config/firebaseConfig";
 
 const Notifications = (props) => {
 
@@ -34,7 +35,7 @@ const Notifications = (props) => {
     async function tokenFunc() {
       data = await fetchToken(setTokenFound);
       if (data) {
-        // const combinedId = user.uid > targetUser.uid ? user.uid + targetUser.uid : targetUser.uid + user.uid;
+        // const combinedId = user?.uid > targetUser.uid ? user?.uid + targetUser.uid : targetUser.uid + user?.uid;
         // const dateNow = Date.now()
 
         // await set(ref(db, 'userChats/' + "kVF8yQfINWWpE6OqZNoujuFSgv33" + '/' + combinedId), {

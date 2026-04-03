@@ -5,7 +5,6 @@ const SearchField = ({
   value,
   onChange,
   placeholder = "Search...",
-  searchText,
   closeFunction,
   className = "",
 }) => {
@@ -17,15 +16,14 @@ const SearchField = ({
 
         {/* Input */}
         <input
+          className="search-input"
           type="text"
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className="search-input"
         />
 
-        {/* Clear button */}
-        {searchText && (
+        {value && (
           <AiOutlineClose
             className="clear-icon"
             size={16}

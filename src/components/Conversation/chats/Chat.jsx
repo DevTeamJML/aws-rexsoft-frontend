@@ -31,11 +31,11 @@ import { ActionButton } from "@/components/Misc/ActionButton";
 import SearchField from "@/components/FormComponents/SearchField";
 import { useDispatch, useSelector } from "react-redux";
 import { MessageContext } from "../ChatScrollContext";
-import { setSelectedMessage } from "../../../../redux/slices/messageSlice";
 import { useSelectUser } from "../../../../redux/slices/authSlice";
-import { ChatContext } from "../UserChatContext";
-import { db } from "@/config/firebaseConfig";
+import { db, storage } from "@/config/firebaseConfig";
 import { Switch } from "@mui/material";
+import { clearChat } from "../../../../redux/slices/chatSlice";
+import { fetchMessages } from "../../../../redux/slices/messageSlice";
 
 const Chat = () => {
   const toolsContainerRef = useRef(null);
@@ -43,12 +43,22 @@ const Chat = () => {
   const chatHistoryRef = useRef(null);
   const chatImageRef = useRef(null);
   const chatFileRef = useRef(null);
+  const data = useSelector((state) => state.chat.selectedChat);
+  const chatId = useSelector((state) => state.chat.chatId);
+  const groupUser = useSelector((state) => state.chat.groupUsers);
 
   const messages = useSelector((state) => state.message.messages);
-  const reduxDispatch = useDispatch();
+  const dispatch = useDispatch();
 
-  const { data, dispatch, groupUser } = useContext(ChatContext);
   const user = useSelectUser();
+
+  const isGroup = data?.isGroup;
+
+  const name = isGroup
+    ? data?.groupInfo?.groupName
+    : data?.userInfo?.displayName;
+
+  const photo = isGroup ? data?.groupInfo?.photoURL : data?.userInfo?.photoURL;
 
   const { messageRefs } = useContext(MessageContext);
 
@@ -97,24 +107,45 @@ const Chat = () => {
       setSearchChat("");
       setDeleteConfirmation(false);
       setLeaveConfirmation(false);
-      reduxDispatch(setSelectedMessage(null));
+      // dispatch(setSelectedMessage(null));
+      // dispatch(clearChat());
     }
   };
 
   useEffect(() => {
-    if (!groupUser.length > 0) {
-      const muteRef = ref(
-        db,
-        "userChats/" + user?.uid + "/" + data.chatId + "/mute",
-      );
-      onValue(muteRef, (snapshot) => {
+    if (chatId) {
+      dispatch(fetchMessages(chatId));
+    }
+  }, [chatId]);
+
+  useEffect(() => {
+    if (!groupUser?.length && data?.chatId) {
+      const muteRef = ref(db, `userChats/${user?.uid}/${chatId}/mute`);
+
+      const unsubscribe = onValue(muteRef, (snapshot) => {
         if (snapshot.exists()) {
-          const value = snapshot.val();
-          setPrivateMuteState(value);
+          setPrivateMuteState(snapshot.val());
         }
       });
+
+      return () => unsubscribe();
     }
-  }, [data]);
+  }, [data?.chatId, user?.uid, groupUser]);
+
+  // useEffect(() => {
+  //   if (!groupUser.length > 0) {
+  //     const muteRef = ref(
+  //       db,
+  //       "userChats/" + user?.uid + "/" + chatId + "/mute",
+  //     );
+  //     onValue(muteRef, (snapshot) => {
+  //       if (snapshot.exists()) {
+  //         const value = snapshot.val();
+  //         setPrivateMuteState(value);
+  //       }
+  //     });
+  //   }
+  // }, [data]);
 
   useEffect(() => {
     setCurrentGroupUser(groupUser?.find((e) => e.uid === user?.uid));
@@ -255,7 +286,7 @@ const Chat = () => {
 
   const updateGroupIcon = (file) => {
     if (file) {
-      const storageRef = ref_storage(storage, "/chatGroupIcons/" + data.chatId);
+      const storageRef = ref_storage(storage, "/chatGroupIcons/" + chatId);
       const uploadTask = uploadBytesResumable(storageRef, file);
 
       uploadTask.on(
@@ -287,7 +318,7 @@ const Chat = () => {
                   "userChats/" +
                     groupUser[x].uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/groupInfo/photoURL",
                 ),
                 downloadURL,
@@ -299,7 +330,7 @@ const Chat = () => {
                   "userChats/" +
                     user?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/groupInfo/photoURL",
                 ),
                 downloadURL,
@@ -308,16 +339,17 @@ const Chat = () => {
 
             setGroupIcon(null);
 
-            dispatch({
-              type: "CHANGE_GROUP",
-              payload: {
-                groupInfo: {
-                  groupName: data.user.groupInfo.groupName,
-                  photoURL: downloadURL,
-                },
-                userInfo: data.user.userInfo,
-              },
-            });
+            dispatch(clearChat());
+
+            // dispatch(
+            //   setSelectedMessage({
+            //     ...data,
+            //     groupInfo: {
+            //       ...data.groupInfo,
+            //       photoURL: downloadURL,
+            //     },
+            //   }),
+            // );
           });
         },
       );
@@ -333,7 +365,7 @@ const Chat = () => {
             "userChats/" +
               groupUser[x].uid +
               "/" +
-              data.chatId +
+              chatId +
               "/groupInfo/groupName",
           ),
           groupName,
@@ -342,27 +374,23 @@ const Chat = () => {
         set(
           ref(
             db,
-            "userChats/" +
-              user?.uid +
-              "/" +
-              data.chatId +
-              "/groupInfo/groupName",
+            "userChats/" + user?.uid + "/" + chatId + "/groupInfo/groupName",
           ),
           groupName,
         );
 
         setGroupName("");
 
-        dispatch({
-          type: "CHANGE_GROUP",
-          payload: {
-            groupInfo: {
-              groupName: groupName,
-              photoURL: data.user.groupInfo.photoURL,
-            },
-            userInfo: data.user.userInfo,
-          },
-        });
+        dispatch(clearChat());
+        // dispatch(
+        //   setSelectedMessage({
+        //     ...data,
+        //     groupInfo: {
+        //       groupName: groupName,
+        //       photoURL: data.user.groupInfo.photoURL,
+        //     },
+        //   }),
+        // );
       }
     }
   };
@@ -370,15 +398,14 @@ const Chat = () => {
   const muteGroup = (e) => {
     setMuteState(e);
     set(
-      ref(db, "groupChats/" + data.chatId + "/" + user?.uid + "/mute"),
+      ref(db, "groupChats/" + chatId + "/" + user?.uid + "/mute"),
       !muteState,
     );
   };
 
   const muteUser = (e) => {
-    console.log(e);
     setPrivateMuteState(e);
-    set(ref(db, "userChats/" + user?.uid + "/" + data.chatId + "/mute"), e);
+    set(ref(db, "userChats/" + user?.uid + "/" + chatId + "/mute"), e);
   };
 
   const addMember = () => {
@@ -386,30 +413,24 @@ const Chat = () => {
 
     checkedMember.map((item, index) => {
       if (item === true) {
-        set(
-          ref(db, "userChats/" + ungroupMember[index].uid + "/" + data.chatId),
-          {
-            date: dateNow,
-            groupInfo: {
-              groupName: data.user.groupInfo.groupName,
-              photoURL: data.user.groupInfo.photoURL,
-            },
-            userInfo: data.chatId,
+        set(ref(db, "userChats/" + ungroupMember[index].uid + "/" + chatId), {
+          date: dateNow,
+          groupInfo: {
+            groupName: name,
+            photoURL: photo,
           },
-        );
+          userInfo: chatId,
+        });
 
-        set(
-          ref(db, "groupChats/" + data.chatId + "/" + ungroupMember[index].uid),
-          {
-            admin: false,
-            owner: false,
-            mute: false,
-            remove: false,
-            displayName: ungroupMember[index].displayName,
-            photoURL: ungroupMember[index].photoURL,
-            uid: ungroupMember[index].uid,
-          },
-        )
+        set(ref(db, "groupChats/" + chatId + "/" + ungroupMember[index].uid), {
+          admin: false,
+          owner: false,
+          mute: false,
+          remove: false,
+          displayName: ungroupMember[index].displayName,
+          photoURL: ungroupMember[index].photoURL,
+          uid: ungroupMember[index].uid,
+        })
           .then((result) => {
             setAddMemberContainer(false);
           })
@@ -420,14 +441,11 @@ const Chat = () => {
 
   const removeMember = (member) => {
     set(
-      ref(
-        db,
-        "groupChats/" + data.chatId + "/" + selectedRemover.uid + "/remove",
-      ),
+      ref(db, "groupChats/" + chatId + "/" + selectedRemover.uid + "/remove"),
       true,
     );
 
-    set(ref(db, "userChats/" + selectedRemover.uid + "/" + data.chatId), null)
+    set(ref(db, "userChats/" + selectedRemover.uid + "/" + chatId), null)
       .then((res) => {
         setRemoveConfirmation(false);
         setShowMemberTools(false);
@@ -436,18 +454,12 @@ const Chat = () => {
   };
 
   const AssignAdmin = (member) => {
-    set(
-      ref(db, "groupChats/" + data.chatId + "/" + member.uid + "/admin"),
-      true,
-    );
+    set(ref(db, "groupChats/" + chatId + "/" + member.uid + "/admin"), true);
     setShowMemberTools(false);
   };
 
   const UnassignAdmin = (member) => {
-    set(
-      ref(db, "groupChats/" + data.chatId + "/" + member.uid + "/admin"),
-      false,
-    );
+    set(ref(db, "groupChats/" + chatId + "/" + member.uid + "/admin"), false);
     setShowMemberTools(false);
   };
 
@@ -469,7 +481,8 @@ const Chat = () => {
       });
     }
 
-    reduxDispatch(setSelectedMessage(id));
+    dispatch(setHighlightedMessage(id));
+    // dispatch(setSelectedMessage(id));
   };
 
   const handleCloseHistory = () => {
@@ -520,7 +533,6 @@ const Chat = () => {
 
   const groupMessageByDate = useMemo(() => {
     const groups = messages.reduce((acc, item) => {
-      // 👇 handle group vs private
       if (groupUser.length > 0) {
         Object.entries(item).forEach(([uid, msg]) => {
           if (uid === user?.uid && msg.img !== false && msg.recall !== true) {
@@ -560,18 +572,13 @@ const Chat = () => {
 
   function deleteGroup() {
     groupUser.map((member) => {
-      set(ref(db, "userChats/" + member.uid + "/" + data.chatId), null).then(
+      set(ref(db, "userChats/" + member.uid + "/" + chatId), null).then(
         (res) => {
-          set(ref(db, "chats/" + data.chatId), null);
-          set(ref(db, "groupChats/" + data.chatId), null);
+          set(ref(db, "chats/" + chatId), null);
+          set(ref(db, "groupChats/" + chatId), null);
           setTools(false);
-          dispatch({
-            type: "CHANGE_GROUP",
-            payload: {
-              groupInfo: {},
-              userInfo: "null",
-            },
-          });
+          // dispatch(setSelectedMessage(null));
+          dispatch(clearChat());
         },
       );
     });
@@ -582,35 +589,27 @@ const Chat = () => {
   }
 
   function leaveGroup() {
-    set(
-      ref(db, "groupChats/" + data.chatId + "/" + user?.uid + "/remove"),
-      true,
-    );
+    set(ref(db, "groupChats/" + chatId + "/" + user?.uid + "/remove"), true);
 
-    set(ref(db, "userChats/" + user?.uid + "/" + data.chatId), null)
+    set(ref(db, "userChats/" + user?.uid + "/" + chatId), null)
       .then((res) => {
         setRemoveConfirmation(false);
         setShowMemberTools(false);
-        dispatch({
-          type: "CHANGE_GROUP",
-          payload: {
-            groupInfo: {},
-            userInfo: "null",
-          },
-        });
+        // dispatch(setSelectedMessage(null));
+        dispatch(clearChat());
       })
       .catch((err) => console.log(err));
   }
 
   return (
     <>
-      {data.chatId !== "null" ? (
+      {(chatId !== "null" && chatId !== undefined && chatId !== null) ? (
         <div className="chat">
-          {data.user?.groupInfo ? (
+          {data?.groupInfo ? (
             <div className="chatInfo">
               <div className="info">
-                <img src={data.user?.groupInfo.photoURL} alt="" />
-                <span>{data.user?.groupInfo.groupName}</span>
+                <img src={data?.groupInfo.photoURL} alt="" />
+                <span>{data?.groupInfo.groupName}</span>
               </div>
               <div className="tools">
                 <BiDotsHorizontalRounded
@@ -625,8 +624,8 @@ const Chat = () => {
           ) : (
             <div className="chatInfo">
               <div className="info">
-                <img src={data.user?.photoURL} alt="" />
-                <span>{data.user?.displayName}</span>
+                <img src={photo} alt="" />
+                <span>{name}</span>
               </div>
               <div className="tools">
                 <BiDotsHorizontalRounded
@@ -698,7 +697,7 @@ const Chat = () => {
               </div>
             </div>
           </div>
-          {data.user?.groupInfo ? (
+          {data?.groupInfo ? (
             <>
               <div
                 ref={toolsContainerRef}
@@ -737,7 +736,7 @@ const Chat = () => {
                         src={
                           groupIcon
                             ? URL.createObjectURL(groupIcon)
-                            : data.user?.groupInfo.photoURL
+                            : data?.groupInfo.photoURL
                         }
                         alt=""
                       />
@@ -759,7 +758,7 @@ const Chat = () => {
                   </div>
                   <div className="addGroupTitleContainer">
                     <input
-                      placeholder={data.user?.groupInfo.groupName}
+                      placeholder={data?.groupInfo.groupName}
                       value={groupName}
                       onChange={(e) => {
                         setGroupName(e.target.value);
@@ -785,7 +784,7 @@ const Chat = () => {
                       </div>
                       <Switch
                         checked={muteState}
-                        onChange={(e) => muteGroup(e)}
+                        onChange={(e) => muteGroup(e.target.checked)}
                         onColor="#4BAB00"
                         onHandleColor="#FFFFFF"
                         handleDiameter={20}
@@ -1081,7 +1080,7 @@ const Chat = () => {
                         handleCloseImage();
                       }}
                     />
-                    <span>All Images in {data.user?.groupInfo?.groupName}</span>
+                    <span>All Images in {data?.groupInfo?.groupName}</span>
                   </div>
                   <div className="AllImage">
                     {groupMessageByDate
@@ -1140,7 +1139,7 @@ const Chat = () => {
                         handleCloseFile();
                       }}
                     />
-                    <span>All Files in {data.user?.groupInfo?.groupName}</span>
+                    <span>All Files in {data?.groupInfo?.groupName}</span>
                   </div>
                   <div className="AllFile">
                     {messages && messages.length > 0 ? (
@@ -1233,7 +1232,7 @@ const Chat = () => {
                       <div className="instruction">
                         <span className="normal">Search chat within</span>
                         <span className="groupName">
-                          {data.user?.groupInfo?.groupName}
+                          {data?.groupInfo?.groupName}
                         </span>
                       </div>
                     ) : (
@@ -1253,7 +1252,7 @@ const Chat = () => {
                                   >
                                     {item.senderId === user?.uid ? (
                                       <div className="details">
-                                        <span>{user.displayName}</span>
+                                        <span>{user?.displayName}</span>
                                         <span>
                                           {moment(item.date).format(
                                             "DD/MM/YY",
@@ -1272,7 +1271,7 @@ const Chat = () => {
                                               user?.uid === item.senderId && (
                                                 <div className="details">
                                                   <span>
-                                                    {user.displayName}
+                                                    {user?.displayName}
                                                   </span>
                                                   <span>
                                                     {moment(item.date).format(
@@ -1319,7 +1318,7 @@ const Chat = () => {
                     </div>
                     <Switch
                       checked={privateMuteState}
-                      onChange={(e) => muteUser(e)}
+                      onChange={(e) => muteUser(e.target.checked)}
                       onColor="#4BAB00"
                       onHandleColor="#FFFFFF"
                       handleDiameter={20}
@@ -1389,7 +1388,7 @@ const Chat = () => {
                         handleCloseImage();
                       }}
                     />
-                    <span>All Images in {data.user?.groupInfo?.groupName}</span>
+                    <span>All Images in {data?.groupInfo?.groupName}</span>
                   </div>
                   <div className="AllImage">
                     {groupMessageByDate
@@ -1450,12 +1449,12 @@ const Chat = () => {
                         handleCloseFile();
                       }}
                     />
-                    <span>All Files with {data.user?.displayName}</span>
+                    <span>All Files with {data?.userInfo?.displayName}</span>
                   </div>
                   <div className="AllFile">
                     {messages && messages.length > 0 ? (
                       <>
-                        {messages
+                        {[...messages]
                           .sort((a, b) => {
                             return a.date - b.date;
                           })
@@ -1556,7 +1555,7 @@ const Chat = () => {
                                   >
                                     {item.senderId === user?.uid ? (
                                       <div className="details">
-                                        <span>{user.displayName}</span>
+                                        <span>{user?.displayName}</span>
                                         <span>
                                           {moment(item.date).format(
                                             "DD/MM/YY",
@@ -1569,7 +1568,7 @@ const Chat = () => {
                                       </div>
                                     ) : (
                                       <div className="details">
-                                        <span>{data.user.displayName}</span>
+                                        <span>{name}</span>
                                         <span>
                                           {moment(item.date).format(
                                             "DD/MM/YY",

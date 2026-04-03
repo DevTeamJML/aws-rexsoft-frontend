@@ -20,7 +20,7 @@ import {
   resetPassword,
   resetPasswordSuccess,
 } from "../slices/authSlice";
-import { auth } from "@/config/firebaseConfig";
+import { auth, db } from "@/config/firebaseConfig";
 import { API } from "@/service/api";
 import { ApiRoute } from "@/enums/api-route";
 import {
@@ -45,12 +45,35 @@ import {
 } from "../slices/clientSlice";
 import { getUserRoles } from "../slices/roleAuthSlice";
 import { getAllFormTemplatesSuccess } from "../slices/formTemplateSlice";
+import { get, ref } from "firebase/database";
+
+function* fetchFirebaseUsers(uids) {
+  try {
+    const snapshot = yield call(get, ref(db, "users"));
+
+    if (!snapshot.exists()) return {};
+
+    const firebaseData = snapshot.val();
+
+    // Convert into map for fast lookup
+    const firebaseMap = {};
+
+    Object.keys(firebaseData).forEach((uid) => {
+      firebaseMap[uid] = firebaseData[uid];
+    });
+
+    return firebaseMap;
+  } catch (err) {
+    console.error("Firebase fetch error:", err);
+    return {};
+  }
+}
 
 function* loadUserData(user, setAuthLoading) {
   if (setAuthLoading) setAuthLoading(true);
   const storedCompanyId = getFromLocalStorage(process.env.CURR_COMPANY_ID);
   const storedSelectedClientGroupId = getFromLocalStorage(
-    process.env.CURR_SELECTED_GROUP_ID
+    process.env.CURR_SELECTED_GROUP_ID,
   );
 
   const { data } = yield call(API.get, ApiRoute.user.getUserDetailsById, {
@@ -73,18 +96,17 @@ function* loadUserData(user, setAuthLoading) {
   }
 
   if (selectedCompanyId) {
-
     // Form Response
     const formResponse = yield call(
       API.get,
       ApiRoute.formTemplate.getAllFormTemplates,
       {
         params: { company_id: selectedCompanyId },
-      }
+      },
     );
 
     const formList = formResponse.data;
-    yield put(getAllFormTemplatesSuccess(formList))
+    yield put(getAllFormTemplatesSuccess(formList));
 
     // Group Response
     const groupResponse = yield call(
@@ -92,7 +114,7 @@ function* loadUserData(user, setAuthLoading) {
       ApiRoute.clientGroup.getAllClientGroups,
       {
         params: { company_id: selectedCompanyId },
-      }
+      },
     );
     const groupList = groupResponse.data;
 
@@ -107,7 +129,7 @@ function* loadUserData(user, setAuthLoading) {
       selectedGroup = groupList[0];
       addToLocalStorage(
         process.env.CURR_SELECTED_GROUP_ID,
-        selectedGroup.client_group_id
+        selectedGroup.client_group_id,
       );
     }
     yield put(getAllClientGroupsSuccess(groupList));
@@ -123,19 +145,33 @@ function* loadUserData(user, setAuthLoading) {
       ApiRoute.companyUser.getAllCompanyUsers,
       {
         params: { company_id: selectedCompanyId },
-      }
+      },
     );
+
+    const apiUsers = handlerResponse.data || [];
+
+    const firebaseUsersMap = yield call(fetchFirebaseUsers);
+
+    const mergedUsers = apiUsers.map((user) => {
+      const firebaseUser = firebaseUsersMap[user.user_id];
+
+      return {
+        ...user,
+        ...(firebaseUser || {}),
+      };
+    });
 
     yield put(
       getAllCompanyUsersSuccess({
-        list: handlerResponse.data || [],
+        list: mergedUsers,
         currentUserId: user?.uid,
-      })
+      }),
     );
     yield put(
-      getUserRoles({ company_id: selectedCompanyId, user_id: user?.uid })
+      getUserRoles({ company_id: selectedCompanyId, user_id: user?.uid }),
     );
   }
+
   // yield put(signInSuccess(userData));
   yield put(getAllCompaniesSuccess(companies));
 
@@ -165,13 +201,13 @@ function* signInSaga({ payload }) {
         message: "Signing in..",
         status: "success",
         loader: true,
-      })
+      }),
     );
     const { user = {} } = yield call(
       signInWithEmailAndPassword,
       auth,
       email,
-      password
+      password,
     );
     yield call(loadUserData, user);
     yield put(signInSuccess(user));
@@ -180,7 +216,7 @@ function* signInSaga({ payload }) {
         message: "Sign In successfully.",
         status: "success",
         loader: true,
-      })
+      }),
     );
     yield delay(1500);
     router.push("/client/client-list");
@@ -192,7 +228,7 @@ function* signInSaga({ payload }) {
         message: error.message,
         status: "error",
         loader: true,
-      })
+      }),
     );
     yield delay(3000);
     yield put(hideToast());

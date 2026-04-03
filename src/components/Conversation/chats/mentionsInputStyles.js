@@ -8,45 +8,49 @@ export default {
   "&multiLine": {
     control: {
       minHeight: 63,
+      width: "100%",
     },
     highlighter: {
       padding: 9,
       border: "1px solid transparent",
+      boxSizing: "border-box",
     },
     input: {
       margin: 0,
       padding: 9,
       border: "1px solid silver",
+      boxSizing: "border-box",
+      width: "100%",
     },
   },
   "&singleLine": {
     display: "flex",
     width: "100%",
     whiteSpace: "nowrap",
-    highlighter: {},
+
+    highlighter: {
+      boxSizing: "border-box",
+    },
+
     input: {
       border: "none",
+      outline: "none",
+      boxShadow: "none",
+      width: "100%",
+      background: "transparent", // optional cleaner look
     },
   },
   suggestions: {
     width: "100%",
     overflow: "hidden",
     list: {
+      position: "absolute", 
+      zIndex: 999,
       width: "100%",
       backgroundColor: "rgba(253, 255, 237, 0.958)",
-      marginBottom: 20,
       border: "none",
-      fontSize: typeof window !== "undefined" && window.innerWidth > 1500 ? 16 : 14
-    },
-    item: {
-      width: "100%",
-      cursor: "pointer",
-      padding: "10px 10px",
-      borderBottom: "0.5px solid #CDCDCD",
-      "&focused": {
-        color: "#FFFFFF",
-        backgroundColor: "#241e3e",
-      },
+      fontSize:
+        typeof window !== "undefined" && window.innerWidth > 1500 ? 16 : 14,
     },
   },
 };

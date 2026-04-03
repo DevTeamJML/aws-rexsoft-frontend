@@ -1,424 +1,375 @@
-// import React, { useEffect, useState, useContext } from 'react'
-// import Chats from './Chats'
-// import ChatSearch from './ChatSearch'
-// import { useUserAuth } from '../context/UserAuthContext'
-// import { MdGroupAdd } from "react-icons/md";
-// import { onValue, ref, set } from 'firebase/database';
-// import { ref as ref_storage, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-// import { db, storage } from '../firebaseInit';
-// import { BiArrowBack } from "react-icons/bi";
-// import C_Search from '../components/C_Search';
-// import { AiFillCloseCircle, AiOutlineCheck } from 'react-icons/ai';
-// import { BsArrowRightShort } from 'react-icons/bs';
-// import { FaCameraRetro } from 'react-icons/fa';
-// import { ChatContext } from '../context/UserChatContext';
+import React, { useEffect, useState, useContext } from "react";
+import Chats from "./Chats";
+import ChatSearch from "./ChatSearch";
+import { MdGroupAdd } from "react-icons/md";
+import { onValue, ref, set } from "firebase/database";
+import {
+  ref as ref_storage,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
+import { BiArrowBack } from "react-icons/bi";
+import { AiFillCloseCircle, AiOutlineCheck } from "react-icons/ai";
+import { BsArrowRightShort } from "react-icons/bs";
+import { FaCameraRetro } from "react-icons/fa";
+import SearchField from "@/components/FormComponents/SearchField";
+import { useDispatch } from "react-redux";
+import { useSelectUser } from "../../../../redux/slices/authSlice";
+import { db, storage } from "@/config/firebaseConfig";
+import { setGroupChat } from "../../../../redux/slices/chatSlice";
+import { useMemo } from "react";
 
-// const ChatSidebar = (props) => {
+const ChatSidebar = (props) => {
+  const isSuperAdmin = props.isSuperAdmin;
+  const Conversation_Group = props.Conversation_Group || false;
 
-//   const isSuperAdmin = props.isSuperAdmin;
-//   const Conversation_Group = props.Conversation_Group;
+  const dispatch = useDispatch();
 
-//   const { dispatch } = useContext(ChatContext);
+  const user = useSelectUser();
+  const [currPage, setCurrPage] = useState("CHATS");
+  const [users, setUsers] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [selectedUser, setSelectedUser] = useState([]);
+  const [groupIcon, setGroupIcon] = useState(null);
+  const [groupName, setGroupName] = useState("");
+  const [currUser, setCurrUser] = useState(null);
 
-//   const { user } = useUserAuth();
-//   const [currPage, setCurrPage] = useState("CHATS");
-//   const [users, setUsers] = useState([]);
-//   const [searchText, setSearchText] = useState("");
-//   const [selectedUser, setSelectedUser] = useState([]);
-//   const [groupIcon, setGroupIcon] = useState(null);
-//   const [groupName, setGroupName] = useState("");
-//   const [currUser, setCurrUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-//   const [isLoading, setIsLoading] = useState(false);
+  function user_handleSnapshot(snapshot) {
+    var returnArr = [];
 
-//   function user_handleSnapshot(snapshot) {
-//     var returnArr = [];
+    snapshot.forEach(function (childSnapshot) {
+      var item = childSnapshot.val();
+      item.key = childSnapshot.key;
+      if (item.uid !== user?.uid) {
+        returnArr.push(item);
+      } else {
+        setCurrUser(item);
+      }
+    });
 
-//     snapshot.forEach(function(childSnapshot) {
-//         var item = childSnapshot.val();
-//         item.key = childSnapshot.key;
-//         if(item.uid !== user.uid){
-//           returnArr.push(item);
-//         }
-//         else{
-//           setCurrUser(item)
-//         }
-//     });
-    
-//     setUsers(returnArr)
+    setUsers(returnArr);
+  }
 
-//   };
+  useEffect(() => {
+    const userRef = ref(db, "users/");
 
-//   function reloadUser() {
-//     const userRef = ref(db, "users/");
+    const unsubscribe = onValue(userRef, (snapshot) => {
+      user_handleSnapshot(snapshot);
+    });
 
-//     try{
-//       onValue(userRef, (snapshot) => {
-//         user_handleSnapshot(snapshot)
-//       });
-//     }catch(err){
-//       console.log(err)
-//     }
-//   }
+    return () => unsubscribe();
+  }, [user]);
 
-//   useEffect(() => {
+  const handleAddGroup = () => {
+    setCurrPage("ADD_MEMBER_GROUP");
+    setSelectedUser([]);
+    setSearchText("");
+    // reloadUser();
+  };
 
-//     const userRef = ref(db, "users/");
+  const handleBackChats = () => {
+    setCurrPage("CHATS");
+    setSelectedUser([]);
+    // reloadUser();
+  };
 
-//     try{
-//       onValue(userRef, (snapshot) => {
-//         user_handleSnapshot(snapshot)
-//       });
-//     }catch(err){
-//       console.log(err)
-//     }
+  const handleSelectedUser = (userObj) => {
+    setSelectedUser((prev) =>
+      prev.some((u) => u.uid === userObj.uid) ? prev : [...prev, userObj],
+    );
 
-//   },[user])
+    setUsers((prev) => prev.filter((item) => item.uid !== userObj.uid));
+  };
 
-//   const handleAddGroup = () => {
-//     setCurrPage("ADD_MEMBER_GROUP")
-//     setSelectedUser([])
-//     reloadUser()
-//   }
+  const handleRemoveSelected = (userObj) => {
+    setUsers((prev) => [...prev, userObj]);
 
-//   const handleBackChats = () => {
-//     setCurrPage("CHATS")
-//     setSelectedUser([])
-//     reloadUser()
-//   }
+    setSelectedUser((prev) => prev.filter((item) => item.uid !== userObj.uid));
+  };
 
-//   const handleSelectedUser = (uid) => {
+  const handleConfirmUserGroup = () => {
+    setCurrPage("ADD_TITLE");
+  };
 
-//     var tempSelectedUser = []
+  const handleBackGroupMember = () => {
+    setCurrPage("ADD_MEMBER_GROUP");
+  };
 
-//     tempSelectedUser.push(...selectedUser, uid)
-    
-//     setSelectedUser(tempSelectedUser);
+  function handleInputGroupIcon(value) {
+    const fileSize = value.size;
+    const fileMB = Math.round(fileSize / 1024);
+    if (fileMB >= 4096) {
+      alert("File too Big, please select a file less than 4mb");
+    } else {
+      setGroupIcon(value);
+    }
+  }
 
-//     var newArray = users.filter(function(item) {
-//         return !tempSelectedUser.find(function(e) {
-//           return item.uid === e.uid
-//         })
-//       }
-//     );
+  const handleCreateGroupChat = async () => {
+    setIsLoading(true);
 
-//     setUsers(newArray)
+    const dateNow = Date.now();
 
-//   }
+    const combinedId =
+      user?.uid + selectedUser.map((u) => u.uid).join("") + dateNow;
 
-//   const handleRemoveSelected = (uid) => {
-//     var tempSelectedUser = []
+    const defaultImage =
+      "https://firebasestorage.googleapis.com/v0/b/rexsoft-crm.appspot.com/o/default_group.jpeg?alt=media&token=0e170b9c-7c26-40b5-ba8a-4e52923ec57e";
 
-//     tempSelectedUser.push(...users, uid)
-    
-//     setUsers(tempSelectedUser);
+    try {
+      let photoURL = defaultImage;
 
-//     var newArray = selectedUser.filter(function(item) {
-//         return !tempSelectedUser.find(function(e) {
-//           return item.uid === e.uid
-//         })
-//       }
-//     );
+      // upload if have icon
+      if (groupIcon) {
+        const storageRef = ref_storage(
+          storage,
+          "/chatGroupIcons/" + combinedId,
+        );
+        const uploadTask = uploadBytesResumable(storageRef, groupIcon);
 
-//     setSelectedUser(newArray)
-//   }
+        await new Promise((resolve, reject) => {
+          uploadTask.on("state_changed", null, reject, async () => {
+            photoURL = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve();
+          });
+        });
+      }
 
-//   const handleConfirmUserGroup = () => {
-//     setCurrPage("ADD_TITLE")
-//   }
+      const dispatchData = {
+        chatId: combinedId,
+        isGroup: true,
+        groupInfo: {
+          groupName,
+          photoURL,
+        },
+      };
 
-//   const handleBackGroupMember = () => {
-//     setCurrPage("ADD_MEMBER_GROUP")
-//   }
+      dispatch(
+        setGroupChat({
+          group: {
+            userInfo: combinedId,
+            groupInfo: {
+              groupName,
+              photoURL,
+            },
+          },
+        }),
+      );
 
-//   function handleInputGroupIcon(value){
-//     const fileSize = value.size;
-//     const fileMB = Math.round((fileSize / 1024));
-//     if(fileMB >= 4096){
-//       alert("File too Big, please select a file less than 4mb")    
-//     }else{
-//       setGroupIcon(value)
-//     }
-//   }
-    
+      // create for all members
+      const allMembers = [...selectedUser, user];
 
-//   const handleCreateGroupChat = () => {
+      for (const member of allMembers) {
+        await set(ref(db, `userChats/${member.uid}/${combinedId}`), {
+          userInfo: combinedId,
+          date: dateNow,
+          groupInfo: {
+            groupName,
+            photoURL,
+          },
+        });
 
-//     //Loading handling
-//     setIsLoading(true)
+        await set(ref(db, `groupChats/${combinedId}/${member.uid}`), {
+          admin: member.uid === user?.uid,
+          owner: member.uid === user?.uid,
+          mute: false,
+          uid: member.uid,
+          displayName: member.displayName,
+          photoURL: member.photoURL,
+        });
+      }
 
-    
-//     const dateNow = Date.now();
-    
-//     const combinedId = selectedUser.reduce((a, b) => {
-//       return a.uid + b.uid + dateNow
-//     })
+      setGroupIcon(null);
+      setGroupName("");
+      setCurrPage("CHATS");
+    } catch (err) {
+      console.error(err);
+    }
 
-//     if(groupIcon){
+    setIsLoading(false);
+  };
 
-//       const storageRef = ref_storage(storage, "/chatGroupIcons/" + combinedId);
-//       const uploadTask = uploadBytesResumable(storageRef, groupIcon);
+  const filteredUsers = useMemo(() => {
+    const keyword = searchText.toLowerCase();
 
-//       uploadTask.on('state_changed',
-//       (snapshot) => {
-//         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-//         console.log('Upload is ' + progress + '% done');
-//         switch (snapshot.state) {
-//           case 'paused':
-//             console.log('Upload is paused');
-//             break;
-//           case 'running':
-//             console.log('Upload is running');
-//             break;
-//         }
-//       }, 
-//       (error) => {
+    return users
+      ?.filter((item) => {
+        const name = item.displayName || ""; // fallback
+        return name.toLowerCase().includes(keyword);
+      })
+      ?.sort((a, b) =>
+        (a.displayName || "").localeCompare(b.displayName || ""),
+      );
+  }, [users, searchText]);
 
-//       }, 
-//       () => {
-//         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+  return (
+    <>
+      {currPage === "ADD_MEMBER_GROUP" && (
+        <div className="SidebarAddGroup">
+          <div className="backChatContainer">
+            <BiArrowBack
+              className="backBtn"
+              size={20}
+              color={"#4F4F4F"}
+              onClick={handleBackChats}
+            />
+            <div className="searchContainer">
+              <SearchField
+                placeholder="Find user"
+                onChange={(e) => {
+                  setSearchText(e.target.value);
+                }}
+                value={searchText}
+                searchText={searchText}
+                closeFunction={() => {
+                  setSearchText("");
+                }}
+              />
+            </div>
+          </div>
+          <div className="selectedUserContainer">
+            {selectedUser &&
+              selectedUser.map((item) => {
+                return (
+                  <div className="selectedUserToGroup">
+                    <span>{item.displayName}</span>
+                    <div>
+                      <AiFillCloseCircle
+                        className="removeSelectedUserBtn"
+                        size={16}
+                        color={"white"}
+                        onClick={() => {
+                          handleRemoveSelected(item);
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+          {filteredUsers?.length === 0 && (
+            <div className="noUserFound">No users found</div>
+          )}
 
-//           var dispatchData = {
-//             userInfo: combinedId,
-//             date: dateNow,
-//             groupInfo: {
-//               groupName: groupName,
-//               photoURL: downloadURL
-//             }
-//           }
+          {filteredUsers?.map((item) => {
+            return (
+              <div
+                className="SidebarListUser"
+                onClick={() => handleSelectedUser(item)}
+                key={item.uid}
+              >
+                <div className="ListUserDetails">
+                  <img src={item.photoURL} alt="" />
+                  <span>{item.displayName}</span>
+                </div>
+              </div>
+            );
+          })}
+          {selectedUser.length > 1 && (
+            <div className="NextContainer">
+              <BsArrowRightShort
+                onClick={handleConfirmUserGroup}
+                size={30}
+                color={"white"}
+              />
+            </div>
+          )}
+        </div>
+      )}
+      {currPage === "CHATS" && (
+        <div className="Sidebar">
+          <div className="SidebarToolsContainer">
+            <div className="SidebarProfile">
+              <img src={user?.photoURL} alt="" />
+              <div className="userDetails">
+                <span className="name">{user?.displayName}</span>
+              </div>
+            </div>
+            {(isSuperAdmin || Conversation_Group) && (
+              <div className="SidebarAddGroupBtn">
+                <MdGroupAdd
+                  className="AddGroupBtn"
+                  size={25}
+                  color={"#4F4F4F"}
+                  onClick={handleAddGroup}
+                />
+              </div>
+            )}
+          </div>
+          <ChatSearch />
+          <Chats />
+        </div>
+      )}
+      {currPage === "ADD_TITLE" && (
+        <div className={`SidebarAddTitle ${isLoading && "showLoading"}`}>
+          {/* <C_Loading_Login isLoading={isLoading}/> */}
+          <div
+            className={`SidebarAddTitleWrapper ${isLoading && "hideWrapper"}`}
+          >
+            <div className="backGroupContainer">
+              <BiArrowBack
+                className="backGroupBtn"
+                size={20}
+                color={"#4F4F4F"}
+                onClick={handleBackGroupMember}
+              />
+            </div>
+            <div className="GroupInfoContainer">
+              <input
+                type="file"
+                style={{ display: "none" }}
+                id="file"
+                onChange={(e) => handleInputGroupIcon(e.target.files[0])}
+                accept="image/*"
+              />
+              <label htmlFor="file">
+                {groupIcon ? (
+                  <div className="displayImageContainer">
+                    <img src={URL.createObjectURL(groupIcon)} alt="" />
+                  </div>
+                ) : (
+                  <div className="addImageContainer">
+                    <FaCameraRetro
+                      className="addImageIcon"
+                      size={30}
+                      color="rgb(217, 217, 217)"
+                    />
+                    <span>Group Icon</span>
+                  </div>
+                )}
+              </label>
+              <div className="addGroupTitleContainer">
+                <input
+                  placeholder={"Group Name"}
+                  value={groupName}
+                  onChange={(e) => {
+                    setGroupName(e.target.value);
+                  }}
+                />
+              </div>
+            </div>
+            <div className="selectedUserToGroup">
+              {selectedUser &&
+                selectedUser.map((item) => {
+                  return <img key={item.uid} src={item.photoURL} alt="" />;
+                })}
+            </div>
+            {groupName !== "" && (
+              <div className="CompleteContainer">
+                <AiOutlineCheck
+                  onClick={handleCreateGroupChat}
+                  size={30}
+                  color={"white"}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
 
-//           dispatch({ type:"CHANGE_GROUP", payload: dispatchData })
-
-//           for(var x = 0; x < selectedUser.length; x++){
-
-//             set(ref(db, 'userChats/' + selectedUser[x].uid + '/' + combinedId), {
-//               userInfo: combinedId,
-//               date: dateNow,
-//               groupInfo: {
-//                 groupName: groupName,
-//                 photoURL: downloadURL
-//               }
-//             })
-
-//             set(ref(db, 'groupChats/' + combinedId + '/' + selectedUser[x].uid), {
-//               admin: false,
-//               owner: false,
-//               mute: false,
-//               uid: selectedUser[x].uid,
-//               displayName: selectedUser[x].displayName,
-//               photoURL: selectedUser[x].photoURL
-//             })
-
-//             set(ref(db, 'userChats/' + user.uid + '/' + combinedId), {
-//               userInfo: combinedId,
-//               date: dateNow,
-//               groupInfo: {
-//                 groupName: groupName,
-//                 photoURL: downloadURL
-//               }
-//             })
-  
-//             set(ref(db, 'groupChats/' + combinedId + '/' + user.uid), {
-//               admin: true,
-//               owner: true,
-//               mute: false,
-//               uid: user.uid,
-//               displayName: user.displayName,
-//               photoURL: user.photoURL
-//             })
-
-//           }
-
-//           setGroupIcon(null)
-//           setGroupName("")
-//           setIsLoading(false)
-//           setCurrPage("CHATS")
-          
-//         });
-//       }
-//       )
-
-//     } else {
-
-//       var dispatchData = {
-//         userInfo: combinedId, 
-//         groupInfo: {
-//           groupName: groupName,
-//           photoURL: 'https://firebasestorage.googleapis.com/v0/b/rexsoft-crm.appspot.com/o/default_group.jpeg?alt=media&token=0e170b9c-7c26-40b5-ba8a-4e52923ec57e'
-//         }
-//       }
-
-//       dispatch({ type:"CHANGE_GROUP", payload: dispatchData })
-
-//       for(var x = 0; x < selectedUser.length; x++){
-
-//         set(ref(db, 'userChats/' + selectedUser[x].uid + '/' + combinedId), {
-//           userInfo: combinedId,
-//           date: dateNow,
-//           groupInfo: {
-//             groupName: groupName,
-//             photoURL: 'https://firebasestorage.googleapis.com/v0/b/rexsoft-crm.appspot.com/o/default_group.jpeg?alt=media&token=0e170b9c-7c26-40b5-ba8a-4e52923ec57e'
-//           }
-//         })
-
-//         set(ref(db, 'groupChats/' + combinedId + '/' + selectedUser[x].uid), {
-//           admin: false,
-//           owner: false,
-//           mute: false,
-//           uid: selectedUser[x].uid,
-//           displayName: selectedUser[x].displayName,
-//           photoURL: selectedUser[x].photoURL
-//         })
-
-//         set(ref(db, 'userChats/' + user.uid + '/' + combinedId), {
-//           userInfo: combinedId,
-//           date: dateNow,
-//           groupInfo: {
-//             groupName: groupName,
-//             photoURL: 'https://firebasestorage.googleapis.com/v0/b/rexsoft-crm.appspot.com/o/default_group.jpeg?alt=media&token=0e170b9c-7c26-40b5-ba8a-4e52923ec57e'
-//           }
-//         })
-  
-//         set(ref(db, 'groupChats/' + combinedId + '/' + user.uid), {
-//           admin: true,
-//           owner: true,
-//           mute: false,
-//           uid: user.uid,
-//           displayName: user.displayName,
-//           photoURL: user.photoURL
-//         })
-
-//       }
-
-//       setGroupIcon(null)
-//       setGroupName("")
-//       setIsLoading(false)
-//       setCurrPage("CHATS")
-      
-//     }
-
-//   }
-
-//   return (
-//     <>
-//     {currPage === "ADD_MEMBER_GROUP" &&
-//       <div className="SidebarAddGroup">
-//         <div className='backChatContainer'>
-//           <BiArrowBack className='backBtn' size={20} color={"#4F4F4F"} onClick={handleBackChats}/>
-//           <div className='searchContainer'>
-//             <C_Search
-//               placeholder="Find user"
-//               onChange={(e) => {
-//                 setSearchText(e.target.value);
-//               }}
-//               value={searchText}
-//               searchText={searchText}
-//               closeFunction={() => {
-//                 setSearchText("");
-//               }}
-//             />
-//           </div>
-//         </div>
-//         <div className='selectedUserContainer'>
-//         {selectedUser && selectedUser.map(item => {
-//           return(
-//             <div className='selectedUserToGroup'>
-//               <span>{item.displayName}</span>
-//               <div>
-//               <AiFillCloseCircle className='removeSelectedUserBtn' size={16} color={"white"} onClick={() => { handleRemoveSelected(item) }}/>
-//               </div>
-//             </div>
-//           )
-//         })
-//         }
-//         </div>
-//         {users &&
-//           users?.sort((a, b) => a?.displayName?.localeCompare(b?.displayName)).map(item => {
-//               return(
-//                 <div className='SidebarListUser' onClick={(e) => handleSelectedUser(item)} key={item.uid}>
-//                   <div className='ListUserDetails'>
-//                     <img src={item.photoURL} alt=""/>
-//                     <span>{item.displayName}</span>
-//                   </div>
-//                 </div>
-//               )
-//           })
-//         }
-//         {selectedUser.length > 1 &&
-//         <div className='NextContainer'>
-//           <BsArrowRightShort onClick={handleConfirmUserGroup} size={30} color={'white'}/>
-//         </div>
-//         }
-//       </div>
-//     }
-//     {currPage === "CHATS" &&
-//       <div className="Sidebar">
-//         <div className='SidebarToolsContainer'>
-//           <div className='SidebarProfile'>
-//             <img src={user.photoURL} alt=""/>
-//             <div className='userDetails'>
-//             <span className='name'>{user.displayName}</span>
-//             </div>
-//           </div>
-//           {(isSuperAdmin || Conversation_Group) &&
-//             <div className='SidebarAddGroupBtn'>
-//               <MdGroupAdd className='AddGroupBtn' size={25} color={"#4F4F4F"} onClick={handleAddGroup}/>
-//             </div>
-//           }
-//         </div>
-//         <ChatSearch/>
-//         <Chats/>
-//       </div>
-//     }
-//     {currPage === "ADD_TITLE" &&
-//       <div className={`SidebarAddTitle ${isLoading && 'showLoading'}`}>
-//         {/* <C_Loading_Login isLoading={isLoading}/> */}
-//         <div className={`SidebarAddTitleWrapper ${isLoading && 'hideWrapper'}`}>
-//           <div className='backGroupContainer'>
-//             <BiArrowBack className='backGroupBtn' size={20} color={"#4F4F4F"} onClick={handleBackGroupMember}/>
-//           </div>
-//           <div className='GroupInfoContainer'>
-//             <input type="file" style={{ display: 'none' }} id="file" onChange={e => handleInputGroupIcon(e.target.files[0])} accept="image/*"/>
-//             <label htmlFor="file">
-//             {groupIcon ?
-//               <div className='displayImageContainer'>
-//                 <img src={URL.createObjectURL(groupIcon)} alt=''/>
-//               </div>
-//               :
-//               <div className='addImageContainer'>    
-//                 <FaCameraRetro className='addImageIcon' size={30} color="rgb(217, 217, 217)"/>
-//                 <span>Group Icon</span>
-//               </div>
-//             }
-//             </label>
-//             <div className='addGroupTitleContainer'>
-//               <input
-//                 placeholder={"Group Name"}
-//                 value={groupName}
-//                 onChange={(e) => {
-//                   setGroupName(e.target.value)
-//                 }}
-//               />
-//             </div>
-//           </div>
-//           <div className='selectedUserToGroup'>
-//             {selectedUser && selectedUser.map(item => {
-//               return(
-//                   <img src={item.photoURL} alt=""/>
-//               )
-//             })
-//             }
-//           </div>
-//           {groupName !== "" &&
-//             <div className='CompleteContainer'>
-//               <AiOutlineCheck onClick={handleCreateGroupChat} size={30} color={'white'}/>
-//             </div>
-//           }
-//         </div>
-//       </div>
-//     }
-//     </>
-//   )
-// }
-
-// export default ChatSidebar
+export default ChatSidebar;

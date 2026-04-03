@@ -16,28 +16,30 @@ import { useSelectUser } from "../../../../redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { ActionButton } from "@/components/Misc/ActionButton";
 import SendNotification from "@/components/Notifications/SendNotification";
-import { ChatContext } from "../UserChatContext";
-import { db } from "@/config/firebaseConfig";
+import { db, storage } from "@/config/firebaseConfig";
+import { setDoc, setQuote } from "../../../../redux/slices/messageSlice";
 
 const Input = () => {
   const dispatch = useDispatch();
 
-  const doc = useSelector((state) => state.chat.doc);
-  const quote = useSelector((state) => state.chat.quote);
+  const doc = useSelector((state) => state.message.doc);
+  const quote = useSelector((state) => state.message.quote);
   const loadingChat = useSelector((state) => state.chat.loadingChat);
+
+  const chat = useSelector((state) => state.chat.selectedChat);
+  const chatId = useSelector((state) => state.chat.chatId);
+  const groupUser = useSelector((state) => state.chat.groupUsers);
 
   //   const { dispatchDoc, doc, imageInputRef, fileInputRef, unreadMessages, dispatchQuote, quote, loadingChat, dispatchLoadingChat } = useContext(MessageContext);
   const { fileInputRef, imageInputRef } = useContext(MessageContext);
   const user = useSelectUser();
-  const { data, groupUser } = useContext(ChatContext);
-  const allUserList = useSelectAllCompanyUsers;
+  const allUserList = useSelectAllCompanyUsers();
   const [taggableList, setTaggableList] = useState([]);
   const [tagList, setTagList] = useState(null);
 
   const dbRef = ref(db);
 
   const [text, setText] = useState("");
-  // const [showTaggableList, setShowTaggableList] = useState(false);
 
   useEffect(() => {
     var newGroupTarget = [];
@@ -48,7 +50,7 @@ const Input = () => {
         photoURL: "",
       });
     }
-    const newSets = groupUser.filter((item) => item.uid !== user.uid);
+    const newSets = groupUser.filter((item) => item.uid !== user?.uid);
     newSets.map((item) => {
       if (!item?.remove) {
         newGroupTarget.push({
@@ -74,7 +76,7 @@ const Input = () => {
 
     if (newArray.length > 0) {
       dispatch(
-        setChosenFile({
+        setDoc({
           type: "image",
           data: newArray,
         }),
@@ -95,7 +97,7 @@ const Input = () => {
 
     if (newArray.length > 0) {
       dispatch(
-        setChosenFile({
+        setDoc({
           type: "file",
           data: newArray,
         }),
@@ -114,13 +116,13 @@ const Input = () => {
     const formatMessage = removeStringID.replaceAll(/-{.*?}-/g, "");
 
     if (doc && doc.type === "image") {
-        // dispatch(setLoadingChat(true))
+      // dispatch(setLoadingChat(true))
       handleSendImage({ dateNow, uniqueID, combineID, formatMessage });
     } else if (doc && doc.type === "file") {
-        // dispatch(setLoadingChat(true))
+      // dispatch(setLoadingChat(true))
       handleSendFile({ dateNow, uniqueID, combineID, formatMessage });
     } else if (!doc) {
-        // dispatch(setLoadingChat(true))
+      // dispatch(setLoadingChat(true))
       handleSendText({ dateNow, uniqueID, combineID, formatMessage });
     }
   };
@@ -129,7 +131,7 @@ const Input = () => {
     if (formatMessage) {
       const postData = {
         id: uniqueID,
-        senderId: user.uid,
+        senderId: user?.uid,
         date: dateNow,
         text: formatMessage,
         img: false,
@@ -145,7 +147,7 @@ const Input = () => {
         set(
           ref(
             db,
-            "chats/" + data.chatId + "/messages/" + uniqueID + "/" + user.uid,
+            "chats/" + chatId + "/messages/" + uniqueID + "/" + user?.uid,
           ),
           postData,
         );
@@ -153,23 +155,18 @@ const Input = () => {
         set(
           ref(
             db,
-            "/userChats/" +
-              user.uid +
-              "/" +
-              data.chatId +
-              "/" +
-              "lastMessage/text",
+            "/userChats/" + user?.uid + "/" + chatId + "/" + "lastMessage/text",
           ),
           formatMessage,
         );
         set(
-          ref(db, "/userChats/" + user.uid + "/" + data.chatId + "/" + "date"),
+          ref(db, "/userChats/" + user?.uid + "/" + chatId + "/" + "date"),
           dateNow,
         );
         set(
           ref(
             db,
-            "userChats/" + user.uid + "/" + data.chatId + "/lastMessage/recall",
+            "userChats/" + user?.uid + "/" + chatId + "/lastMessage/recall",
           ),
           false,
         );
@@ -179,7 +176,7 @@ const Input = () => {
             ref(
               db,
               "chats/" +
-                data.chatId +
+                chatId +
                 "/messages/" +
                 uniqueID +
                 "/" +
@@ -190,12 +187,7 @@ const Input = () => {
           set(
             ref(
               db,
-              "/userChats/" +
-                groupUser[y].uid +
-                "/" +
-                data.chatId +
-                "/" +
-                "date",
+              "/userChats/" + groupUser[y].uid + "/" + chatId + "/" + "date",
             ),
             dateNow,
           );
@@ -205,7 +197,7 @@ const Input = () => {
               "/userChats/" +
                 groupUser[y].uid +
                 "/" +
-                data.chatId +
+                chatId +
                 "/" +
                 "lastMessage/text",
             ),
@@ -217,7 +209,7 @@ const Input = () => {
               "userChats/" +
                 groupUser[y].uid +
                 "/" +
-                data.chatId +
+                chatId +
                 "/lastMessage/recall",
             ),
             false,
@@ -229,11 +221,11 @@ const Input = () => {
               const targetUser = allUserList.find(
                 (e) => e.uid === groupUser[y].uid,
               );
-              if (targetUser.fcm && targetUser.uid !== user.uid) {
-                SendNotification({
+              if (targetUser.fcm && targetUser.uid !== user?.uid) {
+                SendNotification(dispatch, {
                   fcm: targetUser.fcm,
-                  title: data.user?.groupInfo.groupName,
-                  body: user.displayName + ": " + formatMessage,
+                  title: chat?.groupInfo?.groupName,
+                  body: user?.displayName + ": " + formatMessage,
                   profileImg: user.photoURL,
                   imgContent: null,
                 });
@@ -247,10 +239,10 @@ const Input = () => {
               );
               if (targetUser) {
                 if (targetUser.fcm) {
-                  SendNotification({
+                  SendNotification(dispatch, {
                     fcm: targetUser.fcm,
-                    title: data.user?.groupInfo.groupName,
-                    body: user.displayName + ": " + formatMessage,
+                    title: chat?.groupInfo?.groupName,
+                    body: user?.displayName + ": " + formatMessage,
                     profileImg: user.photoURL,
                     imgContent: null,
                   });
@@ -259,7 +251,7 @@ const Input = () => {
             }
           }
 
-          if (groupUser[y].uid !== user.uid && groupUser[y].mute === false) {
+          if (groupUser[y].uid !== user?.uid && groupUser[y].mute === false) {
             if (tagList) {
               const tagAll = tagList.find((e) => e === "alluser1001");
               if (tagAll !== "alluser1001") {
@@ -270,10 +262,10 @@ const Input = () => {
                   (e) => e.uid === groupUser[y].uid,
                 );
                 if (targetUser) {
-                  SendNotification({
+                  SendNotification(dispatch, {
                     fcm: targetUser.fcm,
-                    title: data.user?.groupInfo.groupName,
-                    body: user.displayName + ": " + formatMessage,
+                    title: chat?.groupInfo?.groupName,
+                    body: user?.displayName + ": " + formatMessage,
                     profileImg: user.photoURL,
                     imgContent: null,
                   });
@@ -283,10 +275,10 @@ const Input = () => {
               const targetUser = allUserList.find(
                 (e) => e.uid === groupUser[y].uid,
               );
-              SendNotification({
+              SendNotification(dispatch, {
                 fcm: targetUser.fcm,
-                title: data.user?.groupInfo.groupName,
-                body: user.displayName + ": " + formatMessage,
+                title: chat?.groupInfo?.groupName,
+                body: user?.displayName + ": " + formatMessage,
                 profileImg: user.photoURL,
                 imgContent: null,
               });
@@ -295,20 +287,12 @@ const Input = () => {
         }
         setText("");
       } else {
-        set(
-          ref(db, "chats/" + data.chatId + "/messages/" + uniqueID),
-          postData,
-        );
+        set(ref(db, "chats/" + chatId + "/messages/" + uniqueID), postData);
 
         set(
           ref(
             db,
-            "/userChats/" +
-              user.uid +
-              "/" +
-              data.chatId +
-              "/" +
-              "lastMessage/text",
+            "/userChats/" + user?.uid + "/" + chatId + "/" + "lastMessage/text",
           ),
           formatMessage,
         );
@@ -316,36 +300,38 @@ const Input = () => {
           ref(
             db,
             "/userChats/" +
-              data.user.uid +
+              chat?.userInfo?.uid +
               "/" +
-              data.chatId +
+              chatId +
               "/" +
               "lastMessage/text",
           ),
           formatMessage,
         );
         set(
-          ref(db, "/userChats/" + user.uid + "/" + data.chatId + "/" + "date"),
+          ref(db, "/userChats/" + user?.uid + "/" + chatId + "/" + "date"),
           dateNow,
         );
         set(
           ref(
             db,
-            "/userChats/" + data.user.uid + "/" + data.chatId + "/" + "date",
+            "/userChats/" + chat?.userInfo?.uid + "/" + chatId + "/" + "date",
           ),
           dateNow,
         );
 
-        const targetUser = allUserList.find((e) => e.uid === data.user.uid);
+        const targetUser = allUserList.find(
+          (e) => e.uid === chat?.userInfo?.uid,
+        );
 
         get(
-          child(dbRef, `userChats/${data.user.uid}/${data.chatId}/mute`),
+          child(dbRef, `userChats/${chat?.userInfo?.uid}/${chatId}/mute`),
         ).then((snapshot) => {
           if (snapshot.exists()) {
             if (!snapshot.val()) {
-              SendNotification({
+              SendNotification(dispatch, {
                 fcm: targetUser.fcm,
-                title: user.displayName,
+                title: user?.displayName,
                 body: formatMessage,
                 profileImg: user.photoURL,
                 imgContent: null,
@@ -384,7 +370,7 @@ const Input = () => {
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
             const postData = {
               id: newUniqueID,
-              senderId: user.uid,
+              senderId: user?.uid,
               date: dateNow,
               text: false,
               img: false,
@@ -401,11 +387,11 @@ const Input = () => {
                 ref(
                   db,
                   "chats/" +
-                    data.chatId +
+                    chatId +
                     "/messages/" +
                     newUniqueID +
                     "/" +
-                    user.uid,
+                    user?.uid,
                 ),
                 postData,
               );
@@ -414,9 +400,9 @@ const Input = () => {
                 ref(
                   db,
                   "/userChats/" +
-                    user.uid +
+                    user?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/" +
                     "lastMessage/text",
                 ),
@@ -425,7 +411,7 @@ const Input = () => {
               set(
                 ref(
                   db,
-                  "/userChats/" + user.uid + "/" + data.chatId + "/" + "date",
+                  "/userChats/" + user?.uid + "/" + chatId + "/" + "date",
                 ),
                 dateNow,
               );
@@ -433,9 +419,9 @@ const Input = () => {
                 ref(
                   db,
                   "userChats/" +
-                    user.uid +
+                    user?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/lastMessage/recall",
                 ),
                 false,
@@ -448,7 +434,7 @@ const Input = () => {
                     "userChats/" +
                       groupUser[y].uid +
                       "/" +
-                      data.chatId +
+                      chatId +
                       "/lastMessage/recall",
                   ),
                   false,
@@ -457,7 +443,7 @@ const Input = () => {
                   ref(
                     db,
                     "chats/" +
-                      data.chatId +
+                      chatId +
                       "/messages/" +
                       newUniqueID +
                       "/" +
@@ -471,7 +457,7 @@ const Input = () => {
                     "/userChats/" +
                       groupUser[y].uid +
                       "/" +
-                      data.chatId +
+                      chatId +
                       "/" +
                       "date",
                   ),
@@ -483,7 +469,7 @@ const Input = () => {
                     "/userChats/" +
                       groupUser[y].uid +
                       "/" +
-                      data.chatId +
+                      chatId +
                       "/" +
                       "lastMessage/text",
                   ),
@@ -496,11 +482,11 @@ const Input = () => {
                     const targetUser = allUserList.find(
                       (e) => e.uid === groupUser[y].uid,
                     );
-                    if (targetUser.fcm && targetUser.uid !== user.uid) {
-                      SendNotification({
+                    if (targetUser.fcm && targetUser.uid !== user?.uid) {
+                      SendNotification(dispatch, {
                         fcm: targetUser.fcm,
-                        title: data.user?.groupInfo.groupName,
-                        body: user.displayName + ": " + formatMessage,
+                        title: chat?.groupInfo?.groupName,
+                        body: user?.displayName + ": " + formatMessage,
                         profileImg: user.photoURL,
                         imgContent: null,
                       });
@@ -514,10 +500,10 @@ const Input = () => {
                     );
                     if (targetUser) {
                       if (targetUser.fcm) {
-                        SendNotification({
+                        SendNotification(dispatch, {
                           fcm: targetUser.fcm,
-                          title: data.user?.groupInfo.groupName,
-                          body: user.displayName + ": " + formatMessage,
+                          title: chat?.groupInfo?.groupName,
+                          body: user?.displayName + ": " + formatMessage,
                           profileImg: user.photoURL,
                           imgContent: null,
                         });
@@ -527,7 +513,7 @@ const Input = () => {
                 }
 
                 if (
-                  groupUser[y].uid !== user.uid &&
+                  groupUser[y].uid !== user?.uid &&
                   groupUser[y].mute === false
                 ) {
                   if (tagList) {
@@ -540,10 +526,10 @@ const Input = () => {
                         (e) => e.uid === groupUser[y].uid,
                       );
                       if (targetUser) {
-                        SendNotification({
+                        SendNotification(dispatch, {
                           fcm: targetUser.fcm,
-                          title: data.user?.groupInfo.groupName,
-                          body: user.displayName + ": " + formatMessage,
+                          title: chat?.groupInfo?.groupName,
+                          body: user?.displayName + ": " + formatMessage,
                           profileImg: user.photoURL,
                           imgContent: null,
                         });
@@ -553,10 +539,10 @@ const Input = () => {
                     const targetUser = allUserList.find(
                       (e) => e.uid === groupUser[y].uid,
                     );
-                    SendNotification({
+                    SendNotification(dispatch, {
                       fcm: targetUser.fcm,
-                      title: data.user?.groupInfo.groupName,
-                      body: user.displayName + ": " + fileName,
+                      title: chat?.groupInfo?.groupName,
+                      body: user?.displayName + ": " + fileName,
                       profileImg: user.photoURL,
                       imgContent: null,
                     });
@@ -568,9 +554,9 @@ const Input = () => {
                 ref(
                   db,
                   "userChats/" +
-                    user.uid +
+                    user?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/lastMessage/recall",
                 ),
                 false,
@@ -579,16 +565,16 @@ const Input = () => {
                 ref(
                   db,
                   "userChats/" +
-                    data.user.uid +
+                    chat?.userInfo?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/lastMessage/recall",
                 ),
                 false,
               );
 
               set(
-                ref(db, "chats/" + data.chatId + "/messages/" + newUniqueID),
+                ref(db, "chats/" + chatId + "/messages/" + newUniqueID),
                 postData,
               );
 
@@ -596,9 +582,9 @@ const Input = () => {
                 ref(
                   db,
                   "/userChats/" +
-                    user.uid +
+                    user?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/" +
                     "lastMessage/text",
                 ),
@@ -608,9 +594,9 @@ const Input = () => {
                 ref(
                   db,
                   "/userChats/" +
-                    data.user.uid +
+                    chat?.userInfo?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/" +
                     "lastMessage/text",
                 ),
@@ -619,7 +605,7 @@ const Input = () => {
               set(
                 ref(
                   db,
-                  "/userChats/" + user.uid + "/" + data.chatId + "/" + "date",
+                  "/userChats/" + user?.uid + "/" + chatId + "/" + "date",
                 ),
                 dateNow,
               );
@@ -627,9 +613,9 @@ const Input = () => {
                 ref(
                   db,
                   "/userChats/" +
-                    data.user.uid +
+                    chat?.userInfo?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/" +
                     "date",
                 ),
@@ -637,16 +623,16 @@ const Input = () => {
               );
 
               const targetUser = allUserList.find(
-                (e) => e.uid === data.user.uid,
+                (e) => e.uid === chat?.userInfo?.uid,
               );
               get(
-                child(dbRef, `userChats/${data.user.uid}/${data.chatId}/mute`),
+                child(dbRef, `userChats/${chat?.userInfo?.uid}/${chatId}/mute`),
               ).then((snapshot) => {
                 if (snapshot.exists()) {
                   if (!snapshot.val()) {
-                    SendNotification({
+                    SendNotification(dispatch, {
                       fcm: targetUser.fcm,
-                      title: user.displayName,
+                      title: user?.displayName,
                       body: fileName,
                       profileImg: user.photoURL,
                       imgContent: null,
@@ -661,7 +647,7 @@ const Input = () => {
     }
 
     fileInputRef.current.value = null;
-    dispatch(setChosenFile(null));
+    dispatch(setDoc(null));
   }
 
   function handleSendImage({ dateNow, uniqueID, combineID, formatMessage }) {
@@ -669,7 +655,7 @@ const Input = () => {
     if (formatMessage) {
       const postData = {
         id: uniqueID,
-        senderId: user.uid,
+        senderId: user?.uid,
         date: dateNow,
         text: formatMessage,
         img: false,
@@ -685,7 +671,7 @@ const Input = () => {
         set(
           ref(
             db,
-            "chats/" + data.chatId + "/messages/" + uniqueID + "/" + user.uid,
+            "chats/" + chatId + "/messages/" + uniqueID + "/" + user?.uid,
           ),
           postData,
         );
@@ -693,17 +679,12 @@ const Input = () => {
         set(
           ref(
             db,
-            "/userChats/" +
-              user.uid +
-              "/" +
-              data.chatId +
-              "/" +
-              "lastMessage/text",
+            "/userChats/" + user?.uid + "/" + chatId + "/" + "lastMessage/text",
           ),
           formatMessage,
         );
         set(
-          ref(db, "/userChats/" + user.uid + "/" + data.chatId + "/" + "date"),
+          ref(db, "/userChats/" + user?.uid + "/" + chatId + "/" + "date"),
           dateNow,
         );
 
@@ -712,7 +693,7 @@ const Input = () => {
             ref(
               db,
               "chats/" +
-                data.chatId +
+                chatId +
                 "/messages/" +
                 uniqueID +
                 "/" +
@@ -726,7 +707,7 @@ const Input = () => {
               "/userChats/" +
                 groupUser[y].uid +
                 "/" +
-                data.chatId +
+                chatId +
                 "/" +
                 "lastMessage/text",
             ),
@@ -735,12 +716,7 @@ const Input = () => {
           set(
             ref(
               db,
-              "/userChats/" +
-                groupUser[y].uid +
-                "/" +
-                data.chatId +
-                "/" +
-                "date",
+              "/userChats/" + groupUser[y].uid + "/" + chatId + "/" + "date",
             ),
             dateNow,
           );
@@ -750,7 +726,7 @@ const Input = () => {
               "userChats/" +
                 groupUser[y].uid +
                 "/" +
-                data.chatId +
+                chatId +
                 "/lastMessage/recall",
             ),
             false,
@@ -762,11 +738,11 @@ const Input = () => {
               const targetUser = allUserList.find(
                 (e) => e.uid === groupUser[y].uid,
               );
-              if (targetUser.fcm && targetUser.uid !== user.uid) {
-                SendNotification({
+              if (targetUser.fcm && targetUser.uid !== user?.uid) {
+                SendNotification(dispatch, {
                   fcm: targetUser.fcm,
-                  title: data.user?.groupInfo.groupName,
-                  body: user.displayName + ": " + formatMessage,
+                  title: chat?.groupInfo?.groupName,
+                  body: user?.displayName + ": " + formatMessage,
                   profileImg: user.photoURL,
                   imgContent: null,
                 });
@@ -780,10 +756,10 @@ const Input = () => {
               );
               if (targetUser) {
                 if (targetUser.fcm) {
-                  SendNotification({
+                  SendNotification(dispatch, {
                     fcm: targetUser.fcm,
-                    title: data.user?.groupInfo.groupName,
-                    body: user.displayName + ": " + formatMessage,
+                    title: chat?.groupInfo?.groupName,
+                    body: user?.displayName + ": " + formatMessage,
                     profileImg: user.photoURL,
                     imgContent: null,
                   });
@@ -792,7 +768,7 @@ const Input = () => {
             }
           }
 
-          if (groupUser[y].uid !== user.uid && groupUser[y].mute === false) {
+          if (groupUser[y].uid !== user?.uid && groupUser[y].mute === false) {
             if (tagList) {
               const tagAll = tagList.find((e) => e === "alluser1001");
               if (tagAll !== "alluser1001") {
@@ -803,10 +779,10 @@ const Input = () => {
                   (e) => e.uid === groupUser[y].uid,
                 );
                 if (targetUser) {
-                  SendNotification({
+                  SendNotification(dispatch, {
                     fcm: targetUser.fcm,
-                    title: data.user?.groupInfo.groupName,
-                    body: user.displayName + ": " + formatMessage,
+                    title: chat?.groupInfo?.groupName,
+                    body: user?.displayName + ": " + formatMessage,
                     profileImg: user.photoURL,
                     imgContent: null,
                   });
@@ -816,10 +792,10 @@ const Input = () => {
               const targetUser = allUserList.find(
                 (e) => e.uid === groupUser[y].uid,
               );
-              SendNotification({
+              SendNotification(dispatch, {
                 fcm: targetUser.fcm,
-                title: data.user?.groupInfo.groupName,
-                body: user.displayName + ": " + formatMessage,
+                title: chat?.groupInfo?.groupName,
+                body: user?.displayName + ": " + formatMessage,
                 profileImg: user.photoURL,
                 imgContent: null,
               });
@@ -828,40 +804,34 @@ const Input = () => {
         }
         setText("");
       } else {
-        set(
-          ref(db, "chats/" + data.chatId + "/messages/" + uniqueID),
-          postData,
-        );
+        set(ref(db, "chats/" + chatId + "/messages/" + uniqueID), postData);
 
         set(
           ref(
             db,
-            "/userChats/" +
-              user.uid +
-              "/" +
-              data.chatId +
-              "/" +
-              "lastMessage/text",
+            "/userChats/" + user?.uid + "/" + chatId + "/" + "lastMessage/text",
           ),
           formatMessage,
         );
         set(
           ref(
             db,
-            "/userChats/" + data.user.uid + "/" + data.chatId + "/" + "date",
+            "/userChats/" + chat?.userInfo?.uid + "/" + chatId + "/" + "date",
           ),
           dateNow,
         );
 
-        const targetUser = allUserList.find((e) => e.uid === data.user.uid);
+        const targetUser = allUserList.find(
+          (e) => e.uid === chat?.userInfo?.uid,
+        );
         get(
-          child(dbRef, `userChats/${data.user.uid}/${data.chatId}/mute`),
+          child(dbRef, `userChats/${chat?.userInfo?.uid}/${chatId}/mute`),
         ).then((snapshot) => {
           if (snapshot.exists()) {
             if (!snapshot.val()) {
-              SendNotification({
+              SendNotification(dispatch, {
                 fcm: targetUser.fcm,
-                title: user.displayName,
+                title: user?.displayName,
                 body: formatMessage,
                 profileImg: user.photoURL,
                 imgContent: null,
@@ -898,7 +868,7 @@ const Input = () => {
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
             const postData = {
               id: newUniqueID,
-              senderId: user.uid,
+              senderId: user?.uid,
               date: dateNow,
               text: false,
               img: downloadURL,
@@ -915,11 +885,11 @@ const Input = () => {
                 ref(
                   db,
                   "chats/" +
-                    data.chatId +
+                    chatId +
                     "/messages/" +
                     newUniqueID +
                     "/" +
-                    user.uid,
+                    user?.uid,
                 ),
                 postData,
               );
@@ -928,9 +898,9 @@ const Input = () => {
                 ref(
                   db,
                   "/userChats/" +
-                    user.uid +
+                    user?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/" +
                     "lastMessage/text",
                 ),
@@ -939,7 +909,7 @@ const Input = () => {
               set(
                 ref(
                   db,
-                  "/userChats/" + user.uid + "/" + data.chatId + "/" + "date",
+                  "/userChats/" + user?.uid + "/" + chatId + "/" + "date",
                 ),
                 dateNow,
               );
@@ -947,9 +917,9 @@ const Input = () => {
                 ref(
                   db,
                   "userChats/" +
-                    user.uid +
+                    user?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/lastMessage/recall",
                 ),
                 false,
@@ -960,7 +930,7 @@ const Input = () => {
                   ref(
                     db,
                     "chats/" +
-                      data.chatId +
+                      chatId +
                       "/messages/" +
                       newUniqueID +
                       "/" +
@@ -974,7 +944,7 @@ const Input = () => {
                     "userChats/" +
                       groupUser[y].uid +
                       "/" +
-                      data.chatId +
+                      chatId +
                       "/lastMessage/recall",
                   ),
                   false,
@@ -986,7 +956,7 @@ const Input = () => {
                     "/userChats/" +
                       groupUser[y].uid +
                       "/" +
-                      data.chatId +
+                      chatId +
                       "/" +
                       "lastMessage/text",
                   ),
@@ -998,7 +968,7 @@ const Input = () => {
                     "/userChats/" +
                       groupUser[y].uid +
                       "/" +
-                      data.chatId +
+                      chatId +
                       "/" +
                       "date",
                   ),
@@ -1011,11 +981,11 @@ const Input = () => {
                     const targetUser = allUserList.find(
                       (e) => e.uid === groupUser[y].uid,
                     );
-                    if (targetUser.fcm && targetUser.uid !== user.uid) {
-                      SendNotification({
+                    if (targetUser.fcm && targetUser.uid !== user?.uid) {
+                      SendNotification(dispatch, {
                         fcm: targetUser.fcm,
-                        title: data.user?.groupInfo.groupName,
-                        body: user.displayName + ": " + formatMessage,
+                        title: chat?.groupInfo?.groupName,
+                        body: user?.displayName + ": " + formatMessage,
                         profileImg: user.photoURL,
                         imgContent: null,
                       });
@@ -1029,10 +999,10 @@ const Input = () => {
                     );
                     if (targetUser) {
                       if (targetUser.fcm) {
-                        SendNotification({
+                        SendNotification(dispatch, {
                           fcm: targetUser.fcm,
-                          title: data.user?.groupInfo.groupName,
-                          body: user.displayName + ": " + formatMessage,
+                          title: chat?.groupInfo?.groupName,
+                          body: user?.displayName + ": " + formatMessage,
                           profileImg: user.photoURL,
                           imgContent: null,
                         });
@@ -1042,7 +1012,7 @@ const Input = () => {
                 }
 
                 if (
-                  groupUser[y].uid !== user.uid &&
+                  groupUser[y].uid !== user?.uid &&
                   groupUser[y].mute === false
                 ) {
                   if (tagList) {
@@ -1055,10 +1025,10 @@ const Input = () => {
                         (e) => e.uid === groupUser[y].uid,
                       );
                       if (targetUser) {
-                        SendNotification({
+                        SendNotification(dispatch, {
                           fcm: targetUser.fcm,
-                          title: data.user?.groupInfo.groupName,
-                          body: user.displayName + ": " + formatMessage,
+                          title: chat?.groupInfo?.groupName,
+                          body: user?.displayName + ": " + formatMessage,
                           profileImg: user.photoURL,
                           imgContent: null,
                         });
@@ -1068,9 +1038,9 @@ const Input = () => {
                     const targetUser = allUserList.find(
                       (e) => e.uid === groupUser[y].uid,
                     );
-                    SendNotification({
+                    SendNotification(dispatch, {
                       fcm: targetUser.fcm,
-                      title: data.user?.groupInfo.groupName,
+                      title: chat?.groupInfo?.groupName,
                       body: "",
                       profileImg: user.photoURL,
                       imgContent: downloadURL,
@@ -1083,9 +1053,9 @@ const Input = () => {
                 ref(
                   db,
                   "userChats/" +
-                    user.uid +
+                    user?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/lastMessage/recall",
                 ),
                 false,
@@ -1094,16 +1064,16 @@ const Input = () => {
                 ref(
                   db,
                   "userChats/" +
-                    data.user.uid +
+                    chat?.userInfo?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/lastMessage/recall",
                 ),
                 false,
               );
 
               set(
-                ref(db, "chats/" + data.chatId + "/messages/" + newUniqueID),
+                ref(db, "chats/" + chatId + "/messages/" + newUniqueID),
                 postData,
               );
 
@@ -1111,9 +1081,9 @@ const Input = () => {
                 ref(
                   db,
                   "/userChats/" +
-                    user.uid +
+                    user?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/" +
                     "lastMessage/text",
                 ),
@@ -1123,9 +1093,9 @@ const Input = () => {
                 ref(
                   db,
                   "/userChats/" +
-                    data.user.uid +
+                    chat?.userInfo?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/" +
                     "lastMessage/text",
                 ),
@@ -1134,7 +1104,7 @@ const Input = () => {
               set(
                 ref(
                   db,
-                  "/userChats/" + user.uid + "/" + data.chatId + "/" + "date",
+                  "/userChats/" + user?.uid + "/" + chatId + "/" + "date",
                 ),
                 dateNow,
               );
@@ -1142,9 +1112,9 @@ const Input = () => {
                 ref(
                   db,
                   "/userChats/" +
-                    data.user.uid +
+                    chat?.userInfo?.uid +
                     "/" +
-                    data.chatId +
+                    chatId +
                     "/" +
                     "date",
                 ),
@@ -1152,16 +1122,16 @@ const Input = () => {
               );
 
               const targetUser = allUserList.find(
-                (e) => e.uid === data.user.uid,
+                (e) => e.uid === chat?.userInfo?.uid,
               );
               get(
-                child(dbRef, `userChats/${data.user.uid}/${data.chatId}/mute`),
+                child(dbRef, `userChats/${chat?.userInfo?.uid}/${chatId}/mute`),
               ).then((snapshot) => {
                 if (snapshot.exists()) {
                   if (!snapshot.val()) {
-                    SendNotification({
+                    SendNotification(dispatch, {
                       fcm: targetUser.fcm,
-                      title: user.displayName,
+                      title: user?.displayName,
                       body: "",
                       profileImg: user.photoURL,
                       imgContent: downloadURL,
@@ -1176,13 +1146,13 @@ const Input = () => {
     }
 
     imageInputRef.current.value = null;
-    dispatch(setChosenFile(null));
+    dispatch(setDoc(null));
   }
 
   async function handleSendText({ dateNow, uniqueID, formatMessage }) {
     const postData = {
       id: uniqueID,
-      senderId: user.uid,
+      senderId: user?.uid,
       quoteType: quote
         ? quote.text
           ? "TEXT"
@@ -1212,33 +1182,25 @@ const Input = () => {
 
     if (groupUser.length > 0) {
       set(
-        ref(
-          db,
-          "chats/" + data.chatId + "/messages/" + uniqueID + "/" + user.uid,
-        ),
+        ref(db, "chats/" + chatId + "/messages/" + uniqueID + "/" + user?.uid),
         postData,
       );
 
       set(
-        ref(db, "/userChats/" + user.uid + "/" + data.chatId + "/" + "date"),
+        ref(db, "/userChats/" + user?.uid + "/" + chatId + "/" + "date"),
         dateNow,
       );
       set(
         ref(
           db,
-          "/userChats/" +
-            user.uid +
-            "/" +
-            data.chatId +
-            "/" +
-            "lastMessage/text",
+          "/userChats/" + user?.uid + "/" + chatId + "/" + "lastMessage/text",
         ),
         formatMessage,
       );
       set(
         ref(
           db,
-          "userChats/" + user.uid + "/" + data.chatId + "/lastMessage/recall",
+          "userChats/" + user?.uid + "/" + chatId + "/lastMessage/recall",
         ),
         false,
       );
@@ -1248,7 +1210,7 @@ const Input = () => {
           ref(
             db,
             "chats/" +
-              data.chatId +
+              chatId +
               "/messages/" +
               uniqueID +
               "/" +
@@ -1262,7 +1224,7 @@ const Input = () => {
             "userChats/" +
               groupUser[y].uid +
               "/" +
-              data.chatId +
+              chatId +
               "/lastMessage/recall",
           ),
           false,
@@ -1271,7 +1233,7 @@ const Input = () => {
         set(
           ref(
             db,
-            "/userChats/" + groupUser[y].uid + "/" + data.chatId + "/" + "date",
+            "/userChats/" + groupUser[y].uid + "/" + chatId + "/" + "date",
           ),
           dateNow,
         );
@@ -1281,7 +1243,7 @@ const Input = () => {
             "/userChats/" +
               groupUser[y].uid +
               "/" +
-              data.chatId +
+              chatId +
               "/" +
               "lastMessage/text",
           ),
@@ -1294,11 +1256,11 @@ const Input = () => {
             const targetUser = allUserList.find(
               (e) => e.uid === groupUser[y].uid,
             );
-            if (targetUser.fcm && targetUser.uid !== user.uid) {
-              SendNotification({
+            if (targetUser.fcm && targetUser.uid !== user?.uid) {
+              SendNotification(dispatch, {
                 fcm: targetUser.fcm,
-                title: data.user?.groupInfo.groupName,
-                body: user.displayName + ": " + formatMessage,
+                title: chat?.groupInfo?.groupName,
+                body: user?.displayName + ": " + formatMessage,
                 profileImg: user.photoURL,
                 imgContent: null,
               });
@@ -1312,10 +1274,10 @@ const Input = () => {
             );
             if (targetUser) {
               if (targetUser.fcm) {
-                SendNotification({
+                SendNotification(dispatch, {
                   fcm: targetUser.fcm,
-                  title: data.user?.groupInfo.groupName,
-                  body: user.displayName + ": " + formatMessage,
+                  title: chat?.groupInfo?.groupName,
+                  body: user?.displayName + ": " + formatMessage,
                   profileImg: user.photoURL,
                   imgContent: null,
                 });
@@ -1324,7 +1286,7 @@ const Input = () => {
           }
         }
 
-        if (groupUser[y].uid !== user.uid && groupUser[y].mute === false) {
+        if (groupUser[y].uid !== user?.uid && groupUser[y].mute === false) {
           if (tagList) {
             const tagAll = tagList.find((e) => e === "alluser1001");
             if (tagAll !== "alluser1001") {
@@ -1335,10 +1297,10 @@ const Input = () => {
                 (e) => e.uid === groupUser[y].uid,
               );
               if (targetUser) {
-                SendNotification({
+                SendNotification(dispatch, {
                   fcm: targetUser.fcm,
-                  title: data.user?.groupInfo.groupName,
-                  body: user.displayName + ": " + formatMessage,
+                  title: chat?.groupInfo?.groupName,
+                  body: user?.displayName + ": " + formatMessage,
                   profileImg: user.photoURL,
                   imgContent: null,
                 });
@@ -1348,10 +1310,10 @@ const Input = () => {
             const targetUser = allUserList.find(
               (e) => e.uid === groupUser[y].uid,
             );
-            SendNotification({
+            SendNotification(dispatch, {
               fcm: targetUser.fcm,
-              title: data.user?.groupInfo.groupName,
-              body: user.displayName + ": " + formatMessage,
+              title: chat?.groupInfo?.groupName,
+              body: user?.displayName + ": " + formatMessage,
               profileImg: user.photoURL,
               imgContent: null,
             });
@@ -1362,17 +1324,17 @@ const Input = () => {
     } else {
       //Bug occurred in this function
 
-      set(ref(db, "chats/" + data.chatId + "/messages/" + uniqueID), postData);
+      set(ref(db, "chats/" + chatId + "/messages/" + uniqueID), postData);
 
-      const targetUser = allUserList.find((e) => e.uid === data.user.uid);
+      const targetUser = allUserList.find((e) => e.uid === chat?.userInfo?.uid);
 
-      get(child(dbRef, `userChats/${data.user.uid}/${data.chatId}/mute`)).then(
+      get(child(dbRef, `userChats/${chat?.userInfo?.uid}/${chatId}/mute`)).then(
         (snapshot) => {
           if (snapshot.exists()) {
             if (!snapshot.val()) {
-              SendNotification({
+              SendNotification(dispatch, {
                 fcm: targetUser.fcm,
-                title: user.displayName,
+                title: user?.displayName,
                 body: formatMessage,
                 profileImg: user.photoURL,
                 imgContent: null,
@@ -1389,23 +1351,20 @@ const Input = () => {
         text: formatMessage,
       };
 
+      set(ref(db, "userChats/" + user?.uid + "/" + chatId + "/date"), dateNow);
       set(
-        ref(db, "userChats/" + user.uid + "/" + data.chatId + "/date"),
-        dateNow,
-      );
-      set(
-        ref(db, "userChats/" + data.user.uid + "/" + data.chatId + "/date"),
+        ref(db, "userChats/" + chat?.userInfo?.uid + "/" + chatId + "/date"),
         dateNow,
       );
 
       set(
-        ref(db, "userChats/" + user.uid + "/" + data.chatId + "/lastMessage"),
+        ref(db, "userChats/" + user?.uid + "/" + chatId + "/lastMessage"),
         chatsData,
       );
       set(
         ref(
           db,
-          "userChats/" + data.user.uid + "/" + data.chatId + "/lastMessage",
+          "userChats/" + chat?.userInfo?.uid + "/" + chatId + "/lastMessage",
         ),
         chatsData,
       );
@@ -1437,7 +1396,6 @@ const Input = () => {
       <div className="input-subContainer">
         <div className="inputField">
           <MentionsInput
-            // multiLine={true}
             singleLine
             style={mentionsInputStyles}
             forceSuggestionsAboveCursor
@@ -1450,6 +1408,7 @@ const Input = () => {
             a11ySuggestionsListLabel={"Suggested tag"}
           >
             <Mention
+              trigger="@"
               displayTransform={(id, display) => `@${display}`}
               style={{}}
               data={taggableList}
@@ -1496,16 +1455,14 @@ const Input = () => {
               size={20}
             />
           </label>
-          <ActionButton
-            disabled={doc || text !== "" ? false : true}
-            backgroundColor={"#381256"}
-            width={"100px"}
-            buttonText={"SEND"}
-            justify={"space-evenly"}
+          <button
+            className="send-btn"
             onClick={processMessage}
-            icon={<FiSend size={16} />}
-            textColor={"#FFFFFF"}
-          />
+            disabled={!doc && text === ""}
+          >
+            <FiSend size={16} />
+            <span>Send</span>
+          </button>
         </div>
       </div>
     </div>

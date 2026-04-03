@@ -1,26 +1,17 @@
 import { useDispatch } from "react-redux";
 import { sendChatNotification } from "../../../redux/slices/messageSlice";
 
-const SendNotification = ({ fcm, title, body, profileImg, imgContent }) => {
-  const dispatch = useDispatch();
-
+export const SendNotification = (dispatch, payload) => {
   const message = {
-    title: title,
-    body: body,
-    profileImg: profileImg,
-    imgContent: imgContent ? imgContent : "EMPTY",
-    fcm: fcm,
+    title: payload.title,
+    body: payload.body,
+    profileImg: payload.profileImg,
+    imgContent: payload.imgContent || "EMPTY",
+    fcm: payload.fcm,
   };
 
   if (message.fcm) {
     dispatch(sendChatNotification(message));
-    // ApiClient.POST(API.registerFCM, message).then((result) => {
-
-    // }).catch(err => {
-
-    //   console.log(err)
-
-    // })
   }
 };
 

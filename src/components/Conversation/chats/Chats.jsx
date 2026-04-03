@@ -1,36 +1,25 @@
 import { useContext, useEffect, useState } from "react";
-import { ChatContext } from "../context/UserChatContext";
 import moment from "moment";
-import { MessageContext } from "../ChatScrollContext";
-import { useDispatch } from "react-redux";
-import { setDoc } from "../../../../redux/slices/messageSlice";
+import { useDispatch, useSelector } from "react-redux";
 import { useSelectAllCompanyUsers } from "../../../../redux/slices/companySlice";
+import {
+  setPrivateChat,
+  setGroupChat,
+} from "../../../../redux/slices/chatSlice";
+import { useSelectUser } from "../../../../redux/slices/authSlice";
 
 const Chats = () => {
-  const [selectedChat, setSelectedChat] = useState();
+  // const [selectedChat, setSelectedChat] = useState();
 
-  const reduxDispatch = useDispatch();
-  const { dispatch, chats, unreadCount } = useContext(ChatContext);
-  const { fileInputRef, imageInputRef } = useContext(MessageContext);  
+  const dispatch = useDispatch();
+
+  const chats = useSelector((state) => state.chat.chats);
+  const unreadCount = useSelector((state) => state.chat.unreadCount);
+  const selectedChat = useSelector((state) => state.chat.selectedChat);
   const allUserList = useSelectAllCompanyUsers();
+  const user = useSelectUser();
 
   const [newChats, setNewChats] = useState([]);
-
-  const handleSelect = (u) => {
-    reduxDispatch(setDoc(null));
-    reduxDispatch(setQuote(null));
-    if (imageInputRef.current || fileInputRef.current) {
-      imageInputRef.current.value = null;
-      fileInputRef.current.value = null;
-    }
-    if (u.groupInfo) {
-      setSelectedChat(u);
-      dispatch({ type: "CHANGE_GROUP", payload: u });
-    } else {
-      setSelectedChat(u);
-      dispatch({ type: "CHANGE_USER", payload: u });
-    }
-  };
 
   useEffect(() => {
     if (chats) {
@@ -41,12 +30,35 @@ const Chats = () => {
         }
 
         // Check if the chat's uid exists in allUserList
-        return allUserList.some((user) => user.uid === chat[1].userInfo.uid);
+        return allUserList.some((user) => user?.uid === chat[1].userInfo?.uid);
       });
 
       setNewChats(filteredChats);
     }
   }, [chats, allUserList]);
+
+  const handleSelect = (chatData) => {
+    if (chatData.groupInfo) {
+      dispatch(
+        setGroupChat({
+          group: {
+            userInfo: chatData.userInfo,
+            groupInfo: chatData.groupInfo,
+          },
+        }),
+      );
+    } else {
+      const combinedId = [user?.uid, chatData.uid].sort().join("");
+
+      dispatch(
+        setPrivateChat({
+          currentUserId: user?.uid,
+          user: chatData,
+          chatId: combinedId,
+        }),
+      );
+    }
+  };
 
   return (
     <div className="chats">
@@ -57,7 +69,7 @@ const Chats = () => {
             if (chat[1].groupInfo) {
               return (
                 <div
-                  className={`userChat ${chat[1].userInfo === selectedChat?.userInfo && "selectedChat"}`}
+                  className={`userChat ${chat[1].userInfo === selectedChat?.chatId && "selectedChat"}`}
                   key={chat[0]}
                   onClick={() =>
                     handleSelect({
@@ -108,13 +120,13 @@ const Chats = () => {
             } else {
               return (
                 <div
-                  className={`userChat ${chat[1].userInfo?.uid === selectedChat?.uid && "selectedChat"}`}
+                  className={`userChat ${chat[1].userInfo?.uid === selectedChat?.chatId && "selectedChat"}`}
                   key={chat[0]}
                   onClick={() => handleSelect(chat[1].userInfo)}
                 >
                   {allUserList &&
                     allUserList?.map((user) => {
-                      if (user.uid === chat[1].userInfo?.uid) {
+                      if (user?.uid === chat[1].userInfo?.uid) {
                         return (
                           <>
                             <div className="chatsImage">
@@ -142,6 +154,7 @@ const Chats = () => {
                                   if (item.id === chat[0]) {
                                     return (
                                       <div
+                                        key={item.id}
                                         className={`unreadMessage ${item.messages !== 0 && "unreadMessage-active"}`}
                                       >
                                         <span>

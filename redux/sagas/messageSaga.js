@@ -1,5 +1,5 @@
 import { eventChannel } from "redux-saga";
-import { call, put, takeLatest } from "redux-saga/effects";
+import { call, put, take, takeLatest } from "redux-saga/effects";
 import { ref, onValue } from "firebase/database";
 import {
   setMessages,
@@ -7,17 +7,26 @@ import {
   setUnreadMessagesGroup,
   setLoading,
   sendChatNotification,
+  fetchMessages,
 } from "../slices/messageSlice";
 import { db } from "@/config/firebaseConfig";
 import { API } from "@/service/api";
 import { ApiRoute } from "@/enums/api-route";
 
+
 function createMessageChannel(chatId) {
+  if (!chatId) return;
   return eventChannel((emit) => {
     const chatsRef = ref(db, `chats/${chatId}/messages`);
 
     const unsubscribe = onValue(chatsRef, (snapshot) => {
-      emit(snapshot.val());
+      const value = snapshot.val();
+
+      if (value === null) {
+        return;
+      }
+
+      emit(value);
     });
 
     return () => unsubscribe();
@@ -25,8 +34,8 @@ function createMessageChannel(chatId) {
 }
 
 function* fetchMessagesSaga(action) {
-  const chatId = action.payload;
 
+  const chatId = action.payload;
   yield put(setLoading(true));
 
   const channel = yield call(createMessageChannel, chatId);
@@ -34,15 +43,28 @@ function* fetchMessagesSaga(action) {
   try {
     while (true) {
       const data = yield take(channel);
-
+      
       if (!data) {
         yield put(setMessages([]));
         continue;
       }
 
-      const messages = Object.values(data).sort(
-        (a, b) => a.date - b.date
-      );
+      let messages = [];
+
+      Object.values(data).forEach((msg) => {
+        if (typeof msg === "object" && !msg.text) {
+          // msg = { userId: message }
+          const userMessage = Object.values(msg)[0]; // OR msg[currentUserId]
+
+          if (userMessage) {
+            messages.push(userMessage);
+          }
+        } else {
+          messages.push(msg);
+        }
+      });
+
+      messages.sort((a, b) => (a.date || 0) - (b.date || 0));
 
       const unread = [];
       const readGroup = [];
@@ -64,10 +86,12 @@ function* fetchMessagesSaga(action) {
   }
 }
 
-
 function* sendChatNotificationSaga({ payload }) {
-
-  const channel = yield call(API.post, ApiRoute.message.sendChatNotifcation, payload);
+  const channel = yield call(
+    API.post,
+    ApiRoute.message.sendChatNotifcation,
+    payload,
+  );
 
   try {
     while (true) {
@@ -78,9 +102,7 @@ function* sendChatNotificationSaga({ payload }) {
         continue;
       }
 
-      const messages = Object.values(data).sort(
-        (a, b) => a.date - b.date
-      );
+      const messages = Object.values(data).sort((a, b) => a.date - b.date);
 
       const unread = [];
       const readGroup = [];
@@ -103,6 +125,6 @@ function* sendChatNotificationSaga({ payload }) {
 }
 
 export function* messageSaga() {
-  yield takeLatest("message/fetchMessages", fetchMessagesSaga);
-  yield takeLatest(sendChatNotification, sendChatNotificationSaga);
+  yield takeLatest(fetchMessages.type, fetchMessagesSaga);
+  yield takeLatest(sendChatNotification.type, sendChatNotificationSaga);
 }

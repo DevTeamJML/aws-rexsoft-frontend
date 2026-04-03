@@ -164,7 +164,7 @@ export default function FormSubmissionCreateEdit() {
         )?.form_answer_id || v4(),
       form_submission_id: submission_id,
       form_question_id: q.form_question_id,
-      user_id: user.uid,
+      user_id: user?.uid,
       answer: Array.isArray(formData[q.form_question_id])
         ? JSON.stringify(formData[q.form_question_id])
         : formData[q.form_question_id],
@@ -192,7 +192,7 @@ export default function FormSubmissionCreateEdit() {
       form_submission_id: submission_id,
       form_template_id: submission.template.form_template_id,
       company_id: submission.company_id || company_id,
-      user_id: user.uid,
+      user_id: user?.uid,
       form_tracking_id: submission.form_tracking_id,
 
       status: newStatus,

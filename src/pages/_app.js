@@ -92,7 +92,7 @@ import { ChatContextProvider } from "@/components/Conversation/UserChatContext";
 export default function App({ Component, pageProps }) {
   const router = useRouter();
 
-  const noSidebarRoutes = ["/", "/forgot-password", "/invitation"]; // add more if needed
+  const noSidebarRoutes = ["/", "/forgot-password", "/invitation", "/conversation"]; // add more if needed
 
   // Special check for 404 page
   const is404 = Component.name === "Error" || pageProps.statusCode === 404;
