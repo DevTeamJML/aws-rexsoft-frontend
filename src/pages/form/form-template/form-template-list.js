@@ -18,7 +18,7 @@ import {
 import { ActionButton } from "@/components/Misc/ActionButton";
 import { deleteFormTemplate, getAllFormTemplates, useSelectAllFormTemplates } from "../../../../redux/slices/formTemplateSlice";
 
-const ClientGroupList = () => {
+const FormTemplateListPage = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const currCompanyID = useSelectCurrCompanyId();
@@ -121,4 +121,6 @@ const ClientGroupList = () => {
   );
 };
 
-export default ClientGroupList;
+FormTemplateListPage.featureKey = "form_template_list"
+
+export default FormTemplateListPage;

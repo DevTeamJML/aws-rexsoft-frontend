@@ -596,9 +596,9 @@ const ReusableTable = ({
     }
   };
 
-  if (loading) {
-    return <div className="table-loading">Loading...</div>;
-  }
+  // if (loading) {
+  //   return <div className="table-loading">Loading...</div>;
+  // }
 
   const generatePageNumbers = (current, total) => {
     const pages = [];
@@ -662,162 +662,184 @@ const ReusableTable = ({
 
   return (
     <Fragment>
-      <div className="reusable-table-container">
-        {/* Selection Summary */}
-        {selectable && (
-          <div className="table-selection-summary">
-            {selectedRows.size > 0 && (
-              <span className="selected-info" style={{ marginRight: 8 }}>
-                Selected {selectedRows.size}
-              </span>
+      {loading ? (
+        <div className="table-loading">
+          <img
+            src="/assets/retrieveDataGif.gif"
+            alt="Loading..."
+          />
+          <span>Loading ...</span>
+        </div>
+      ) : (
+        <>
+          <div className="reusable-table-container">
+            {/* Selection Summary */}
+            {selectable && (
+              <div className="table-selection-summary">
+                {selectedRows.size > 0 && (
+                  <span className="selected-info" style={{ marginRight: 8 }}>
+                    Selected {selectedRows.size}
+                  </span>
+                )}
+                Showing {(currentPage - 1) * pageSize + 1} to{" "}
+                {Math.min(currentPage * pageSize, effectiveTotalItems)} of{" "}
+                {effectiveTotalItems} entries
+              </div>
             )}
-            Showing {(currentPage - 1) * pageSize + 1} to{" "}
-            {Math.min(currentPage * pageSize, effectiveTotalItems)} of{" "}
-            {effectiveTotalItems} entries
-          </div>
-        )}
 
-        <div className="table-scroll-container">
-          <div className="table-header-wrapper" ref={headerRef}>
-            <table className="reusable-table">
-              <thead>
-                <tr>
-                  {visibleSortedColumns.map((col) => {
-                    const isFiltered = filters.some(
-                      (f) => f.column_id === col.id,
-                    );
+            <div className="table-scroll-container">
+              <div className="table-header-wrapper" ref={headerRef}>
+                <table className="reusable-table">
+                  <thead>
+                    <tr>
+                      {visibleSortedColumns.map((col) => {
+                        const isFiltered = filters.some(
+                          (f) => f.column_id === col.id,
+                        );
 
-                    return (
-                      <th
-                        key={col.id}
-                        className={`table-header ${sortable ? "sortable" : ""} ${
-                          col.fixed ? "fixed-column" : ""
-                        }`}
-                        data-fixed={col.fixedPosition}
-                        style={{ width: `${getColumnWidth(col.id)}px` }}
-                        onClick={() => {
-                          if (resizing) return;
-
-                          if (col.id !== "_checkbox" && col.id !== "actions") {
-                            handleSort(col);
-                          }
-                        }}
-                      >
-                        <div className="header-content">
-                          {col.field_type === "_checkbox" ? (
-                            renderCheckbox()
-                          ) : (
-                            <>
-                              {filter ? (
-                                <div className="header-label-wrapper">
-                                  <span className="header-label">
-                                    {col.label}
-                                  </span>
-
-                                  <span
-                                    className={`column-filter-arrow ${isFiltered ? "active" : ""}`}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      openColumnFilter(col, e);
-                                    }}
-                                  >
-                                    ▾
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="header-label">
-                                  {col.label}
-                                </span>
-                              )}
-                              {sortable &&
-                                col.field_type !== "action" &&
-                                renderSortIcon(col)}
-                            </>
-                          )}
-                        </div>
-
-                        {resizable &&
-                          col.field_type !== "checkbox" &&
-                          col.field_type !== "action" && (
-                            <div
-                              className="column-resizer"
-                              onMouseDown={(e) => {
-                                e.stopPropagation();
-                                handleResizeStart(col.id, e);
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                          )}
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-            </table>
-          </div>
-
-          {/* BODY */}
-          <div className="table-body-wrapper" onScroll={onScroll}>
-            <table className="reusable-table">
-              <tbody>
-                <tr style={{ height: visibleRange.startIndex * rowHeight }} />
-
-                {data
-                  .slice(visibleRange.startIndex, visibleRange.endIndex)
-                  .map((row, i) => {
-                    const rowIndex = visibleRange.startIndex + i;
-                    const style = getRowStyle(row);
-
-                    return (
-                      <tr
-                        ref={i === 0 ? rowMeasureRef : null}
-                        key={row.id || rowIndex}
-                        className={`${selectable ? "selectable-row" : ""} ${
-                          selectedRows.has(row.id) ? "selected-row" : ""
-                        }`}
-                        style={style}
-                        onClick={() => onRowClick?.(row)}
-                      >
-                        {visibleSortedColumns.map((col) => (
-                          <td
+                        return (
+                          <th
                             key={col.id}
-                            className={`table-cell ${
+                            className={`table-header ${sortable ? "sortable" : ""} ${
                               col.fixed ? "fixed-column" : ""
                             }`}
-                            style={{ width: getColumnWidth(col.id) }}
                             data-fixed={col.fixedPosition}
-                          >
-                            {renderCellContent(row, col, setRtePreviewContent)}
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
+                            style={{ width: `${getColumnWidth(col.id)}px` }}
+                            onClick={() => {
+                              if (resizing) return;
 
-                <tr
-                  style={{
-                    height: (data.length - visibleRange.endIndex) * rowHeight,
-                  }}
-                />
-              </tbody>
-            </table>
+                              if (
+                                col.id !== "_checkbox" &&
+                                col.id !== "actions"
+                              ) {
+                                handleSort(col);
+                              }
+                            }}
+                          >
+                            <div className="header-content">
+                              {col.field_type === "_checkbox" ? (
+                                renderCheckbox()
+                              ) : (
+                                <>
+                                  {filter ? (
+                                    <div className="header-label-wrapper">
+                                      <span className="header-label">
+                                        {col.label}
+                                      </span>
+
+                                      <span
+                                        className={`column-filter-arrow ${isFiltered ? "active" : ""}`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          openColumnFilter(col, e);
+                                        }}
+                                      >
+                                        ▾
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="header-label">
+                                      {col.label}
+                                    </span>
+                                  )}
+                                  {sortable &&
+                                    col.field_type !== "action" &&
+                                    renderSortIcon(col)}
+                                </>
+                              )}
+                            </div>
+
+                            {resizable &&
+                              col.field_type !== "checkbox" &&
+                              col.field_type !== "action" && (
+                                <div
+                                  className="column-resizer"
+                                  onMouseDown={(e) => {
+                                    e.stopPropagation();
+                                    handleResizeStart(col.id, e);
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              )}
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+
+              {/* BODY */}
+              <div className="table-body-wrapper" onScroll={onScroll}>
+                <table className="reusable-table">
+                  <tbody>
+                    <tr
+                      style={{ height: visibleRange.startIndex * rowHeight }}
+                    />
+
+                    {data
+                      .slice(visibleRange.startIndex, visibleRange.endIndex)
+                      .map((row, i) => {
+                        const rowIndex = visibleRange.startIndex + i;
+                        const style = getRowStyle(row);
+
+                        return (
+                          <tr
+                            ref={i === 0 ? rowMeasureRef : null}
+                            key={row.id || rowIndex}
+                            className={`${selectable ? "selectable-row" : ""} ${
+                              selectedRows.has(row.id) ? "selected-row" : ""
+                            }`}
+                            style={style}
+                            onClick={() => onRowClick?.(row)}
+                          >
+                            {visibleSortedColumns.map((col) => (
+                              <td
+                                key={col.id}
+                                className={`table-cell ${
+                                  col.fixed ? "fixed-column" : ""
+                                }`}
+                                style={{ width: getColumnWidth(col.id) }}
+                                data-fixed={col.fixedPosition}
+                              >
+                                {renderCellContent(
+                                  row,
+                                  col,
+                                  setRtePreviewContent,
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+
+                    <tr
+                      style={{
+                        height:
+                          (data.length - visibleRange.endIndex) * rowHeight,
+                      }}
+                    />
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      {filterColumn && (
-        <ColumnFilterPopover
-          column={filterColumn}
-          anchorEl={filterAnchor}
-          existingFilter={filters?.find(
-            (f) => f.column_id === filterColumn?.id,
+          {filterColumn && (
+            <ColumnFilterPopover
+              column={filterColumn}
+              anchorEl={filterAnchor}
+              existingFilter={filters?.find(
+                (f) => f.column_id === filterColumn?.id,
+              )}
+              onClose={() => setFilterColumn(null)}
+              onApply={(filter) => {
+                onColumnFilter?.(filter);
+                setFilterColumn(null);
+              }}
+              fixedColumns={fixedColumns}
+            />
           )}
-          onClose={() => setFilterColumn(null)}
-          onApply={(filter) => {
-            onColumnFilter?.(filter);
-            setFilterColumn(null);
-          }}
-          fixedColumns={fixedColumns}
-        />
+        </>
       )}
 
       {pagination && totalPages > 1 && (

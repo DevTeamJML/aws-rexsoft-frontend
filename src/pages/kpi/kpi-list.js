@@ -109,4 +109,6 @@ const KpiList = () => {
   );
 };
 
+KpiList.featureKey = "kpi_list"
+
 export default KpiList;

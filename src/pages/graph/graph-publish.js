@@ -30,7 +30,7 @@ import { useSelectUser } from "../../../redux/slices/authSlice";
 const INITIAL_COUNT = 4;
 const LOAD_MORE_COUNT = 2;
 
-export default function PublishedGraph() {
+const PublishedGraph = () => {
   const dispatch = useDispatch();
   const currCompanyId = useSelectCurrCompanyId();
 
@@ -245,3 +245,8 @@ export default function PublishedGraph() {
     </div>
   );
 }
+
+
+PublishedGraph.featureKey = "graph_published"
+
+export default PublishedGraph;

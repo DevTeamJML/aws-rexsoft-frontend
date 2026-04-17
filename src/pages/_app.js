@@ -106,7 +106,7 @@ export default function App({ Component, pageProps }) {
         <ToastProvider>
           <ChatContextProvider>
             {shouldShowSidebar ? (
-              <Layout>
+              <Layout featureKey={Component.featureKey}>
                 <Component {...pageProps} />
               </Layout>
             ) : (

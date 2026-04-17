@@ -398,9 +398,16 @@
 }
 
 .table-loading {
-  text-align: center;
-  padding: 40px;
-  color: #6c757d;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%; /* match your table height */
+  flex-direction: column;
+  padding-block: 10px;
+
+  span{
+    font-size: variables.$font-xl;
+  }
 }
 
 .alert-field-container {

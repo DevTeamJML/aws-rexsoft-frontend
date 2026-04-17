@@ -16,7 +16,7 @@ import {
 
 import { ActionButton } from "@/components/Misc/ActionButton";
 
-export default function FormSubmissionListPage() {
+const FormSubmissionListPage = () => {
   const dispatch = useDispatch();
   const router = useRouter();
 
@@ -114,3 +114,7 @@ export default function FormSubmissionListPage() {
     </div>
   );
 }
+
+FormSubmissionListPage.featureKey = "form_submission_list"
+
+export default FormSubmissionListPage;

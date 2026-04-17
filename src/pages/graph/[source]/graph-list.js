@@ -109,4 +109,6 @@ const GraphList = () => {
   );
 };
 
+GraphList.featureKey = "graph_list"
+
 export default GraphList;

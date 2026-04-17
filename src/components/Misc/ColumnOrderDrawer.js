@@ -184,6 +184,7 @@ export default function ColumnOrderDrawer({
         </div>
 
         <div className="drawer-content">
+          {!isEditMode  ? <span className="clear-text" onClick={() => {setColumnVisibility([])}}>Clear All</span> : <></>}
           {isEditMode ? (
             // Edit Mode - Draggable columns
             <div className="edit-mode-container">
@@ -234,9 +235,9 @@ export default function ColumnOrderDrawer({
 
         {!isEditMode && (
           <div className="drawer-footer">
-            <button className="btn-cancel" onClick={handleCancel}>
+            {/* <button className="btn-cancel" onClick={handleCancel}>
               Cancel
-            </button>
+            </button> */}
             <button className="btn-apply" onClick={handleApply}>
               Apply Changes
             </button>

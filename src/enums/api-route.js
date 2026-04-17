@@ -49,6 +49,7 @@ export const ApiRoute = {
     getClientDataByClientId: "/client/getClientDataByClientId",
     getAllClientsCount: "/client/getAllClientsCount",
     checkDuplicate: "/client/checkDuplicate",
+    export : "/client/exportClientsCSV"
   },
 
   formTemplate: {

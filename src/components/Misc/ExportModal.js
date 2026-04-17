@@ -50,7 +50,8 @@ const ExportModal = ({
 
   const isHandlerColumn = (colRawOrNorm) => {
     if (!colRawOrNorm) return false;
-    const col = typeof colRawOrNorm === "object" ? colRawOrNorm : { label: colRawOrNorm };
+    const col =
+      typeof colRawOrNorm === "object" ? colRawOrNorm : { label: colRawOrNorm };
     const lbl = normalize(getLabel(col) ?? "");
     return (
       lbl === "handler" ||
@@ -75,7 +76,8 @@ const ExportModal = ({
 
   // Normalize and pre-filter columns (permissions + handler)
   const allColumns = useMemo(() => {
-    const merged = [...(fixedColumns || []), ...(dynamicColumns || [])];
+    const filteredFixedColumns = fixedColumns.filter(col => col.id !== "user_id");
+    const merged = [...(filteredFixedColumns || []), ...(dynamicColumns || [])];
 
     return merged
       .filter((c) => {
@@ -95,19 +97,19 @@ const ExportModal = ({
   }, [fixedColumns, dynamicColumns, isAdmin, canManageHandler]);
 
   // Columns the user may actually see based on columnVisibility (if provided)
-//   const allowedColumns = useMemo(() => {
-//     if (!Array.isArray(columnVisibility) || columnVisibility.length === 0) {
-//       return allColumns;
-//     }
-//     const visibilitySet = new Set(columnVisibility);
-//     return allColumns.filter((col) => {
-//       const id = col.id;
-//       if (id === "_checkbox" || id === "actions") return true; // always keep
-//       // match by id or label (defensive)
-//       console.log(columnVisibility)
-//       return visibilitySet.has(id) || visibilitySet.has(col.label) || visibilitySet.has(normalize(col.label));
-//     });
-//   }, [allColumns, columnVisibility]);
+  //   const allowedColumns = useMemo(() => {
+  //     if (!Array.isArray(columnVisibility) || columnVisibility.length === 0) {
+  //       return allColumns;
+  //     }
+  //     const visibilitySet = new Set(columnVisibility);
+  //     return allColumns.filter((col) => {
+  //       const id = col.id;
+  //       if (id === "_checkbox" || id === "actions") return true; // always keep
+  //       // match by id or label (defensive)
+  //       console.log(columnVisibility)
+  //       return visibilitySet.has(id) || visibilitySet.has(col.label) || visibilitySet.has(normalize(col.label));
+  //     });
+  //   }, [allColumns, columnVisibility]);
 
   useEffect(() => {
     if (!open) {
@@ -130,8 +132,13 @@ const ExportModal = ({
     const normLabel = normalize(col.label);
     // 1) try mapped (by normalized label or by column id)
     if (row.mapped && typeof row.mapped === "object") {
-      if (normLabel && Object.prototype.hasOwnProperty.call(row.mapped, normLabel)) return row.mapped[normLabel];
-      if (col.id && Object.prototype.hasOwnProperty.call(row.mapped, col.id)) return row.mapped[col.id];
+      if (
+        normLabel &&
+        Object.prototype.hasOwnProperty.call(row.mapped, normLabel)
+      )
+        return row.mapped[normLabel];
+      if (col.id && Object.prototype.hasOwnProperty.call(row.mapped, col.id))
+        return row.mapped[col.id];
     }
 
     // 2) try common top-level fields / accessor
@@ -162,13 +169,22 @@ const ExportModal = ({
     if (Array.isArray(row.raw)) {
       const map = rawArrayToMap(row.raw);
       const cid = col.raw?.column_id ?? col.id;
-      if (cid && Object.prototype.hasOwnProperty.call(map, cid)) return map[cid];
-      if (col.id && Object.prototype.hasOwnProperty.call(map, col.id)) return map[col.id];
-      if (col.label && Object.prototype.hasOwnProperty.call(map, col.label)) return map[col.label];
+      if (cid && Object.prototype.hasOwnProperty.call(map, cid))
+        return map[cid];
+      if (col.id && Object.prototype.hasOwnProperty.call(map, col.id))
+        return map[col.id];
+      if (col.label && Object.prototype.hasOwnProperty.call(map, col.label))
+        return map[col.label];
     }
 
     // 4) fallback common keys
-    for (const fk of ["created_at", "updated_at", "id", "client_id", "serial_number"]) {
+    for (const fk of [
+      "created_at",
+      "updated_at",
+      "id",
+      "client_id",
+      "serial_number",
+    ]) {
       if (Object.prototype.hasOwnProperty.call(row, fk)) return row[fk];
     }
 
@@ -180,8 +196,9 @@ const ExportModal = ({
     return (rows || []).map((r) => {
       const out = {};
       const rawMap = rawArrayToMap(r.raw);
-      const handlerString =
-        Array.isArray(r.handler) ? r.handler.map((h) => h.label || h.value).join(", ") : r.handler_name ?? "";
+      const handlerString = Array.isArray(r.handler)
+        ? r.handler.map((h) => h.label || h.value).join(", ")
+        : (r.handler_name ?? "");
 
       for (const c of columnsToUse) {
         // double safety: skip handler if user lacks permission
@@ -189,19 +206,34 @@ const ExportModal = ({
 
         let value = extractValueForColumn(r, c);
 
-        const isHandler = normalize(c.label) === "handler" || normalize(c.label) === "owner" || c.id === "handler" || c.raw?.field === "handler";
+        const isHandler =
+          normalize(c.label) === "handler" ||
+          normalize(c.label) === "owner" ||
+          c.id === "handler" ||
+          c.raw?.field === "handler";
         if (isHandler) value = handlerString || value;
 
         // if value missing, try rawMap by column_id
         const cid = c.raw?.column_id ?? c.id;
-        if ((value === "" || value == null) && cid && rawMap[cid] !== undefined) {
+        if (
+          (value === "" || value == null) &&
+          cid &&
+          rawMap[cid] !== undefined
+        ) {
           value = rawMap[cid];
         }
 
         // map dropdown option ids to their display value if options are provided
         const opts = c.raw?.options;
-        if (value !== null && value !== "" && Array.isArray(opts) && opts.length > 0) {
-          const found = opts.find((o) => o.option_id === value || o.id === value);
+        if (
+          value !== null &&
+          value !== "" &&
+          Array.isArray(opts) &&
+          opts.length > 0
+        ) {
+          const found = opts.find(
+            (o) => o.option_id === value || o.id === value,
+          );
           if (found) value = found.value ?? value;
         }
 
@@ -233,98 +265,152 @@ const ExportModal = ({
     URL.revokeObjectURL(url);
   };
 
-  const handleExport = async ({ exportAll = false }) => {
-    setLoadingExport(true);
-    try {
-      // determine which columns to use
-      let colsToUse = selectedColumns.size > 0 ? allColumns.filter((c) => selectedColumns.has(c.id)) : allColumns;
+  const handleExport = () => {
+    const selected =
+      selectedColumns.size > 0
+        ? allColumns.filter((c) => selectedColumns.has(c.id))
+        : allColumns;
 
-      if (!canManageHandler) {
-        colsToUse = colsToUse.filter((c) => !isHandlerColumn(c.raw));
-      }
+    const FIXED_KEYS = new Set([
+      "user_id",
+      "created_at",
+      "serial_number",
+      "handler",
+      "handler_name",
+    ]);
 
-      if (!colsToUse || colsToUse.length === 0) {
-        showToast &&
-          dispatch &&
-          dispatch(
-            showToast({
-              message: "No columns available to export.",
-              status: "error",
-            })
-          );
-        setLoadingExport(false);
-        return;
-      }
+    const selectedFixed = selected
+      .filter((c) => FIXED_KEYS.has(c.id))
+      .map((c) => c.raw);
 
-      let rows = [];
 
-      if (exportAll) {
-        // request all rows from backend
-        try {
-          const apiPayload = {
-            client_group_id: currSelectedGroup?.client_group_id ?? currSelectedGroup?.id ?? null,
-            columns: dynamicColumns,
-            fixedColumns,
-            pagination: { pageSize: 0 }, // server: return all
-            filters: currSelectedGroup?.filters || [],
-            searchText: "",
-            sortConfig: {},
-            user_id: user?.uid ?? user?.user_id ?? null,
-            isAdmin: user?.isAdmin ?? isAdmin ?? false,
-            hasPermission: false,
-            isArchivedPage: !!isArchivedPage,
-          };
+    const selectedDynamic = selected
+      .filter((c) => !FIXED_KEYS.has(c.id))
+      .map((c) => c.raw);
 
-          const res = await API.post(ApiRoute.client.get, apiPayload);
-          const data = res?.data?.data ?? res?.data?.clients ?? res?.data ?? [];
-          rows = Array.isArray(data) ? data : [];
-        } catch (apiErr) {
-          console.error("Failed to fetch all clients for export:", apiErr);
-          showToast &&
-            dispatch &&
-            dispatch(
-              showToast({
-                message: "Failed to fetch all clients for export.",
-                status: "error",
-              })
-            );
-          setLoadingExport(false);
-          return;
-        }
-      } else {
-        rows = clients || [];
-        if (Array.isArray(selectedClientIds) && selectedClientIds.length > 0) {
-          const setIds = new Set(selectedClientIds);
-          rows = rows.filter((c) => setIds.has(c.id ?? c.client_id ?? c._id));
-        }
-      }
+    const apiPayload = {
+      client_group_id:
+        currSelectedGroup?.client_group_id ?? currSelectedGroup?.id ?? null,
+      columns: selectedDynamic,
+      fixedColumns: selectedFixed,
+      filters: currSelectedGroup?.filters || [],
+      searchText: "",
+      sortConfig: {},
+      user_id: user?.uid ?? user?.user_id ?? null,
+      isAdmin: user?.isAdmin ?? isAdmin ?? false,
+      hasPermission: false,
+      isArchivedPage: !!isArchivedPage,
+    };
 
-      const dataRows = buildRowsFromClients(rows, colsToUse);
-      const filename = `clients_export_${moment().toISOString().replace(/[:.]/g, "-")}.csv`;
-      downloadCsv(filename, dataRows);
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = `${process.env.API_URL}/client/exportClientsCSV`;
+    form.target = "_blank";
 
-      showToast &&
-        dispatch &&
-        dispatch(
-          showToast({
-            message: exportAll ? "Exported all clients (CSV ready)." : "Exported clients (CSV ready).",
-            status: "success",
-          })
-        );
-    } catch (err) {
-      console.error("Export error:", err);
-      showToast &&
-        dispatch &&
-        dispatch(
-          showToast({
-            message: "Failed to export. Check console for details.",
-            status: "error",
-          })
-        );
-    } finally {
-      setLoadingExport(false);
-    }
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = "payload";
+    input.value = JSON.stringify(apiPayload);
+
+    form.appendChild(input);
+    document.body.appendChild(form);
+
+    form.submit();
+    form.remove();
   };
+
+  // const handleExport = async ({ exportAll = false }) => {
+  //   setLoadingExport(true);
+  //   try {
+  //     // determine which columns to use
+  //     let colsToUse = selectedColumns.size > 0 ? allColumns.filter((c) => selectedColumns.has(c.id)) : allColumns;
+
+  //     if (!canManageHandler) {
+  //       colsToUse = colsToUse.filter((c) => !isHandlerColumn(c.raw));
+  //     }
+
+  //     if (!colsToUse || colsToUse.length === 0) {
+  //       showToast &&
+  //         dispatch &&
+  //         dispatch(
+  //           showToast({
+  //             message: "No columns available to export.",
+  //             status: "error",
+  //           })
+  //         );
+  //       setLoadingExport(false);
+  //       return;
+  //     }
+
+  //     let rows = [];
+
+  //     if (exportAll) {
+  //       // request all rows from backend
+  //       try {
+  //         const apiPayload = {
+  //           client_group_id: currSelectedGroup?.client_group_id ?? currSelectedGroup?.id ?? null,
+  //           columns: dynamicColumns,
+  //           fixedColumns,
+  //           pagination: { pageSize: 0 }, // server: return all
+  //           filters: currSelectedGroup?.filters || [],
+  //           searchText: "",
+  //           sortConfig: {},
+  //           user_id: user?.uid ?? user?.user_id ?? null,
+  //           isAdmin: user?.isAdmin ?? isAdmin ?? false,
+  //           hasPermission: false,
+  //           isArchivedPage: !!isArchivedPage,
+  //         };
+
+  //         const res = await API.post(ApiRoute.client.get, apiPayload);
+  //         const data = res?.data?.data ?? res?.data?.clients ?? res?.data ?? [];
+  //         rows = Array.isArray(data) ? data : [];
+  //       } catch (apiErr) {
+  //         console.error("Failed to fetch all clients for export:", apiErr);
+  //         showToast &&
+  //           dispatch &&
+  //           dispatch(
+  //             showToast({
+  //               message: "Failed to fetch all clients for export.",
+  //               status: "error",
+  //             })
+  //           );
+  //         setLoadingExport(false);
+  //         return;
+  //       }
+  //     } else {
+  //       rows = clients || [];
+  //       if (Array.isArray(selectedClientIds) && selectedClientIds.length > 0) {
+  //         const setIds = new Set(selectedClientIds);
+  //         rows = rows.filter((c) => setIds.has(c.id ?? c.client_id ?? c._id));
+  //       }
+  //     }
+
+  //     const dataRows = buildRowsFromClients(rows, colsToUse);
+  //     const filename = `clients_export_${moment().toISOString().replace(/[:.]/g, "-")}.csv`;
+  //     downloadCsv(filename, dataRows);
+
+  //     showToast &&
+  //       dispatch &&
+  //       dispatch(
+  //         showToast({
+  //           message: exportAll ? "Exported all clients (CSV ready)." : "Exported clients (CSV ready).",
+  //           status: "success",
+  //         })
+  //       );
+  //   } catch (err) {
+  //     console.error("Export error:", err);
+  //     showToast &&
+  //       dispatch &&
+  //       dispatch(
+  //         showToast({
+  //           message: "Failed to export. Check console for details.",
+  //           status: "error",
+  //         })
+  //       );
+  //   } finally {
+  //     setLoadingExport(false);
+  //   }
+  // };
 
   if (!open) return null;
 
@@ -340,8 +426,8 @@ const ExportModal = ({
 
         <div className="body">
           <p className="help">
-            Select columns to include in export. If none selected, all viewable columns will
-            be exported.
+            Select columns to include in export. If none selected, all viewable
+            columns will be exported.
           </p>
 
           <div className="columnsList">
@@ -350,10 +436,13 @@ const ExportModal = ({
             ) : (
               <div className="scrollArea">
                 {allColumns
-                  .filter((c) => (canManageHandler ? true : !isHandlerColumn(c.raw)))
+                  .filter((c) =>
+                    canManageHandler ? true : !isHandlerColumn(c.raw),
+                  )
                   .map((col) => {
                     const allowed =
-                      Array.isArray(columnVisibility) && columnVisibility.length > 0
+                      Array.isArray(columnVisibility) &&
+                      columnVisibility.length > 0
                         ? columnVisibility.includes(col.id) ||
                           columnVisibility.includes(col.label) ||
                           columnVisibility.includes(normalize(col.label))
@@ -387,7 +476,10 @@ const ExportModal = ({
           </button>
 
           <div className="actions">
-            <span className="export-all-span" onClick={() => handleExport({ exportAll: true })}>
+            <span
+              className="export-all-span"
+              onClick={() => handleExport({ exportAll: true })}
+            >
               {`Export ${pagination ? pagination?.totalItems : 0}`}
             </span>
 
@@ -395,7 +487,11 @@ const ExportModal = ({
               Cancel
             </button>
 
-            <button className="primary" onClick={() => handleExport({ exportAll: false })} disabled={loadingExport}>
+            <button
+              className="primary"
+              onClick={() => handleExport({ exportAll: false })}
+              disabled={loadingExport}
+            >
               {loadingExport ? "Exporting..." : "Export"}
             </button>
           </div>

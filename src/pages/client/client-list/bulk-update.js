@@ -601,7 +601,7 @@ export default function BulkUpdateClient() {
       // send logs once (server call)
       await API.post(ApiRoute.logs.create, logsBody);
 
-      dispatch(hideToast());
+      // dispatch(hideToast());
       router.push("/client/client-list");
     } catch (err) {
       console.error("Error during bulk update:", err);

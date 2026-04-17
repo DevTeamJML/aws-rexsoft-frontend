@@ -85,7 +85,7 @@ const UserList = () => {
 
   const handleAction = (action, row) => {
     if (action === "edit") {
-        console.log("Test")
+ 
     //   router.push(`/user/${row.id}/view`);
       return;
     }

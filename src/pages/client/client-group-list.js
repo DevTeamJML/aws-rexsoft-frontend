@@ -127,4 +127,6 @@ const ClientGroupList = () => {
   );
 };
 
+ClientGroupList.featureKey = "client_group_list"
+
 export default ClientGroupList;

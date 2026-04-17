@@ -127,7 +127,7 @@ const sampleKpiGroup = {
   ],
 };
 
-export default function KpiDashboardSample() {
+const KpiDashboard = () =>  {
   const dispatch = useDispatch();
   const currCompanyId = useSelectCurrCompanyId();
   const user = useSelectUser();
@@ -140,8 +140,6 @@ export default function KpiDashboardSample() {
       );
     }
   }, [currCompanyId, user]);
-
-  console.log(publishedKpi)
 
   return (
     <div className="kpi-dashboard-container">
@@ -156,3 +154,7 @@ export default function KpiDashboardSample() {
     </div>
   );
 }
+
+KpiDashboard.featureKey = "kpi_dashboard"
+
+export default KpiDashboard;

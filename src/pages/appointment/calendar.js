@@ -53,7 +53,7 @@ function namesFromIds(type, ids = [], lookup = []) {
   }
 }
 
-export default function AppointmentPage() {
+const AppointmentPage = () => {
   const allUsers = useSelectAllCompanyUsers();
   const memberOptions = allUsers.map((m) => ({
     value: m.user_id,
@@ -397,3 +397,7 @@ export default function AppointmentPage() {
     </div>
   );
 }
+
+AppointmentPage.featureKey = "appointment"
+
+export default AppointmentPage;

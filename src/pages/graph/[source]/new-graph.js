@@ -31,7 +31,7 @@ import MultiSelectDropdownField from "@/components/FormComponents/MultiSelectDro
 import { useSelectUser } from "../../../../redux/slices/authSlice";
 import { useSelectAllFormTemplates } from "../../../../redux/slices/formTemplateSlice";
 
-export default function NewGraph() {
+const NewGraph = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   const allGroups = useSelectAllClientGroups();

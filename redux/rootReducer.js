@@ -21,6 +21,7 @@ import kpiReducer from "./slices/kpiSlice";
 import dashboardReducer from "./slices/dashboardSlice";
 import chatReducer from "./slices/chatSlice";
 import messageReducer from "./slices/messageSlice";
+import featureFlagsReducer from "./slices/featureFlagsSlice";
 
 const rootReducer = combineReducers({
     toast : toastReducer,
@@ -44,7 +45,8 @@ const rootReducer = combineReducers({
     kpi : kpiReducer,
     dashboard : dashboardReducer,
     chat : chatReducer,
-    message : messageReducer
+    message : messageReducer,
+    featureFlags: featureFlagsReducer
   });
   
   export default rootReducer;

@@ -38,6 +38,7 @@ import {
   useSelectClientLogs,
 } from "../../../../../../redux/slices/logSlice";
 import { getAuth, updateProfile } from "firebase/auth";
+import { showToast } from "../../../../../../redux/slices/toastSlice";
 
 export default function EditClientPage() {
   const dispatch = useDispatch();

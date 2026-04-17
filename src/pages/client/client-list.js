@@ -32,6 +32,7 @@ import {
   useSelectClientPagination,
   useSelectCurrSelectedGroup,
   useSelectCurrSelectedGroupId,
+  useSelectGetAllClientsLoading,
 } from "../../../redux/slices/clientSlice";
 import {
   setShowModal,
@@ -69,6 +70,7 @@ const ClientList = () => {
   const clients = useSelectAllClients();
   const pagination = useSelectClientPagination();
   const user = useSelectUser();
+  const loading = useSelectGetAllClientsLoading() || false;
 
   const [modalType, setModalType] = useState("");
 
@@ -98,11 +100,27 @@ const ClientList = () => {
     delete: "Are you sure you want to delete this client ?",
   };
 
-  const loading = false;
   const [columnWidths, setColumnWidths] = useState({});
 
   const [userSortingArray, setUserSortingArray] = useState(null);
   const [columnSortingArray, setColumnSortingArray] = useState(null);
+
+  useEffect(() => {
+    const savedFilters = localStorage.getItem("filters");
+    if (savedFilters) {
+      setFilters(JSON.parse(savedFilters));
+    }
+
+    const savedSearchKeyword = localStorage.getItem("search");
+    if (savedSearchKeyword) {
+      setSearchText(JSON.parse(savedSearchKeyword));
+    }
+
+    const savedSortKeyword = localStorage.getItem("sort");
+    if (savedSortKeyword) {
+      setSortConfig(JSON.parse(savedSortKeyword));
+    }
+  }, []);
 
   useEffect(() => {
     if (!currSelectedGroupId) return;
@@ -160,6 +178,7 @@ const ClientList = () => {
         sortConfig,
         pagination,
         filters: filters,
+        searchText: searchText,
         fixedColumns,
         user_id: user?.uid,
         isAdmin,
@@ -169,25 +188,26 @@ const ClientList = () => {
     );
   }, [currSelectedGroup, isArchivedPage]);
 
-  // useEffect(() => {
-  //   if (currSelectedGroup === null) return;
-  //   if (searchText === "" && fixedColumns.length > 0) {
-  //     dispatch(
-  //       getAllClients({
-  //         ...currSelectedGroup,
-  //         sortConfig,
-  //         pagination,
-  //         filters: filters,
-  //         fixedColumns,
-  //         searchText: searchText,
-  //         user_id: user?.uid,
-  //         isAdmin,
-  //         isArchivedPage,
-  //         hasPermission: canManageHandler,
-  //       })
-  //     );
-  //   }
-  // }, [searchText]);
+  useEffect(() => {
+    if (currSelectedGroup === null) return;
+    if (searchText === "" && fixedColumns.length > 0) {
+      localStorage.setItem("search", "");
+      dispatch(
+        getAllClients({
+          ...currSelectedGroup,
+          sortConfig,
+          pagination,
+          filters: filters,
+          fixedColumns,
+          searchText: searchText,
+          user_id: user?.uid,
+          isAdmin,
+          isArchivedPage,
+          hasPermission: canManageHandler,
+        }),
+      );
+    }
+  }, [searchText]);
 
   useEffect(() => {
     if (currCompanyId) {
@@ -282,6 +302,8 @@ const ClientList = () => {
       order: newOrder,
     };
 
+    localStorage.setItem("sort", JSON.stringify(newSortConfig));
+
     setSortConfig(newSortConfig);
     dispatch(
       getAllClients({
@@ -294,6 +316,7 @@ const ClientList = () => {
         isAdmin,
         isArchivedPage,
         hasPermission: canManageHandler,
+        searchText: searchText,
       }),
     );
   };
@@ -418,6 +441,7 @@ const ClientList = () => {
   };
 
   const handleApplyFilters = (targetFilters) => {
+    localStorage.setItem("filters", JSON.stringify(targetFilters));
     setFilters(targetFilters);
     dispatch(
       getAllClients({
@@ -435,6 +459,7 @@ const ClientList = () => {
   };
 
   const handleGlobalSearch = () => {
+    localStorage.setItem("search", JSON.stringify(searchText));
     dispatch(
       getAllClients({
         ...currSelectedGroup,
@@ -534,6 +559,7 @@ const ClientList = () => {
         showToast={showToast}
         pagination={pagination}
         isAdmin={isAdmin}
+        canManageHandler={canManageHandler}
       />
 
       <ColumnOrderDrawer
@@ -679,7 +705,9 @@ const ClientList = () => {
             <div className="icon-group" onClick={() => setIsFilterOpen(true)}>
               <FaSlidersH className="icon" />
             </div>
-            {filters.length > 0 ? <div className="running-filters-count">{filters.length}</div> : null}
+            {filters.length > 0 ? (
+              <div className="running-filters-count">{filters.length}</div>
+            ) : null}
           </div>
 
           {/* Show/Hide Columns */}
@@ -731,4 +759,7 @@ const ClientList = () => {
   );
 };
 
+ClientList.featureKey = "client_list"
+
 export default ClientList;
+

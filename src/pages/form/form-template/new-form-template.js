@@ -13,7 +13,7 @@ import { useSelectUser } from "../../../../redux/slices/authSlice";
 import { createFormTemplate } from "../../../../redux/slices/formTemplateSlice";
 
 // Main Component — renamed to form-template context
-export default function NewFormTemplatePage({ params }) {
+const NewFormTemplatePage = ({ params }) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const user = useSelectUser();
@@ -114,7 +114,9 @@ export default function NewFormTemplatePage({ params }) {
 
   useEffect(() => {
     if (selectedQuestionId) {
-      const q = questions.find((f) => f.form_question_id === selectedQuestionId);
+      const q = questions.find(
+        (f) => f.form_question_id === selectedQuestionId,
+      );
       setNewQuestion(q);
       setShowDrawer(true);
     }
@@ -168,7 +170,7 @@ export default function NewFormTemplatePage({ params }) {
   const handleSaveQuestion = () => {
     if (selectedQuestionId) {
       const updated = questions.map((q) =>
-        q.form_question_id === selectedQuestionId ? newQuestion : q
+        q.form_question_id === selectedQuestionId ? newQuestion : q,
       );
       setQuestions(updated);
       setSelectedQuestionId("");
@@ -189,7 +191,9 @@ export default function NewFormTemplatePage({ params }) {
   };
 
   const handleDeleteQuestion = (questionId) => {
-    setQuestions((prev) => prev.filter((q) => q.form_question_id !== questionId));
+    setQuestions((prev) =>
+      prev.filter((q) => q.form_question_id !== questionId),
+    );
   };
 
   const handleAddOption = () => {
@@ -229,7 +233,7 @@ export default function NewFormTemplatePage({ params }) {
       user_id: user?.uid,
       is_publish: isPublished,
       company_id: currCompany?.company_id,
-      questions : questions,
+      questions: questions,
     };
 
     // Replace with your real action creator if available
@@ -242,7 +246,7 @@ export default function NewFormTemplatePage({ params }) {
     if (!showDrawer) return questions;
     if (selectedQuestionId) {
       return questions.map((q) =>
-        q.form_question_id === selectedQuestionId ? newQuestion : q
+        q.form_question_id === selectedQuestionId ? newQuestion : q,
       );
     }
     return [...questions, { ...newQuestion, _isDraft: true }];
@@ -568,7 +572,7 @@ export default function NewFormTemplatePage({ params }) {
                                   newQuestion?.options?.map((opt) =>
                                     opt.option_id === option.option_id
                                       ? { ...opt, color: value }
-                                      : opt
+                                      : opt,
                                   );
                                 setNewQuestion((prev) => ({
                                   ...prev,
@@ -584,7 +588,7 @@ export default function NewFormTemplatePage({ params }) {
                                   newQuestion?.options?.map((opt) =>
                                     opt.option_id === option.option_id
                                       ? { ...opt, fillColor: value }
-                                      : opt
+                                      : opt,
                                   );
                                 setNewQuestion((prev) => ({
                                   ...prev,
@@ -601,7 +605,7 @@ export default function NewFormTemplatePage({ params }) {
                                   newQuestion?.options?.map((opt) =>
                                     opt.option_id === option.option_id
                                       ? { ...opt, value }
-                                      : opt
+                                      : opt,
                                   );
                                 setNewQuestion((prev) => ({
                                   ...prev,
@@ -650,4 +654,5 @@ export default function NewFormTemplatePage({ params }) {
       )}
     </div>
   );
-}
+};
+

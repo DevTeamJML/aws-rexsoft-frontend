@@ -96,6 +96,14 @@ export default function FilterDrawer({
         </div>
 
         <div className="drawer-content">
+          <span
+            className="clear-text"
+            onClick={() => {
+              handleClearAll();
+            }}
+          >
+            Clear All
+          </span>
           {/* Add Filter Button */}
           <div className="add-filter-section">
             <button className="add-filter-btn" onClick={addFilter}>
@@ -125,9 +133,9 @@ export default function FilterDrawer({
         </div>
 
         <div className="drawer-footer">
-          <button className="btn-clear" onClick={handleClearAll}>
+          {/* <button className="btn-clear" onClick={handleClearAll}>
             Clear All
-          </button>
+          </button> */}
           <button className="btn-apply" onClick={handleApply}>
             Apply Filters
           </button>
@@ -227,7 +235,7 @@ const FilterBlock = ({
 
   // Check if this column type should show number range
   const shouldShowNumberRange = () => {
-    return columnType === "number" || column.id === "serial_number";
+    return columnType === "number" || column?.id === "serial_number";
   };
 
   // Check if this column type should show date range
@@ -280,17 +288,17 @@ const FilterBlock = ({
 
       {/* Filter Type (All, Filled, Unfilled) - Only for dynamic columns */}
       {/* {filter.column_id && !isFixedColumn && ( */}
-        <div className="filter-field">
-          <label>Filter Type</label>
-          <select
-            value={filter.filterType}
-            onChange={(e) => onUpdate("filterType", e.target.value)}
-          >
-            <option value="all">All</option>
-            <option value="filled">Filled</option>
-            <option value="unfilled">Unfilled</option>
-          </select>
-        </div>
+      <div className="filter-field">
+        <label>Filter Type</label>
+        <select
+          value={filter.filterType}
+          onChange={(e) => onUpdate("filterType", e.target.value)}
+        >
+          <option value="all">All</option>
+          <option value="filled">Filled</option>
+          <option value="unfilled">Unfilled</option>
+        </select>
+      </div>
       {/* )} */}
 
       {/* Search Text (for all text-based columns except dropdown) */}

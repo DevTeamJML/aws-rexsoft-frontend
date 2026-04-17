@@ -18,6 +18,7 @@ import formApprovalSaga from './sagas/formApprovalSaga';
 import { kpiSaga } from './sagas/kpiSaga';
 import { dashboardSaga } from './sagas/dashboardSaga';
 import { messageSaga } from './sagas/messageSaga';
+import watchFeatureFlags from './sagas/featureFlagsSaga';
 // Root saga
 function* rootSaga() {
   yield all([
@@ -38,7 +39,8 @@ function* rootSaga() {
     formApprovalSaga(),
     kpiSaga(),
     dashboardSaga(),
-    messageSaga()
+    messageSaga(),
+    watchFeatureFlags()
   ]);
 }
 

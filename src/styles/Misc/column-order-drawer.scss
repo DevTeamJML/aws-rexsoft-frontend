@@ -81,6 +81,17 @@
     flex: 1;
     padding: 1.5rem;
     overflow-y: auto;
+
+    .clear-text{
+      display: flex;
+      text-align: right;
+      width: 100%;
+      justify-content: end;
+      padding-bottom: 5px;
+      text-decoration: underline;
+      cursor: pointer;
+      color: blue;
+    }
   }
 
   .drawer-footer {

@@ -18,7 +18,7 @@ import {
 
 import { ActionButton } from "@/components/Misc/ActionButton";
 
-export default function FormApprovalListPage() {
+const FormApprovalListPage = () => {
   const dispatch = useDispatch();
   const router = useRouter();
 
@@ -116,3 +116,7 @@ export default function FormApprovalListPage() {
     </div>
   );
 }
+
+FormApprovalListPage.featureKey = "form_approval_list"
+
+export default FormApprovalListPage;
