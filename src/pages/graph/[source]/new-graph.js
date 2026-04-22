@@ -858,3 +858,5 @@ const NewGraph = () => {
     </div>
   );
 }
+
+export default NewGraph;

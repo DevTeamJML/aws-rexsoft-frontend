@@ -656,3 +656,5 @@ const NewFormTemplatePage = ({ params }) => {
   );
 };
 
+
+export default NewFormTemplatePage;
