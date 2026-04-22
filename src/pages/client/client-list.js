@@ -86,6 +86,9 @@ const ClientList = () => {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [rtePreviewContent, setRtePreviewContent] = useState("");
 
+  const [selectedRows, setSelectedRows] = useState(new Set());
+  const [isAllSelected, setIsAllSelected] = useState(false);
+
   const fixedColumns = getColumnsForPage("client-list");
   const userPermissions = useSelectUserPermissions();
   const isAdmin = useSelectIsAdmin();
@@ -545,7 +548,12 @@ const ClientList = () => {
     <div className="page-container">
       <ExportModal
         open={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
+        onClose={() => {
+          setIsExportModalOpen(false);
+          dispatch(setSelectedClientIdsSuccess([]));
+          setIsAllSelected(false);
+          setSelectedRows(new Set());
+        }}
         fixedColumns={fixedColumns}
         dynamicColumns={dynamicColumns}
         columnVisibility={columnVisibility}
@@ -560,6 +568,8 @@ const ClientList = () => {
         pagination={pagination}
         isAdmin={isAdmin}
         canManageHandler={canManageHandler}
+        setSelectedRows={setSelectedRows}
+        setIsAllSelected={setIsAllSelected}
       />
 
       <ColumnOrderDrawer
@@ -754,12 +764,15 @@ const ClientList = () => {
         setRtePreviewContent={setRtePreviewContent}
         onColumnFilter={handleColumnFilter}
         filters={filters}
+        selectedRows={selectedRows}
+        setSelectedRows={setSelectedRows}
+        isAllSelected={isAllSelected}
+        setIsAllSelected={setIsAllSelected}
       />
     </div>
   );
 };
 
-ClientList.featureKey = "client_list"
+ClientList.featureKey = "client_list";
 
 export default ClientList;
-

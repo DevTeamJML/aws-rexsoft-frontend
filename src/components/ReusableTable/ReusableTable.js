@@ -81,7 +81,15 @@ const ReusableTable = ({
   isAdmin = false,
   onColumnFilter = () => {},
   filters = [],
+
+  isAllSelected = false,
+  setIsAllSelected = () => {},
+
+  selectedRows = new Set(),
+  setSelectedRows = () => {}
 }) => {
+  
+    /** Selection */
   const dispatch = useDispatch();
   const allCompanyUsers = useSelectAllCompanyUsers();
 
@@ -90,9 +98,7 @@ const ReusableTable = ({
   const [startX, setStartX] = useState(0);
   const [startWidth, setStartWidth] = useState(200);
 
-  /** Selection */
-  const [selectedRows, setSelectedRows] = useState(new Set());
-  const [isAllSelected, setIsAllSelected] = useState(false);
+
 
   const headerRef = useRef(null);
 
@@ -161,6 +167,7 @@ const ReusableTable = ({
   const getColumnWidth = (columnId) => {
     // Checkbox column is always small
     if (columnId === "_checkbox") return 100;
+    if (columnId === "actions") return 100;
 
     // If saved width exists, use it
     if (columnWidths?.[columnId] !== undefined) {
@@ -219,29 +226,68 @@ const ReusableTable = ({
     const getId = (c) => c?.id ?? c?.column_id;
 
     const checkboxCol = cols.find((c) => getId(c) === "_checkbox");
-    const others = cols.filter((c) => getId(c) !== "_checkbox");
+
+    // Separate actions (right-fixed)
+    const actionCol = cols.find((c) => c.fixed && c.fixedPosition === "right");
+
+    // Everything except checkbox + actions
+    const others = cols.filter(
+      (c) =>
+        getId(c) !== "_checkbox" && !(c.fixed && c.fixedPosition === "right"),
+    );
 
     const orderIds =
-      (Array.isArray(userSortingArray) &&
-        userSortingArray.length > 0 &&
-        userSortingArray) ||
-      (Array.isArray(columnSortingArray) &&
-        columnSortingArray.length > 0 &&
-        columnSortingArray) ||
-      null;
+      Array.isArray(userSortingArray) && userSortingArray.length > 0
+        ? userSortingArray
+        : Array.isArray(columnSortingArray) && columnSortingArray.length > 0
+          ? columnSortingArray
+          : null;
 
-    if (!orderIds) {
-      return checkboxCol ? [checkboxCol, ...others] : others;
+    let ordered = others;
+    let remaining = [];
+
+    if (orderIds) {
+      const map = new Map(others.map((c) => [getId(c), c]));
+      ordered = orderIds.map((id) => map.get(id)).filter(Boolean);
+      remaining = others.filter((c) => !orderIds.includes(getId(c)));
     }
 
-    const map = new Map(others.map((c) => [getId(c), c]));
-    const ordered = orderIds.map((id) => map.get(id)).filter(Boolean);
-    const remaining = others.filter((c) => !orderIds.includes(getId(c)));
-
-    return checkboxCol
-      ? [checkboxCol, ...ordered, ...remaining]
-      : [...ordered, ...remaining];
+    return [
+      ...(checkboxCol ? [checkboxCol] : []),
+      ...(orderIds ? remaining : []),
+      ...(orderIds ? ordered : others),
+      ...(actionCol ? [actionCol] : []),
+    ];
   }, [allColumns, userSortingArray, columnSortingArray]);
+
+  // const sortedAllColumns = useMemo(() => {
+  //   const cols = Array.isArray(allColumns) ? allColumns : [];
+  //   const getId = (c) => c?.id ?? c?.column_id;
+
+  //   const checkboxCol = cols.find((c) => getId(c) === "_checkbox");
+  //   const others = cols.filter((c) => getId(c) !== "_checkbox");
+
+  //   const orderIds =
+  //     (Array.isArray(userSortingArray) &&
+  //       userSortingArray.length > 0 &&
+  //       userSortingArray) ||
+  //     (Array.isArray(columnSortingArray) &&
+  //       columnSortingArray.length > 0 &&
+  //       columnSortingArray) ||
+  //     null;
+
+  //   if (!orderIds) {
+  //     return checkboxCol ? [checkboxCol, ...others] : others;
+  //   }
+
+  //   const map = new Map(others.map((c) => [getId(c), c]));
+  //   const ordered = orderIds.map((id) => map.get(id)).filter(Boolean);
+  //   const remaining = others.filter((c) => !orderIds.includes(getId(c)));
+
+  //   return checkboxCol
+  //     ? [checkboxCol, ...remaining, ...ordered, ]
+  //     : [...remaining, ...ordered];
+  // }, [allColumns, userSortingArray, columnSortingArray]);
 
   /** Visibility (unchanged) */
   const visibleSortedColumns = useMemo(() => {
@@ -435,8 +481,7 @@ const ReusableTable = ({
     };
   }, [dynamicColumns]);
 
-  const formatDate = (d) =>
-    !d ? "-" : moment(d).format("DD/MM/YYYY HH:mm:ss");
+  const formatDate = (d) => (!d ? "-" : moment(d).format("YYYY-MM-DD"));
 
   const formatUser = (userId) => {
     if (!userId || !Array.isArray(allCompanyUsers)) return "-";
@@ -487,7 +532,7 @@ const ReusableTable = ({
           cursor: "pointer",
         };
 
-        if (!value) return <span>No data</span>;
+        if (!value) return <span>-</span>;
         return (
           <div
             className="dropdown-chip-group"
@@ -592,7 +637,7 @@ const ReusableTable = ({
         );
 
       default:
-        return value ?? "-";
+        return value || "-";
     }
   };
 
@@ -664,10 +709,7 @@ const ReusableTable = ({
     <Fragment>
       {loading ? (
         <div className="table-loading">
-          <img
-            src="/assets/retrieveDataGif.gif"
-            alt="Loading..."
-          />
+          <img src="/assets/retrieveDataGif.gif" alt="Loading..." />
           <span>Loading ...</span>
         </div>
       ) : (

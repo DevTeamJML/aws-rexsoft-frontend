@@ -61,7 +61,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
 
   const LogoutIcon = dynamic(
     () => import("@mui/icons-material/LogoutOutlined"),
-    { ssr: false }
+    { ssr: false },
   );
 
   const currentPath = router.asPath;
@@ -199,19 +199,23 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         // },
       ],
     },
-    {
-      id: "create-company",
-      label: "Create Company",
-      path: "/control-panel/create-company",
-      icon: <FaPlus size={20} />,
-    },
+    ...(isAdmin
+      ? [
+          {
+            id: "create-company",
+            label: "Create Company",
+            path: "/control-panel/create-company",
+            icon: <FaPlus size={20} />,
+          },
+        ]
+      : []),
   ];
 
   const menu = filterMenuByPermissions(
     menuItems,
     userPermissions,
     isAdmin,
-    currCompany
+    currCompany,
   );
 
   const handleGoToSelectedPage = (path) => {
@@ -272,7 +276,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       return menu.subItems.some(
         (subItem) =>
           currentPath === subItem.path ||
-          currentPath.startsWith(subItem.path + "/")
+          currentPath.startsWith(subItem.path + "/"),
       );
     }
     return false;

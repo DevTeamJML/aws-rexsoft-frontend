@@ -4,6 +4,7 @@ import Papa from "papaparse";
 import moment from "moment";
 import { ApiRoute } from "@/enums/api-route";
 import { API } from "@/service/api";
+import { setSelectedClientIdsSuccess } from "../../../redux/slices/clientSlice";
 
 /**
  * Props:
@@ -37,6 +38,8 @@ const ExportModal = ({
   pagination,
   canManageHandler = false,
   isAdmin = false,
+  setIsAllSelected = () => {},
+  setSelectedRows = () => {},
 }) => {
   const [selectedColumns, setSelectedColumns] = useState(new Set());
   const [loadingExport, setLoadingExport] = useState(false);
@@ -76,7 +79,9 @@ const ExportModal = ({
 
   // Normalize and pre-filter columns (permissions + handler)
   const allColumns = useMemo(() => {
-    const filteredFixedColumns = fixedColumns.filter(col => col.id !== "user_id");
+    const filteredFixedColumns = fixedColumns.filter(
+      (col) => col.id !== "user_id",
+    );
     const merged = [...(filteredFixedColumns || []), ...(dynamicColumns || [])];
 
     return merged
@@ -265,7 +270,61 @@ const ExportModal = ({
     URL.revokeObjectURL(url);
   };
 
-  const handleExport = () => {
+  // const handleExport = () => {
+  //   const selected =
+  //     selectedColumns.size > 0
+  //       ? allColumns.filter((c) => selectedColumns.has(c.id))
+  //       : allColumns;
+
+  //   const FIXED_KEYS = new Set([
+  //     "user_id",
+  //     "created_at",
+  //     "serial_number",
+  //     "handler",
+  //     "handler_name",
+  //   ]);
+
+  //   const selectedFixed = selected
+  //     .filter((c) => FIXED_KEYS.has(c.id))
+  //     .map((c) => c.raw);
+
+  //   const selectedDynamic = selected
+  //     .filter((c) => !FIXED_KEYS.has(c.id))
+  //     .map((c) => c.raw);
+
+  //   const apiPayload = {
+  //     client_group_name: currSelectedGroup.client_group_name,
+  //     client_group_id:
+  //       currSelectedGroup?.client_group_id ?? currSelectedGroup?.id ?? null,
+  //     columns: selectedDynamic,
+  //     fixedColumns: selectedFixed,
+  //     filters: currSelectedGroup?.filters || [],
+  //     searchText: "",
+  //     sortConfig: {},
+  //     user_id: user?.uid ?? user?.user_id ?? null,
+  //     isAdmin: user?.isAdmin ?? isAdmin ?? false,
+  //     hasPermission: false,
+  //     isArchivedPage: !!isArchivedPage,
+  //   };
+
+  //   const form = document.createElement("form");
+  //   form.method = "POST";
+  //   form.action = `${process.env.API_URL}/client/exportClientsCSV`;
+  //   form.target = "_blank";
+
+  //   const input = document.createElement("input");
+  //   input.type = "hidden";
+  //   input.name = "payload";
+  //   input.value = JSON.stringify(apiPayload);
+
+  //   form.appendChild(input);
+  //   document.body.appendChild(form);
+
+  //   form.submit();
+  //   form.remove();
+  // };
+
+  const handleExport = ({ mode = "page" }) => {
     const selected =
       selectedColumns.size > 0
         ? allColumns.filter((c) => selectedColumns.has(c.id))
@@ -283,41 +342,68 @@ const ExportModal = ({
       .filter((c) => FIXED_KEYS.has(c.id))
       .map((c) => c.raw);
 
-
     const selectedDynamic = selected
       .filter((c) => !FIXED_KEYS.has(c.id))
       .map((c) => c.raw);
 
-    const apiPayload = {
-      client_group_id:
-        currSelectedGroup?.client_group_id ?? currSelectedGroup?.id ?? null,
-      columns: selectedDynamic,
-      fixedColumns: selectedFixed,
-      filters: currSelectedGroup?.filters || [],
-      searchText: "",
-      sortConfig: {},
-      user_id: user?.uid ?? user?.user_id ?? null,
-      isAdmin: user?.isAdmin ?? isAdmin ?? false,
-      hasPermission: false,
-      isArchivedPage: !!isArchivedPage,
-    };
+    if (mode === "all") {
+      const apiPayload = {
+        client_group_name: currSelectedGroup.client_group_name,
+        client_group_id:
+          currSelectedGroup?.client_group_id ?? currSelectedGroup?.id ?? null,
+        columns: selectedDynamic,
+        fixedColumns: selectedFixed,
+        filters: currSelectedGroup?.filters || [],
+        searchText: "",
+        sortConfig: {},
+        user_id: user?.uid ?? user?.user_id ?? null,
+        isAdmin: user?.isAdmin ?? isAdmin ?? false,
+        hasPermission: false,
+        isArchivedPage: !!isArchivedPage,
+      };
 
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = `${process.env.API_URL}/client/exportClientsCSV`;
-    form.target = "_blank";
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = `${process.env.API_URL}/client/exportClientsCSV`;
+      form.target = "_blank";
 
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = "payload";
-    input.value = JSON.stringify(apiPayload);
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = "payload";
+      input.value = JSON.stringify(apiPayload);
 
-    form.appendChild(input);
-    document.body.appendChild(form);
+      form.appendChild(input);
+      document.body.appendChild(form);
 
-    form.submit();
-    form.remove();
+      form.submit();
+      form.remove();
+
+      dispatch(setSelectedClientIdsSuccess([]));
+      setSelectedRows(new Set());
+      setIsAllSelected(false);
+      onClose();
+      return;
+    }
+
+    let rows = clients || [];
+
+    if (selectedClientIds?.length > 0) {
+      const setIds = new Set(selectedClientIds);
+      rows = rows.filter((c) => setIds.has(c.id ?? c.client_id ?? c._id));
+    }
+
+    const dataRows = buildRowsFromClients(rows, selected);
+
+    const filename = `${currSelectedGroup.client_group_name}_${moment(new Date()).format("YYYY-MM-DD")}.csv`;
+
+    dispatch(setSelectedClientIdsSuccess([]));
+    setSelectedRows(new Set());
+    setIsAllSelected(false);
+    downloadCsv(filename, dataRows);
+    onClose();
   };
+
+  //
 
   // const handleExport = async ({ exportAll = false }) => {
   //   setLoadingExport(true);
@@ -478,22 +564,32 @@ const ExportModal = ({
           <div className="actions">
             <span
               className="export-all-span"
-              onClick={() => handleExport({ exportAll: true })}
+              onClick={() => handleExport({ mode: "all" })}
             >
               {`Export ${pagination ? pagination?.totalItems : 0}`}
             </span>
-
+            {/* <span
+              className="export-all-span"
+              onClick={() => handleExport({ exportAll: true })}
+            >
+              {`Export ${pagination ? pagination?.totalItems : 0}`}
+            </span> */}
             <button className="outline" onClick={onClose}>
               Cancel
             </button>
-
             <button
+              className="primary"
+              onClick={() => handleExport({ mode: "page" })}
+            >
+              Export
+            </button>
+            {/* <button
               className="primary"
               onClick={() => handleExport({ exportAll: false })}
               disabled={loadingExport}
             >
               {loadingExport ? "Exporting..." : "Export"}
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

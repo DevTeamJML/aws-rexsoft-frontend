@@ -10,7 +10,6 @@ function createFeatureChannel() {
 
   
     const unsubscribe = onValue(featureRef, (snapshot) => {
-      console.log(snapshot.val())
       emit(snapshot.val() || {});
     });
 
