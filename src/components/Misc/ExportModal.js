@@ -22,6 +22,9 @@ import { setSelectedClientIdsSuccess } from "../../../redux/slices/clientSlice";
  * - isAdmin (bool)
  */
 const ExportModal = ({
+  sortConfig,
+  filters,
+  searchText,
   open,
   onClose,
   fixedColumns = [],
@@ -353,9 +356,9 @@ const ExportModal = ({
           currSelectedGroup?.client_group_id ?? currSelectedGroup?.id ?? null,
         columns: selectedDynamic,
         fixedColumns: selectedFixed,
-        filters: currSelectedGroup?.filters || [],
-        searchText: "",
-        sortConfig: {},
+        filters: filters,
+        searchText: searchText,
+        sortConfig: sortConfig,
         user_id: user?.uid ?? user?.user_id ?? null,
         isAdmin: user?.isAdmin ?? isAdmin ?? false,
         hasPermission: false,

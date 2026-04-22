@@ -547,6 +547,9 @@ const ClientList = () => {
   return (
     <div className="page-container">
       <ExportModal
+        sortConfig={sortConfig}
+        filters={filters}
+        searchText={searchText}
         open={isExportModalOpen}
         onClose={() => {
           setIsExportModalOpen(false);
