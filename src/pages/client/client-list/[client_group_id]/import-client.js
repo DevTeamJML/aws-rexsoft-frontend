@@ -28,12 +28,12 @@ import { useSelectUserPermissions } from "../../../../../redux/slices/roleAuthSl
 // Dynamic imports
 const CloudUploadOutlinedIcon = dynamic(
   () => import("@mui/icons-material/CloudUploadOutlined"),
-  { ssr: false }
+  { ssr: false },
 );
 
 const ArrowOutwardIcon = dynamic(
   () => import("@mui/icons-material/ArrowOutward"),
-  { ssr: false }
+  { ssr: false },
 );
 
 const ExcelJS = require("exceljs");
@@ -221,7 +221,18 @@ export default function ClientImportForm() {
 
             const worksheet = workbook.worksheets[0];
             const rows = [];
-            worksheet.eachRow((row) => rows.push(row.values.slice(1)));
+            worksheet.eachRow((row) => {
+              const cleanedRow = row.values.slice(1).map((cell) => {
+                if (cell && typeof cell === "object") {
+                  // ExcelJS formula object
+                  if ("result" in cell) return cell.result;
+                  return ""; // fallback
+                }
+                return cell;
+              });
+
+              rows.push(cleanedRow);
+            });
 
             resolve(rows);
           } catch (err) {
@@ -248,7 +259,7 @@ export default function ClientImportForm() {
 
       if (!rows || rows.length < 1) {
         dispatch(
-          showToast({ message: "File empty or unreadable", status: "error" })
+          showToast({ message: "File empty or unreadable", status: "error" }),
         );
         setLoading(false);
         return;
@@ -271,10 +282,10 @@ export default function ClientImportForm() {
         return true;
       });
 
-     const { isValid, extra, missing } = validateHeader(
+      const { isValid, extra, missing } = validateHeader(
         compareHeader,
         compareColumn,
-        optional
+        optional,
       );
 
       if (!isValid) {
@@ -283,7 +294,7 @@ export default function ClientImportForm() {
             message:
               "Header is different from the system, please get the latest template !",
             status: "error",
-          })
+          }),
         );
         setTimeout(() => {
           dispatch(hideToast());
@@ -299,7 +310,7 @@ export default function ClientImportForm() {
         .filter((row) => {
           const hasAny = row.some(
             (cell) =>
-              cell !== null && cell !== undefined && `${cell}`.trim() !== ""
+              cell !== null && cell !== undefined && `${cell}`.trim() !== "",
           );
           return hasAny;
         })
@@ -314,7 +325,7 @@ export default function ClientImportForm() {
               (dataAcc, currColName, colIndex) => {
                 // Handler parsing removed — we will attach handlers in modal step
                 const columnObj = compareColumn.find(
-                  (col) => col.label === currColName
+                  (col) => col.label === currColName,
                 );
 
                 // Skip if no matching column found or if column_id is empty
@@ -381,7 +392,7 @@ export default function ClientImportForm() {
                 return dataAcc;
               },
 
-              { values: [], processed: {}, error_values: [], handler_list: [] }
+              { values: [], processed: {}, error_values: [], handler_list: [] },
             );
 
             acc["client_list"].push({
@@ -394,7 +405,7 @@ export default function ClientImportForm() {
             acc["processed_list"].push(newObj["processed"]);
             acc["add_handler_list"].push(newObj["handler_list"]);
             acc["error_list"] = (acc["error_list"] || []).concat(
-              newObj.error_values
+              newObj.error_values,
             );
 
             return acc;
@@ -405,7 +416,7 @@ export default function ClientImportForm() {
             processed_list: [],
             error_list: [],
             add_handler_list: [],
-          }
+          },
         );
 
       // pull results out
@@ -422,7 +433,7 @@ export default function ClientImportForm() {
             message:
               "There are problems with your imported list, please amend according to the error list provided below !",
             status: "error",
-          })
+          }),
         );
         setTimeout(() => {
           dispatch(hideToast());
@@ -436,7 +447,7 @@ export default function ClientImportForm() {
           showToast({
             message: "Empty data, please try to import again !",
             status: "error",
-          })
+          }),
         );
         setTimeout(() => {
           dispatch(hideToast());
@@ -467,7 +478,7 @@ export default function ClientImportForm() {
         showToast({
           message: "No imported data available. Please upload a file first.",
           status: "error",
-        })
+        }),
       );
       setTimeout(() => dispatch(hideToast()), 2500);
       return;
@@ -485,7 +496,7 @@ export default function ClientImportForm() {
         showToast({
           message: "No imported data available. Please upload a file first.",
           status: "error",
-        })
+        }),
       );
       setShowHandlerModal(false);
       setTimeout(() => dispatch(hideToast()), 2500);
@@ -531,7 +542,7 @@ export default function ClientImportForm() {
         custom_values: importedData.custom_values,
         handler: handlerPairs,
         logsBody,
-      })
+      }),
     );
 
     setShowHandlerModal(false);
@@ -709,7 +720,7 @@ export default function ClientImportForm() {
                             setSelectedHandlerIds((s) => [...s, u.user_id]);
                           } else {
                             setSelectedHandlerIds((s) =>
-                              s.filter((id) => id !== u.user_id)
+                              s.filter((id) => id !== u.user_id),
                             );
                           }
                         }}
