@@ -177,8 +177,12 @@ export default function BulkUpdateClient() {
 
   // Handler for adding handlers
   const handleAddHandlerChange = (newSelected) => {
-    setAddHandler((prev) => [...new Set([...prev, newSelected])]);
-    setRemoveHandler((prev) => prev.filter((h) => h !== newSelected));
+    const value =
+      typeof newSelected === "object" ? newSelected.value : newSelected;
+
+    setAddHandler((prev) => [...new Set([...prev, value])]);
+
+    setRemoveHandler((prev) => prev.filter((h) => h !== value));
   };
 
   // Remove handler from add list
@@ -188,8 +192,12 @@ export default function BulkUpdateClient() {
 
   // Handler for removing handlers
   const handleRemoveHandlerChange = (newSelected) => {
-    setRemoveHandler((prev) => [...new Set([...prev, newSelected])]);
-    setAddHandler((prev) => prev.filter((h) => h !== newSelected));
+    const value =
+      typeof newSelected === "object" ? newSelected.value : newSelected;
+
+    setRemoveHandler((prev) => [...new Set([...prev, value])]);
+
+    setAddHandler((prev) => prev.filter((h) => h !== value));
   };
 
   // Remove handler from remove list
@@ -358,10 +366,16 @@ export default function BulkUpdateClient() {
       // helper to create per-batch handler lists
       const handlerListsForBatch = (batchClientIds) => {
         const add_handler_list = batchClientIds.flatMap((client_id) =>
-          (addHandler || []).map((user_id) => ({ client_id, user_id })),
+          (addHandler || []).map((user) => ({
+            client_id,
+            user_id: typeof user === "object" ? user.value : user,
+          })),
         );
         const remove_handler_list = batchClientIds.flatMap((client_id) =>
-          (removeHandler || []).map((user_id) => ({ client_id, user_id })),
+          (removeHandler || []).map((user) => ({
+            client_id,
+            user_id: typeof user === "object" ? user.value : user,
+          })),
         );
         return { add_handler_list, remove_handler_list };
       };
@@ -557,6 +571,7 @@ export default function BulkUpdateClient() {
                 created_by_admin: !!isAdmin,
               };
 
+              console.log(payload);
               dispatch(bulkUpdateClient({ router, payload }));
               await new Promise((res) =>
                 setTimeout(res, 50 + Math.floor(Math.random() * 50)),

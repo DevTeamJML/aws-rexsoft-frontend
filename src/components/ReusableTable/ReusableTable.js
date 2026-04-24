@@ -18,6 +18,8 @@ import moment from "moment";
 import { useSelectAllCompanyUsers } from "../../../redux/slices/companySlice";
 import { safeParseJSON } from "@/utils/validation";
 import ColumnFilterPopover from "./ColumnFilterPopover";
+import { hideToast, showToast } from "../../../redux/slices/toastSlice";
+import { MdFileCopy } from "react-icons/md";
 
 const ReusableTable = ({
   tableId,
@@ -86,10 +88,9 @@ const ReusableTable = ({
   setIsAllSelected = () => {},
 
   selectedRows = new Set(),
-  setSelectedRows = () => {}
+  setSelectedRows = () => {},
 }) => {
-  
-    /** Selection */
+  /** Selection */
   const dispatch = useDispatch();
   const allCompanyUsers = useSelectAllCompanyUsers();
 
@@ -97,8 +98,6 @@ const ReusableTable = ({
   const [resizing, setResizing] = useState(null);
   const [startX, setStartX] = useState(0);
   const [startWidth, setStartWidth] = useState(200);
-
-
 
   const headerRef = useRef(null);
 
@@ -376,7 +375,6 @@ const ReusableTable = ({
             }}
           />
         )}
-
         {resolvedActionButtons.includes("edit") && (
           <FaEdit
             className="action-icon edit"
@@ -387,7 +385,6 @@ const ReusableTable = ({
             }}
           />
         )}
-
         {resolvedActionButtons.includes("duplicate") && (
           <FaCopy
             className="action-icon duplicate"
@@ -399,6 +396,15 @@ const ReusableTable = ({
           />
         )}
 
+        {resolvedActionButtons.includes("copy") && (
+          <FaCopy
+            className="action-icon apply"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAction?.("copy", row.id);
+            }}
+          />
+        )}
         {resolvedActionButtons.includes("delete") && (
           <FaTrash
             className="action-icon delete"
@@ -409,7 +415,6 @@ const ReusableTable = ({
             }}
           />
         )}
-
         {resolvedActionButtons.includes("apply") && (
           <FaFileSignature
             className="action-icon apply"
@@ -840,7 +845,7 @@ const ReusableTable = ({
                                 key={col.id}
                                 className={`table-cell ${
                                   col.fixed ? "fixed-column" : ""
-                                }`}
+                                } ${col.copy ? "copyable" : ""}`}
                                 style={{ width: getColumnWidth(col.id) }}
                                 data-fixed={col.fixedPosition}
                               >

@@ -221,7 +221,10 @@ export default function EditClientPage() {
   useEffect(() => {
     // Build initialData using clientData (when available)
     const initialData = {
-      handler: (clientData?.handler || []).map((h) => h.value) || [],
+      handler: (clientData?.handler || []).map((h) => ({
+        value: h.value,
+        label: h.label,
+      })),
     };
 
     if (clientData?.raw) {
@@ -595,7 +598,17 @@ export default function EditClientPage() {
                   ) : null}
                 </label> */}
 
-                <div style={isAdmin ? {display: "flex", justifyContent:"space-between", alignItems:"center"} : {}}>
+                <div
+                  style={
+                    isAdmin
+                      ? {
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }
+                      : {}
+                  }
+                >
                   <label
                     style={{
                       display: "flex",

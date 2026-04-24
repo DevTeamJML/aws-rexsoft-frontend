@@ -121,7 +121,7 @@ export default function MultiSelectDropdownField({
         <ul className="multi-select-dropdown">
 
           {filteredOptions.map((opt, index) => (
-            <li key={index} onClick={() => toggleSelect(opt.value)}>
+            <li key={index} onClick={() => toggleSelect(opt)}>
               {opt.label}
             </li>
           ))}

@@ -195,6 +195,10 @@ export default function ColumnFilterPopover({
               filterType,
               searchText,
               selectedOptions,
+              startDate,
+              endDate,
+              minValue,
+              maxValue
             })
           }
         >

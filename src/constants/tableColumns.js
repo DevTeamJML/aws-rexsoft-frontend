@@ -56,6 +56,7 @@ export const TableColumns = {
       field_type: ColumnType.TEXT,
       sortable: true,
       width: 120,
+      copy: true,
     },
     {
       id: "status",

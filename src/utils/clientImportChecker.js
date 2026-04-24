@@ -17,9 +17,10 @@ export function validateHeader(header, columns, optionalColumnNames = []) {
   const headerSet = new Set(header.map(norm));
 
   // allowed column labels (filtered)
-  const compareColumn = columns.filter(
-    (col) => col.field_type !== "alert" && col.field_type !== "rich_text"
-  );
+  const compareColumn = columns;
+  // const compareColumn = columns.filter(
+  //   (col) => col.field_type !== "alert" && col.field_type !== "rich_text"
+  // );
 
   const columnLabelSet = new Set(
     compareColumn

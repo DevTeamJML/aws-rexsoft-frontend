@@ -24,6 +24,8 @@ import ReusableTable from "@/components/ReusableTable/ReusableTable";
 import SimpleImportTable from "@/components/Misc/SimpleImportTable";
 import { validateHeader } from "@/utils/clientImportChecker";
 import { useSelectUserPermissions } from "../../../../../redux/slices/roleAuthSlice";
+import { onValue, ref } from "firebase/database";
+import { db } from "@/config/firebaseConfig";
 
 // Dynamic imports
 const CloudUploadOutlinedIcon = dynamic(
@@ -67,10 +69,58 @@ export default function ClientImportForm() {
   const [showHandlerModal, setShowHandlerModal] = useState(false);
   const [selectedHandlerIds, setSelectedHandlerIds] = useState([]);
 
+  const [columnSortingArray, setColumnSortingArray] = useState([]);
+  const [userSortingArray, setUserSortingArray] = useState([]);
+
   const currCompanyId = useSelectCurrCompanyId();
 
   const canManageHandler =
     isAdmin || userPermissions.includes("manage_handler");
+
+  useEffect(() => {
+    if (!currGroupId) return;
+    if (!user) return;
+
+    const userRef = ref(db, `UserColumnSorting/${user?.uid}/${currGroupId}`);
+    const unsubUser = onValue(userRef, (snap) => {
+      const val = snap.val() || [];
+      const arr = Array.isArray(val) ? val : val?.columnsOrder;
+      setUserSortingArray(Array.isArray(arr) ? arr : []);
+    });
+
+    const groupRef = ref(db, `ColumnSorting/${currGroupId}`);
+    const unsubGroup = onValue(groupRef, (snap) => {
+      const arr = snap.val() || [];
+      setColumnSortingArray(Array.isArray(arr) ? arr : []);
+    });
+
+    // Cleanup listeners when unmounting or group changes
+    return () => {
+      unsubUser();
+      unsubGroup();
+    };
+  }, [user, currGroupId]);
+
+  const getSortedColumns = (columns) => {
+    const getId = (c) => c.id ?? c.column_id;
+
+    const orderIds =
+      userSortingArray?.length > 0
+        ? userSortingArray
+        : columnSortingArray?.length > 0
+          ? columnSortingArray
+          : null;
+
+    if (!orderIds) return columns;
+
+    const map = new Map(columns.map((c) => [getId(c), c]));
+
+    const ordered = orderIds.map((id) => map.get(id)).filter(Boolean);
+
+    const remaining = columns.filter((c) => !orderIds.includes(getId(c)));
+
+    return [...ordered, ...remaining];
+  };
 
   const fileInputRef = useRef(null);
 
@@ -156,20 +206,36 @@ export default function ClientImportForm() {
 
     // Filter columns: exclude alert/rich_text AND columns that are not editable (unless admin)
     const allColumns = currSelectedGroup.columns || [];
-    const templateColumns = allColumns.filter((col) => {
-      if (col.field_type === "alert" || col.field_type === "rich_text")
-        return false;
+    const filteredColumns = allColumns.filter((col) => {
+      // if (col.field_type === "alert" || col.field_type === "rich_text")
+      //   return false;
       if (!isAdmin) {
         if (col.permission && col.permission !== "editable") return false;
       }
       return true;
     });
 
+    const templateColumns = getSortedColumns(filteredColumns);
+
+    // const templateColumns = allColumns.filter((col) => {
+    //   // if (col.field_type === "alert" || col.field_type === "rich_text")
+    //   //   return false;
+    //   if (!isAdmin) {
+    //     if (col.permission && col.permission !== "editable") return false;
+    //   }
+    //   return true;
+    // });
+
     const groupName = currSelectedGroup.client_group_name || "group";
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Clients");
 
     worksheet.columns = [
+      {
+        header: "Handler",
+        key: "handler",
+        width: 20,
+      },
       ...templateColumns.map((col) => {
         const key = col.label.toLowerCase().split(" ").join("_");
         return {
@@ -199,6 +265,21 @@ export default function ClientImportForm() {
     } catch (error) {
       console.error("Excel Export Error:", error);
     }
+  };
+
+  const isValidDate = (dateStr) => {
+    // format check YYYY-MM-DD
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(dateStr)) return false;
+
+    const date = new Date(dateStr);
+    const [y, m, d] = dateStr.split("-").map(Number);
+
+    return (
+      date.getFullYear() === y &&
+      date.getMonth() + 1 === m &&
+      date.getDate() === d
+    );
   };
 
   const readExcelFile = (file) => {
@@ -273,15 +354,21 @@ export default function ClientImportForm() {
       const compareHeader = header;
 
       // compute compareColumn the same way as template (exclude non-editable unless admin)
-      const compareColumn = columns.filter((col) => {
-        if (col.field_type === "alert" || col.field_type === "rich_text")
-          return false;
-        if (!isAdmin) {
-          if (col.permission && col.permission !== "editable") return false;
-        }
-        return true;
-      });
-
+      const compareColumn = [
+        {
+          label: "Handler",
+          column_id: "handler",
+          field_type: "handler",
+        },
+        ...columns.filter((col) => {
+          // if (col.field_type === "alert" || col.field_type === "rich_text")
+          //   return false;
+          if (!isAdmin) {
+            if (col.permission && col.permission !== "editable") return false;
+          }
+          return true;
+        }),
+      ];
       const { isValid, extra, missing } = validateHeader(
         compareHeader,
         compareColumn,
@@ -372,6 +459,76 @@ export default function ClientImportForm() {
                   } else {
                     seenValues[column_id].add(row_value);
                   }
+                }
+
+                if (columnObj.field_type === "handler") {
+                  if (row_value) {
+                    const handlers = row_value
+                      .split(", ") // or whatever format you expect
+                      .map((h) => h.trim());
+
+                    const uniqueHandlers = new Set();
+
+                    handlers.forEach((h) => {
+                      const matchedUser = allCompanyUsers.find(
+                        (u) =>
+                          u.email === h ||
+                          u.displayName === h ||
+                          u.user_id === h,
+                      );
+
+                      if (matchedUser) {
+                        if (!uniqueHandlers.has(matchedUser.user_id)) {
+                          uniqueHandlers.add(matchedUser.user_id);
+
+                          dataAcc.handler_list.push({
+                            client_id,
+                            user_id: matchedUser.user_id,
+                          });
+                        }
+                      } else {
+                        dataAcc.error_values.push({
+                          row_index: rowIndex,
+                          col_index: colIndex,
+                          message: `Handler "${h}" not found`,
+                          error_type: "handler_invalid",
+                        });
+                      }
+                    });
+                  }
+
+                  return dataAcc;
+                }
+
+                if (columnObj.field_type === "alert") {
+                  if (row_value) {
+                    const value = String(row_value).trim();
+
+                    if (!isValidDate(value)) {
+                      dataAcc.error_values.push({
+                        row_index: rowIndex,
+                        col_index: colIndex,
+                        message: `Invalid date format. Use YYYY-MM-DD`,
+                        error_type: "invalid_date",
+                      });
+
+                      return dataAcc;
+                    }
+
+                    const alertObj = {
+                      date: value,
+                      is_complete: false,
+                    };
+
+                    dataAcc.values.push({
+                      client_id,
+                      column_id,
+                      client_group_id,
+                      row_value: JSON.stringify(alertObj), 
+                    });
+                  }
+
+                  return dataAcc;
                 }
 
                 if (
@@ -508,8 +665,8 @@ export default function ClientImportForm() {
       currSelectedGroup?.client_group_id ?? currSelectedGroup?.id ?? null;
     const client_group_name = currSelectedGroup?.client_group_name ?? "";
 
-    // build handler pairs
-    const handlerPairs = [];
+    const handlerPairs = [...importedData.add_handler_list];
+
     importedData.client_list.forEach((c) => {
       handlerIds.forEach((uid) => {
         handlerPairs.push({
@@ -534,6 +691,14 @@ export default function ClientImportForm() {
       },
     };
 
+    console.log(importedData);
+    console.log({
+      router,
+      setImportedData,
+      client_list: importedData.client_list,
+      custom_values: importedData.custom_values,
+      handler: handlerPairs,
+    });
     dispatch(
       bulkCreateClient({
         router,
@@ -545,7 +710,7 @@ export default function ClientImportForm() {
       }),
     );
 
-    setShowHandlerModal(false);
+    // setShowHandlerModal(false);
   };
 
   const handleErrorListExport = async () => {

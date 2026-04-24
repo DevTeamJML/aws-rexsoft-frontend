@@ -21,6 +21,7 @@ import {
   removeInvitationAndUser,
   useSelectAllInvitationAndUser,
 } from "../../../redux/slices/invitationSlice";
+import { hideToast, showToast } from "../../../redux/slices/toastSlice";
 
 const UserList = () => {
   const dispatch = useDispatch();
@@ -68,7 +69,7 @@ const UserList = () => {
       }
 
       const created_at = u.created_at ?? "—";
-      
+
       return {
         id,
         raw: u,
@@ -85,8 +86,7 @@ const UserList = () => {
 
   const handleAction = (action, row) => {
     if (action === "edit") {
- 
-    //   router.push(`/user/${row.id}/view`);
+      //   router.push(`/user/${row.id}/view`);
       return;
     }
 
@@ -97,6 +97,19 @@ const UserList = () => {
       setSelectedData(row);
       dispatch(setShowModal(true));
       return;
+    }
+
+    if (action === "copy") {
+      navigator.clipboard.writeText(String(row));
+      dispatch(
+        showToast({
+          message: "Copied UID successfully",
+          status: "success",
+        }),
+      );
+      setTimeout(() => {
+        dispatch(hideToast());
+      }, 2000);
     }
   };
 
@@ -120,7 +133,7 @@ const UserList = () => {
             id,
             status,
             company_id: companyId,
-          })
+          }),
         );
         dispatch(setShowModal(false));
         setTargetUserId(null);
@@ -169,6 +182,7 @@ const UserList = () => {
         onSelectionChange={(ids) => console.log("Selected:", ids)}
         loading={false}
         emptyMessage="No users found"
+        actionButtons={["copy", "delete"]}
       />
     </div>
   );

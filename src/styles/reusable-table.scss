@@ -405,7 +405,7 @@
   flex-direction: column;
   padding-block: 10px;
 
-  span{
+  span {
     font-size: variables.$font-xl;
   }
 }
@@ -538,4 +538,12 @@
       justify-content: center;
     }
   }
+}
+
+.copyable {
+  cursor: pointer;
+}
+
+.copyable:hover {
+  background-color: #f5f5f5;
 }
