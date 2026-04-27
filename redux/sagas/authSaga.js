@@ -30,9 +30,9 @@ import {
   switchCompanySuccess,
 } from "../slices/companySlice";
 import {
-  addToLocalStorage,
-  getFromLocalStorage,
-  removeFromLocalStorage,
+  addToSessionStorage,
+  getFromSessionStorage,
+  removeFromSessionStorage,
 } from "@/utils/localStorage";
 import {
   getAllClientGroups,
@@ -71,8 +71,8 @@ function* fetchFirebaseUsers(uids) {
 
 function* loadUserData(user, setAuthLoading) {
   if (setAuthLoading) setAuthLoading(true);
-  const storedCompanyId = getFromLocalStorage(process.env.CURR_COMPANY_ID);
-  const storedSelectedClientGroupId = getFromLocalStorage(
+  const storedCompanyId = getFromSessionStorage(process.env.CURR_COMPANY_ID);
+  const storedSelectedClientGroupId = getFromSessionStorage(
     process.env.CURR_SELECTED_GROUP_ID,
   );
 
@@ -92,7 +92,7 @@ function* loadUserData(user, setAuthLoading) {
 
   if (!selectedCompany && companies?.length > 0) {
     selectedCompany = companies[0];
-    addToLocalStorage(process.env.CURR_COMPANY_ID, selectedCompany.company_id);
+    addToSessionStorage(process.env.CURR_COMPANY_ID, selectedCompany.company_id);
   }
 
   if (selectedCompanyId) {
@@ -127,7 +127,7 @@ function* loadUserData(user, setAuthLoading) {
 
     if (!selectedGroup && groupList?.length > 0) {
       selectedGroup = groupList[0];
-      addToLocalStorage(
+      addToSessionStorage(
         process.env.CURR_SELECTED_GROUP_ID,
         selectedGroup.client_group_id,
       );
@@ -277,7 +277,7 @@ function* logOutSaga({ payload }) {
     const { router } = payload;
     yield call(signOut, auth);
     yield put(logOutSuccess(null));
-    removeFromLocalStorage(process.env.CURR_COMPANY_ID);
+    removeFromSessionStorage(process.env.CURR_COMPANY_ID);
     yield put(switchCompanySuccess(null));
     router.push("/");
     // yield put(

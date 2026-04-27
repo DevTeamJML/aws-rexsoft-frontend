@@ -16,7 +16,7 @@ import {
   useSelectCurrCompanyId,
   useSelectIsAdmin,
 } from "../../../redux/slices/companySlice";
-import { getFromLocalStorage } from "@/utils/localStorage";
+import { getFromSessionStorage, saveFilterPreference } from "@/utils/localStorage";
 import { DropdownField } from "@/components/FormComponents/DropdownField";
 import {
   archiveClient,
@@ -109,21 +109,38 @@ const ClientList = () => {
   const [columnSortingArray, setColumnSortingArray] = useState(null);
 
   useEffect(() => {
-    const savedFilters = localStorage.getItem("filters");
-    if (savedFilters) {
-      setFilters(JSON.parse(savedFilters));
-    }
+    const groupId = currSelectedGroupId;
+    if (!groupId) return;
 
-    const savedSearchKeyword = localStorage.getItem("search");
-    if (savedSearchKeyword) {
-      setSearchText(JSON.parse(savedSearchKeyword));
-    }
+    const allPrefs = JSON.parse(
+      localStorage.getItem("filterPreference") || "{}",
+    );
 
-    const savedSortKeyword = localStorage.getItem("sort");
-    if (savedSortKeyword) {
-      setSortConfig(JSON.parse(savedSortKeyword));
+    const current = allPrefs[groupId];
+
+    if (current) {
+      setFilters(current.filters || []);
+      setSearchText(current.search || "");
+      setSortConfig(current.sort || {});
     }
-  }, []);
+  }, [currSelectedGroupId]);
+
+  // useEffect(() => {
+  //   const savedFilters = localStorage.getItem("filters");
+  //   if (savedFilters) {
+  //     setFilters(JSON.parse(savedFilters));
+  //   }
+
+  //   const savedSearchKeyword = localStorage.getItem("search");
+  //   if (savedSearchKeyword) {
+  //     setSearchText(JSON.parse(savedSearchKeyword));
+  //   }
+
+  //   const savedSortKeyword = localStorage.getItem("sort");
+  //   if (savedSortKeyword) {
+  //     setSortConfig(JSON.parse(savedSortKeyword));
+  //   }
+  // }, []);
 
   useEffect(() => {
     if (!currSelectedGroupId) return;
@@ -194,7 +211,12 @@ const ClientList = () => {
   useEffect(() => {
     if (currSelectedGroup === null) return;
     if (searchText === "" && fixedColumns.length > 0) {
-      localStorage.setItem("search", "");
+      saveFilterPreference(currSelectedGroupId, {
+        filters: filters,
+        search: "",
+        sort: sortConfig,
+      });
+      // localStorage.setItem("search", "");
       dispatch(
         getAllClients({
           ...currSelectedGroup,
@@ -220,7 +242,7 @@ const ClientList = () => {
 
   useEffect(() => {
     if (allGroupNames.length > 0) {
-      const storedSelectedClientGroupId = getFromLocalStorage(
+      const storedSelectedClientGroupId = getFromSessionStorage(
         process.env.CURR_SELECTED_GROUP_ID,
       );
 
@@ -305,7 +327,12 @@ const ClientList = () => {
       order: newOrder,
     };
 
-    localStorage.setItem("sort", JSON.stringify(newSortConfig));
+    // localStorage.setItem("sort", JSON.stringify(newSortConfig));
+    saveFilterPreference(currSelectedGroupId, {
+      filters: filters,
+      search: searchText,
+      sort: newSortConfig,
+    });
 
     setSortConfig(newSortConfig);
     dispatch(
@@ -444,7 +471,12 @@ const ClientList = () => {
   };
 
   const handleApplyFilters = (targetFilters) => {
-    localStorage.setItem("filters", JSON.stringify(targetFilters));
+    saveFilterPreference(currSelectedGroupId, {
+      filters: targetFilters,
+      search: searchText,
+      sort: sortConfig,
+    });
+    // localStorage.setItem("filters", JSON.stringify(targetFilters));
     setFilters(targetFilters);
     dispatch(
       getAllClients({
@@ -462,7 +494,13 @@ const ClientList = () => {
   };
 
   const handleGlobalSearch = () => {
-    localStorage.setItem("search", JSON.stringify(searchText));
+    saveFilterPreference(currSelectedGroupId, {
+      filters: filters,
+      search: searchText,
+      sort: sortConfig,
+    });
+
+    // localStorage.setItem("search", JSON.stringify(searchText));
     dispatch(
       getAllClients({
         ...currSelectedGroup,

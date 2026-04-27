@@ -11,7 +11,7 @@ import { API } from "@/service/api";
 import { hideToast, showToast } from "../slices/toastSlice";
 import { toggleNewCompanyModal } from "../slices/companyModalSlice";
 import { yellow } from "@mui/material/colors";
-import { addToLocalStorage } from "@/utils/localStorage";
+import { addToSessionStorage } from "@/utils/localStorage";
 import { getAllClientGroups } from "../slices/clientGroupSlice";
 import { defaultPermissions } from "@/constants/permissions";
 import { createRole } from "../slices/roleSlice";
@@ -27,8 +27,8 @@ function* switchCompanySaga({ payload }) {
       })
     );
     const { company_id } = payload;
-    addToLocalStorage(process.env.CURR_COMPANY_ID, company_id);
-    // addToLocalStorage(CURR_COMPANY_ID, company_id);
+    addToSessionStorage(process.env.CURR_COMPANY_ID, company_id);
+    // addToSessionStorage(CURR_COMPANY_ID, company_id);
     // yield put(switchUserCompany(company_id));
     /**
      * * Purposely stop for 2 seconds here
@@ -105,7 +105,7 @@ function* createCompanySaga({ payload }) {
     //   control_panel: { manage_roles: false, company_profile: false },
     // }
     yield put(toggleNewCompanyModal(false));
-    addToLocalStorage(process.env.CURR_COMPANY_ID, payload.company_id);
+    addToSessionStorage(process.env.CURR_COMPANY_ID, payload.company_id);
     yield put(switchCompany(payload));
     yield delay(2000);
     yield put(hideToast());

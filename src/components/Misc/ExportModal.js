@@ -5,6 +5,7 @@ import moment from "moment";
 import { ApiRoute } from "@/enums/api-route";
 import { API } from "@/service/api";
 import { setSelectedClientIdsSuccess } from "../../../redux/slices/clientSlice";
+import { useSelectUserPermissions } from "../../../redux/slices/roleAuthSlice";
 
 /**
  * Props:
@@ -46,6 +47,8 @@ const ExportModal = ({
 }) => {
   const [selectedColumns, setSelectedColumns] = useState(new Set());
   const [loadingExport, setLoadingExport] = useState(false);
+
+  const userPermission = useSelectUserPermissions();
 
   // Helpers
   const normalize = (s = "") => s.toString().replace(/\s+/g, "_").toLowerCase();
@@ -361,7 +364,7 @@ const ExportModal = ({
         sortConfig: sortConfig,
         user_id: user?.uid ?? user?.user_id ?? null,
         isAdmin: user?.isAdmin ?? isAdmin ?? false,
-        hasPermission: false,
+        hasPermission: canManageHandler,
         isArchivedPage: !!isArchivedPage,
       };
 

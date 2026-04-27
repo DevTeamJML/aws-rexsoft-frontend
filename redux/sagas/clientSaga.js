@@ -32,7 +32,7 @@ import {
   setSelectedClientIdsSuccess,
   updateClient,
 } from "../slices/clientSlice";
-import { addToLocalStorage } from "@/utils/localStorage";
+import { addToSessionStorage } from "@/utils/localStorage";
 import { API } from "@/service/api";
 import { ApiRoute } from "@/enums/api-route";
 import { hideToast, showToast } from "../slices/toastSlice";
@@ -42,7 +42,7 @@ function* handleOnChangeClientGroupSaga({ payload }) {
   try {
     const { client_group_id, targetGroup } = payload;
 
-    addToLocalStorage(process.env.CURR_SELECTED_GROUP_ID, client_group_id);
+    addToSessionStorage(process.env.CURR_SELECTED_GROUP_ID, client_group_id);
     yield put(setSelectedClientGroupIdSuccess(client_group_id));
     yield put(setSelectedClientGroupSuccess({ ...targetGroup }));
     window.location.reload();

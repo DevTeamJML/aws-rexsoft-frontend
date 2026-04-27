@@ -21,12 +21,9 @@ import {
   useSelectIsAdmin,
 } from "../../../../../../redux/slices/companySlice";
 import { generateCustomValues } from "@/utils/formHelper";
-import { getFromLocalStorage } from "@/utils/localStorage";
 import { useRouter } from "next/router";
 import { useState, useEffect, useMemo } from "react";
 import { useDispatch } from "react-redux";
-import { v4 } from "uuid";
-import { DateField } from "@/components/FormComponents/DateField";
 import { renderClientInputField } from "@/utils/renderField";
 import { useSelectUserPermissions } from "../../../../../../redux/slices/roleAuthSlice";
 import { checkDuplicate } from "@/utils/checkDuplicate";
