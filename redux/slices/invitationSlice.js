@@ -15,7 +15,7 @@ const initialState = {
     company_name: "",
     user_id: "",
   },
-  allInvitationAndUser : [],
+  allInvitationAndUser: [],
   getInvitationByIdLoading: false,
   getInvitationByIdError: undefined,
   acceptInvitationLoading: false,
@@ -29,7 +29,8 @@ const initialState = {
   getAllInvitationAndUserLoading: false,
   getAllInvitationAndUserError: "",
   removeInvitationLoading: false,
-  removeInvitationError : false,
+  removeInvitationError: false,
+  updateCompanyUserLoading : false,
 };
 
 const invitationSlice = createSlice({
@@ -105,13 +106,36 @@ const invitationSlice = createSlice({
     removeInvitationSuccess(state, { payload }) {
       const targetInvitationId = payload;
       const currInvitation = state.allInvitationAndUser;
-      const updatedList = currInvitation.filter((i)=>i.id !== targetInvitationId);
+      const updatedList = currInvitation.filter(
+        (i) => i.id !== targetInvitationId,
+      );
       state.allInvitationAndUser = updatedList;
       state.removeInvitationLoading = false;
     },
     removeInvitationError(state, { payload }) {
       state.removeInvitationError = payload;
       state.removeInvitationLoading = false;
+    },
+
+    updateAllInvitationAndUser(state) {
+      state.updateCompanyUserLoading = true;
+    },
+    updateAllInvitationAndUserSuccess(state, { payload }) {
+      const { user_id, first_name, last_name, email } = payload;
+
+      const index = state.allInvitationAndUser.findIndex(
+        (u) => u.id === user_id,
+      );
+
+      if (index !== -1) {
+        state.allInvitationAndUser[index] = {
+          ...state.allInvitationAndUser[index],
+          first_name,
+          last_name,
+          email,
+        };
+      }
+      state.updateCompanyUserLoading = false;
     },
   },
 });
@@ -137,7 +161,9 @@ export const {
   getAllInvitationAndUserError,
   removeInvitationAndUser,
   removeInvitationError,
-  removeInvitationSuccess
+  removeInvitationSuccess,
+  updateAllInvitationAndUser,
+  updateAllInvitationAndUserSuccess
 } = invitationSlice.actions;
 
 export const selectInvitation = () =>

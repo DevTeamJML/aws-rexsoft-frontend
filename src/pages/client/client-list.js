@@ -448,6 +448,7 @@ const ClientList = () => {
 
     dispatch(setSelectedClientIdsSuccess([]));
   };
+  
   const handleColumnFilter = (filter) => {
     const newFilters = filters.filter((f) => f.column_id !== filter.column_id);
 

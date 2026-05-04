@@ -7,6 +7,7 @@ import {
 } from "@/utils/clientFilterUtils";
 import React, { useEffect, useRef, useState } from "react";
 import { FaCalendar, FaSearch } from "react-icons/fa";
+import { useSelectAllCompanyUsers } from "../../../redux/slices/companySlice";
 
 export default function ColumnFilterPopover({
   column,
@@ -15,6 +16,12 @@ export default function ColumnFilterPopover({
   onClose,
   onApply,
 }) {
+  const allUsers = useSelectAllCompanyUsers();
+  const userMap = allUsers.reduce((acc, user) => {
+    acc[user.uid] = user.displayName;
+    return acc;
+  }, {});
+
   const popoverRef = useRef(null);
 
   const [filterType, setFilterType] = useState(
@@ -43,7 +50,13 @@ export default function ColumnFilterPopover({
     );
   };
 
-  const options = column?.options || [];
+  const options =
+    column.id === "handler"
+      ? allUsers.map((curr) => ({
+          label: curr.displayName,
+          value: curr.uid,
+        }))
+      : column?.options || [];
 
   const rect = anchorEl?.getBoundingClientRect();
 
@@ -120,15 +133,26 @@ export default function ColumnFilterPopover({
                 className={`dropdown-option-btn ${selectedOptions.includes(option.value) ? "selected" : ""}`}
                 onClick={() => toggleOption(option.value)}
               >
-                {option.value}
+                {columnType === "handler" ? option.label : option.value}
               </button>
             ))}
           </div>
           {selectedOptions && selectedOptions.length > 0 && (
             <div className="selected-options-info">
-              <strong>Selected:</strong> {selectedOptions.join(", ")}
+              <strong>Selected:</strong>{" "}
+              {columnType === "handler"
+                ? selectedOptions
+                    .map((opt) => userMap[opt] || "")
+                    .filter(Boolean)
+                    .join(", ")
+                : selectedOptions.join(", ")}
             </div>
           )}
+          {/* {selectedOptions && selectedOptions.length > 0 && (
+            <div className="selected-options-info">
+              <strong>Selected:</strong> {selectedOptions.join(", ")}
+            </div>
+          )} */}
         </div>
       )}
 
@@ -198,7 +222,7 @@ export default function ColumnFilterPopover({
               startDate,
               endDate,
               minValue,
-              maxValue
+              maxValue,
             })
           }
         >

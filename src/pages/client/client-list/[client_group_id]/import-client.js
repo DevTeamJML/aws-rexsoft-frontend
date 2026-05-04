@@ -691,14 +691,6 @@ export default function ClientImportForm() {
       },
     };
 
-    console.log(importedData);
-    console.log({
-      router,
-      setImportedData,
-      client_list: importedData.client_list,
-      custom_values: importedData.custom_values,
-      handler: handlerPairs,
-    });
     dispatch(
       bulkCreateClient({
         router,
@@ -710,7 +702,7 @@ export default function ClientImportForm() {
       }),
     );
 
-    // setShowHandlerModal(false);
+    setShowHandlerModal(false);
   };
 
   const handleErrorListExport = async () => {

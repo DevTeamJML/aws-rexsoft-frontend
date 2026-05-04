@@ -24,7 +24,7 @@ const nextConfig = {
     
     API_URL: "https://crm-server-eh2y9u82.com/v1",
     
-     FIREBASE_API_KEY: "AIzaSyBE4XGHiR8N5mQlVAFRDYwuIgYrpI3DJLQ",
+    FIREBASE_API_KEY: "AIzaSyBE4XGHiR8N5mQlVAFRDYwuIgYrpI3DJLQ",
     FIREBASE_AUTH_DOMAIN: "rexsoft-crm.firebaseapp.com",
     FIREBASE_PROJECT_ID: "rexsoft-crm",
     FIREBASE_STORAGE_BUCKET: "rexsoft-crm.appspot.com",

@@ -32,3 +32,10 @@
     gap: 16px;
   }
 }
+
+
+.edit-modal-body{
+  display: flex;
+  flex-direction: column;
+  padding-block: 1rem;
+}

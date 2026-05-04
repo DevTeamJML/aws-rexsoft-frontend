@@ -1,8 +1,8 @@
 import { getUserRoles } from "../../redux/slices/roleAuthSlice";
 
 export const ApiRoute = {
-  message : {
-    sendChatNotifcation: "/message/sendChatNotifcation"
+  message: {
+    sendChatNotifcation: "/message/sendChatNotifcation",
   },
   appointment: {
     getAppointments: "/appointment/getAppointments",
@@ -16,6 +16,7 @@ export const ApiRoute = {
   },
   user: {
     getUserDetailsById: "/user/getUserDetailsById",
+    updateUserProfile: "/user/updateUserProfile",
   },
   company: {
     createCompany: "/company/createCompany",
@@ -49,7 +50,7 @@ export const ApiRoute = {
     getClientDataByClientId: "/client/getClientDataByClientId",
     getAllClientsCount: "/client/getAllClientsCount",
     checkDuplicate: "/client/checkDuplicate",
-    export : "/client/exportClientsCSV"
+    export: "/client/exportClientsCSV",
   },
 
   formTemplate: {

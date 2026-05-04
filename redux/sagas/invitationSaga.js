@@ -23,8 +23,11 @@ import {
   removeInvitationSuccess,
   removeInvitationError,
   removeInvitationAndUser,
+  updateAllInvitationAndUser,
+  updateAllInvitationAndUserSuccess,
 } from "../slices/invitationSlice";
 import { hideToast, showToast } from "../slices/toastSlice";
+import { updateCompanyUserSuccess } from "../slices/companySlice";
 
 function* handleRetrieveInvitation({ payload }) {
   try {
@@ -187,6 +190,46 @@ function* removeInvitationSaga({ payload }) {
   }
 }
 
+
+function* updateAllInvitationAndUserSaga({ payload }) {
+  try {
+    yield put(
+      showToast({
+        message: "Updating user...",
+        status: "success",
+        loader: true,
+      }),
+    );
+
+    yield call(API.post, ApiRoute.user.updateUserProfile, payload);
+
+    yield put(updateCompanyUserSuccess(payload));
+    yield put(updateAllInvitationAndUserSuccess(payload));
+
+    yield put(
+      showToast({
+        message: "User updated successfully",
+        status: "success",
+      }),
+    );
+
+    yield delay(1500);
+    yield put(hideToast());
+  } catch (error) {
+    console.log(error);
+
+    yield put(
+      showToast({
+        message: "Failed to update user",
+        status: "error",
+      }),
+    );
+
+    yield delay(2000);
+    yield put(hideToast());
+  }
+}
+
 export function* invitationSaga() {
   yield takeLatest(getInvitationById.type, handleRetrieveInvitation);
   yield takeLatest(acceptInvitation.type, handleAcceptInvitation);
@@ -199,4 +242,5 @@ export function* invitationSaga() {
   yield takeLatest(resendInvitation.type, handleResendInvitation);
   yield takeLatest(getAllInvitationAndUser.type, getAllInvitationAndUserSaga);
   yield takeLatest(removeInvitationAndUser.type, removeInvitationSaga);
+  yield takeLatest(updateAllInvitationAndUser.type, updateAllInvitationAndUserSaga);
 }

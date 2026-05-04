@@ -19,13 +19,13 @@ export const shouldShowSearchField = (columnType) => {
     "dropdown",
     "number",
     "text",
-    "handler",
   ];
   return textTypes.includes(columnType);
 };
 
 export const shouldShowDropdownOptions = (columnType, options) => {
-  return columnType === "dropdown" && options?.length > 0;
+  return (columnType === "dropdown" || columnType === "handler") &&
+    options.length > 0;
 };
 
 export const shouldShowNumberRange = (columnType, columnId) => {

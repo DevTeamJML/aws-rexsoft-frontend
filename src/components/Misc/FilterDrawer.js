@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FaPlus, FaTimes, FaSearch, FaCalendar } from "react-icons/fa";
 import { v4 } from "uuid";
+import { useSelectAllCompanyUsers } from "../../../redux/slices/companySlice";
 
 export default function FilterDrawer({
   open,
@@ -154,6 +155,13 @@ const FilterBlock = ({
   onOptionSelect,
   onRemove,
 }) => {
+  const allUsers = useSelectAllCompanyUsers();
+
+  const userMap = allUsers.reduce((acc, user) => {
+    acc[user.uid] = user.displayName;
+    return acc;
+  }, {});
+
   const getColumnType = (column_id) => {
     // Check fixed columns first
     const fixedColumn = fixedColumns.find((col) => col.id === column_id);
@@ -186,6 +194,15 @@ const FilterBlock = ({
 
   // Parse dropdown options
   const getDropdownOptions = () => {
+    if (columnType === "handler") {
+      const options = allUsers.map((curr) => ({
+        label: curr.displayName,
+        value: curr.uid,
+      }));
+
+      return options;
+    }
+
     if (columnType !== "dropdown" || !column || !column.options) return [];
 
     try {
@@ -223,14 +240,16 @@ const FilterBlock = ({
       "dropdown",
       "number",
       "text", // For fixed columns like serial_number
-      "handler", // Handler uses search too
     ];
     return textBasedTypes.includes(columnType);
   };
 
   // Check if this column type should show dropdown options
   const shouldShowDropdownOptions = () => {
-    return columnType === "dropdown" && dropdownOptions.length > 0;
+    return (
+      (columnType === "dropdown" || columnType === "handler") &&
+      dropdownOptions.length > 0
+    );
   };
 
   // Check if this column type should show number range
@@ -335,13 +354,19 @@ const FilterBlock = ({
                 className={`dropdown-option-btn ${isOptionSelected(option.value) ? "selected" : ""}`}
                 onClick={() => onOptionSelect(option.value)}
               >
-                {option.value}
+                {filter.column_id === "handler" ? option.label : option.value}
               </button>
             ))}
           </div>
           {filter.selectedOptions && filter.selectedOptions.length > 0 && (
             <div className="selected-options-info">
-              <strong>Selected:</strong> {filter.selectedOptions.join(", ")}
+              <strong>Selected:</strong>{" "}
+              {filter.column_id === "handler"
+                ? filter.selectedOptions
+                    .map((opt) => userMap[opt] || "")
+                    .filter(Boolean)
+                    .join(", ")
+                : filter.selectedOptions.join(", ")}
             </div>
           )}
         </div>

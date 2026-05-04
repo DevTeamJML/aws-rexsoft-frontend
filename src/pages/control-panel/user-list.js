@@ -19,9 +19,11 @@ import { PlainTextField } from "@/components/FormComponents/PlainTextField";
 import {
   getAllInvitationAndUser,
   removeInvitationAndUser,
+  updateAllInvitationAndUser,
   useSelectAllInvitationAndUser,
 } from "../../../redux/slices/invitationSlice";
 import { hideToast, showToast } from "../../../redux/slices/toastSlice";
+import EditUserModal from "@/components/Misc/EditUserModal";
 
 const UserList = () => {
   const dispatch = useDispatch();
@@ -86,8 +88,26 @@ const UserList = () => {
 
   const handleAction = (action, row) => {
     if (action === "edit") {
-      //   router.push(`/user/${row.id}/view`);
-      return;
+      const user = findUserById(row.id);
+
+      setModalMode("edit");
+      setTargetUserId(row.id);
+
+      setModalInitialPayload({
+        first_name: user?.first_name || "",
+        last_name: user?.last_name || "",
+        email: user?.email || "",
+        role: user?.role || "USER",
+      });
+
+      if (row.status === "active") {
+        dispatch(setShowModal(true));
+      } else {
+        dispatch(showToast({
+          message : "User has not joined yet. Please try again later.",
+          status : "error"
+        }))
+      }
     }
 
     if (action === "delete") {
@@ -115,14 +135,14 @@ const UserList = () => {
 
   const handleModalConfirm = (payload) => {
     if (modalMode === "edit") {
-      console.log("Edit payload:", payload, "user:", targetUserId);
+      const newPayload = {
+        user_id: targetUserId,
+        ...payload,
+      };
 
-      // dispatch updateUser thunk if you have one:
-      // dispatch(updateUser({ user_id: targetUserId, ...payload }));
+      dispatch(updateAllInvitationAndUser(newPayload));
 
       dispatch(setShowModal(false));
-      setTargetUserId(null);
-      setModalInitialPayload({});
       return;
     } else {
       if (selectedData) {
@@ -156,6 +176,13 @@ const UserList = () => {
         description={"Are you sure to remove this user ?"}
       />
 
+      <EditUserModal
+        open={showModal && modalMode === "edit"}
+        initialData={modalInitialPayload}
+        onSubmit={handleModalConfirm}
+        onCancel={handleModalCancel}
+      />
+
       <div className={"title-container"}>
         <h1 className={"title"}>User List</h1>
         <div className={"title-actions"}>
@@ -182,7 +209,7 @@ const UserList = () => {
         onSelectionChange={(ids) => console.log("Selected:", ids)}
         loading={false}
         emptyMessage="No users found"
-        actionButtons={["copy", "delete"]}
+        actionButtons={["copy", "edit", "delete"]}
       />
     </div>
   );

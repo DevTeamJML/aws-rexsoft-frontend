@@ -16,6 +16,7 @@ const initialState = {
   getAllCompaniesLoading: false,
   setCompanyLoading: false,
   getAllCompanyUsersLoading: false,
+  updateCompanyUserLoading : false,
 };
 
 const companySlice = createSlice({
@@ -76,6 +77,27 @@ const companySlice = createSlice({
 
       state.isAdmin = currUser?.is_owner === 1;
     },
+    updateCompanyUser(state) {
+      state.updateCompanyUserLoading = true;
+    },
+    updateCompanyUserSuccess(state, { payload }) {
+      const { user_id, first_name, last_name, email } = payload;
+
+      const index = state.allCompanyUsers.findIndex(
+        (u) => u.user_id === user_id,
+      );
+
+      if (index !== -1) {
+        state.allCompanyUsers[index] = {
+          ...state.allCompanyUsers[index],
+          first_name,
+          last_name,
+          email,
+        };
+      }
+
+      state.updateCompanyUserLoading = false;
+    },
   },
 });
 
@@ -93,6 +115,8 @@ export const {
   setCurrCompanySuccess,
   getAllCompanyUsers,
   getAllCompanyUsersSuccess,
+  updateCompanyUser,
+  updateCompanyUserSuccess
 } = companySlice.actions;
 
 export const useSelectAllCompanies = () =>
