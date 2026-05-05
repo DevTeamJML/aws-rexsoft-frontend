@@ -284,7 +284,8 @@ export default function NewClientPage() {
               dispatch,
               currSelectedGroupId,
               col.column_id,
-              value
+              value,
+              client_id
             );
 
             // console.log(isDuplicate)

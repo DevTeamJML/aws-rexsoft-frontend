@@ -23,7 +23,7 @@ export const shouldShowSearchField = (columnType) => {
 };
 
 export const shouldShowDropdownOptions = (columnType, options) => {
-  return (columnType === "dropdown" || columnType === "handler") &&
+  return (columnType === "dropdown" || columnType === "handler" || columnType === "alert") &&
     options.length > 0;
 };
 

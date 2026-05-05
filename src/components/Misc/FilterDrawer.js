@@ -34,6 +34,7 @@ export default function FilterDrawer({
   };
 
   const updateFilter = (filterId, field, value) => {
+ 
     setFilters((prev) =>
       prev.map((filter) =>
         filter.id === filterId ? { ...filter, [field]: value } : filter,
@@ -115,21 +116,24 @@ export default function FilterDrawer({
 
           {/* Filter Blocks */}
           <div className="filters-container">
-            {filters.map((filter) => (
-              <FilterBlock
-                key={filter.id}
+            {filters.map((filter) => {
+              const id = filter.id;
+              return <FilterBlock
+                key={id}
                 filter={filter}
                 dynamicColumns={dynamicColumns}
                 fixedColumns={fixedColumns}
                 onUpdate={(field, value) =>
-                  updateFilter(filter.id, field, value)
+                  updateFilter(id, field, value)
                 }
                 onOptionSelect={(optionValue) =>
-                  handleOptionSelection(filter.id, optionValue)
+                  handleOptionSelection(id, optionValue)
                 }
-                onRemove={() => removeFilter(filter.id)}
-              />
-            ))}
+                onRemove={() => removeFilter(id)}
+              />;
+
+             
+            })}
           </div>
         </div>
 
@@ -203,6 +207,15 @@ const FilterBlock = ({
       return options;
     }
 
+    if (columnType === "alert") {
+      const options = [
+        { label: "Completed", value: "Completed" },
+        { label: "Pending", value: "Pending" },
+      ];
+
+      return options;
+    }
+
     if (columnType !== "dropdown" || !column || !column.options) return [];
 
     try {
@@ -246,7 +259,9 @@ const FilterBlock = ({
   // Check if this column type should show dropdown options
   const shouldShowDropdownOptions = () => {
     return (
-      (columnType === "dropdown" || columnType === "handler") &&
+      (columnType === "dropdown" ||
+        columnType === "handler" ||
+        columnType === "alert") &&
       dropdownOptions.length > 0
     );
   };

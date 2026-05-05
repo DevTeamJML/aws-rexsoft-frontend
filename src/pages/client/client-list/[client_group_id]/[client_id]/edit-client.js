@@ -198,6 +198,7 @@ export default function EditClientPage() {
       dispatch(getClientDataByClientId({ columns: clientColumns, client_id }));
     }
   }, [client_id, clientColumns]);
+
   useEffect(() => {
     const handlerList =
       allCompanyUsers.map((list) => {
@@ -344,6 +345,7 @@ export default function EditClientPage() {
               currSelectedGroupId,
               col.column_id,
               value,
+              client_id
             );
             if (!ok) {
               errors[col.column_id] = `${col.label} error`;

@@ -1,6 +1,6 @@
 import { duplicateCheckRequest } from "../../redux/slices/clientSlice";
 
-export async function checkDuplicate(dispatch, currSelectedGroupId, column_id, row_value) {
+export async function checkDuplicate(dispatch, currSelectedGroupId, column_id, row_value, client_id) {
   if (!row_value) return { isDuplicate: false, ok: true };
 
   return new Promise((resolve) => {
@@ -10,6 +10,7 @@ export async function checkDuplicate(dispatch, currSelectedGroupId, column_id, r
           client_group_id: currSelectedGroupId,
           column_id,
           row_value,
+          client_id
         },
         cb: (err, result) => {
           if (err) {

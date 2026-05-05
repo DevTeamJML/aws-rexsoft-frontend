@@ -56,7 +56,12 @@ export default function ColumnFilterPopover({
           label: curr.displayName,
           value: curr.uid,
         }))
-      : column?.options || [];
+      : column.field_type === "alert"
+        ? [
+            { label: "Completed", value: "Completed" },
+            { label: "Pending", value: "Pending" },
+          ]
+        : column?.options || [];
 
   const rect = anchorEl?.getBoundingClientRect();
 
@@ -216,6 +221,7 @@ export default function ColumnFilterPopover({
           onClick={() =>
             onApply({
               column_id: column.id,
+              id : column.id,
               filterType,
               searchText,
               selectedOptions,
