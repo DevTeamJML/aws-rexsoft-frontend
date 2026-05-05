@@ -16,7 +16,10 @@ import {
   useSelectCurrCompanyId,
   useSelectIsAdmin,
 } from "../../../redux/slices/companySlice";
-import { getFromSessionStorage, saveFilterPreference } from "@/utils/localStorage";
+import {
+  getFromSessionStorage,
+  saveFilterPreference,
+} from "@/utils/localStorage";
 import { DropdownField } from "@/components/FormComponents/DropdownField";
 import {
   archiveClient,
@@ -448,7 +451,7 @@ const ClientList = () => {
 
     dispatch(setSelectedClientIdsSuccess([]));
   };
-  
+
   const handleColumnFilter = (filter) => {
     const newFilters = filters.filter((f) => f.column_id !== filter.column_id);
 
@@ -612,6 +615,8 @@ const ClientList = () => {
         canManageHandler={canManageHandler}
         setSelectedRows={setSelectedRows}
         setIsAllSelected={setIsAllSelected}
+        userSortingArray={userSortingArray}
+        columnSortingArray={columnSortingArray}
       />
 
       <ColumnOrderDrawer

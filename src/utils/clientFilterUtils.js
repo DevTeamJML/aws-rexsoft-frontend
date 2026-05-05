@@ -15,7 +15,6 @@ export const shouldShowSearchField = (columnType) => {
     "short_text",
     "multiline",
     "rich_text",
-    "alert",
     "dropdown",
     "number",
     "text",
@@ -33,5 +32,5 @@ export const shouldShowNumberRange = (columnType, columnId) => {
 };
 
 export const shouldShowDateRange = (columnType) => {
-  return columnType === "date";
+  return columnType === "date" || columnType === "alert";
 };

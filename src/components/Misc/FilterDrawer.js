@@ -236,7 +236,6 @@ const FilterBlock = ({
       "short_text",
       "multiline",
       "rich_text",
-      "alert",
       "dropdown",
       "number",
       "text", // For fixed columns like serial_number
@@ -259,7 +258,7 @@ const FilterBlock = ({
 
   // Check if this column type should show date range
   const shouldShowDateRange = () => {
-    return columnType === "date";
+    return columnType === "date" || columnType === "alert";
   };
 
   // Combine all columns for the dropdown

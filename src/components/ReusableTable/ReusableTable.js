@@ -178,9 +178,11 @@ const ReusableTable = ({
   };
 
   const allColumns = useMemo(() => {
-    const filteredDynamic = dynamicColumns.filter(
-      (c) => c.field_type !== "alert",
-    );
+    // const filteredDynamic = dynamicColumns.filter(
+    //   (c) => c.field_type !== "alert",
+    // );
+
+    const filteredDynamic = dynamicColumns;
 
     const base = [...fixedColumns, ...filteredDynamic];
     let result = [...base];
@@ -518,6 +520,10 @@ const ReusableTable = ({
     const value = getCellValue();
 
     switch (column.field_type) {
+      case "alert":
+        const date = value?.date || "-";
+        return date;
+        
       case "_checkbox":
         return renderCheckbox(row);
 

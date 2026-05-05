@@ -44,6 +44,8 @@ const ExportModal = ({
   isAdmin = false,
   setIsAllSelected = () => {},
   setSelectedRows = () => {},
+  columnSortingArray,
+  userSortingArray,
 }) => {
   const [selectedColumns, setSelectedColumns] = useState(new Set());
   const [loadingExport, setLoadingExport] = useState(false);
@@ -106,6 +108,64 @@ const ExportModal = ({
         raw: c,
       }));
   }, [fixedColumns, dynamicColumns, isAdmin, canManageHandler]);
+
+  const sortedAllColumns = useMemo(() => {
+    const cols = Array.isArray(allColumns) ? allColumns : [];
+    const getId = (c) => c?.id ?? c?.column_id;
+
+    const checkboxCol = cols.find((c) => getId(c) === "_checkbox");
+
+    // Separate actions (right-fixed)
+    const actionCol = cols.find((c) => c.fixed && c.fixedPosition === "right");
+
+    // Everything except checkbox + actions
+    const others = cols.filter(
+      (c) =>
+        getId(c) !== "_checkbox" && !(c.fixed && c.fixedPosition === "right"),
+    );
+
+    const orderIds =
+      Array.isArray(userSortingArray) && userSortingArray.length > 0
+        ? userSortingArray
+        : Array.isArray(columnSortingArray) && columnSortingArray.length > 0
+          ? columnSortingArray
+          : null;
+
+    let ordered = others;
+    let remaining = [];
+
+    if (orderIds) {
+      const map = new Map(others.map((c) => [getId(c), c]));
+      ordered = orderIds.map((id) => map.get(id)).filter(Boolean);
+      remaining = others.filter((c) => !orderIds.includes(getId(c)));
+    }
+
+    return [
+      ...(checkboxCol ? [checkboxCol] : []),
+      ...(orderIds ? remaining : []),
+      ...(orderIds ? ordered : others),
+      ...(actionCol ? [actionCol] : []),
+    ];
+  }, [allColumns, userSortingArray, columnSortingArray]);
+
+  /** Visibility (unchanged) */
+  const visibleSortedColumns = useMemo(() => {
+    const getId = (c) => c?.id ?? c?.column_id;
+
+    let cols = isAdmin
+      ? sortedAllColumns
+      : sortedAllColumns.filter((c) => c?.permission !== "not_viewable");
+
+    if (Array.isArray(columnVisibility) && columnVisibility.length > 0) {
+      cols = cols.filter((col) => {
+        const id = getId(col);
+        if (id === "_checkbox" || id === "actions") return true;
+        return columnVisibility.includes(id);
+      });
+    }
+
+    return cols;
+  }, [sortedAllColumns, columnVisibility, isAdmin]);
 
   // Columns the user may actually see based on columnVisibility (if provided)
   //   const allowedColumns = useMemo(() => {
@@ -333,8 +393,8 @@ const ExportModal = ({
   const handleExport = ({ mode = "page" }) => {
     const selected =
       selectedColumns.size > 0
-        ? allColumns.filter((c) => selectedColumns.has(c.id))
-        : allColumns;
+        ? visibleSortedColumns.filter((c) => selectedColumns.has(c.id))
+        : visibleSortedColumns;
 
     const FIXED_KEYS = new Set([
       "user_id",
@@ -523,11 +583,11 @@ const ExportModal = ({
           </p>
 
           <div className="columnsList">
-            {allColumns.length === 0 ? (
+            {visibleSortedColumns.length === 0 ? (
               <div className="empty">No columns available</div>
             ) : (
               <div className="scrollArea">
-                {allColumns
+                {visibleSortedColumns
                   .filter((c) =>
                     canManageHandler ? true : !isHandlerColumn(c.raw),
                   )
@@ -560,7 +620,7 @@ const ExportModal = ({
             className="secondary"
             onClick={() => {
               const next = new Set();
-              allColumns.forEach((c) => next.add(c.id));
+              visibleSortedColumns.forEach((c) => next.add(c.id));
               setSelectedColumns(next);
             }}
           >
