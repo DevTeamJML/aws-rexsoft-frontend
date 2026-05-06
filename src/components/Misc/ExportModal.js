@@ -148,24 +148,24 @@ const ExportModal = ({
     ];
   }, [allColumns, userSortingArray, columnSortingArray]);
 
-  /** Visibility (unchanged) */
-  const visibleSortedColumns = useMemo(() => {
-    const getId = (c) => c?.id ?? c?.column_id;
+  // /** Visibility (unchanged) */
+  // const visibleSortedColumns = useMemo(() => {
+  //   const getId = (c) => c?.id ?? c?.column_id;
 
-    let cols = isAdmin
-      ? sortedAllColumns
-      : sortedAllColumns.filter((c) => c?.permission !== "not_viewable");
+  //   let cols = isAdmin
+  //     ? sortedAllColumns
+  //     : sortedAllColumns.filter((c) => c?.permission !== "not_viewable");
 
-    if (Array.isArray(columnVisibility) && columnVisibility.length > 0) {
-      cols = cols.filter((col) => {
-        const id = getId(col);
-        if (id === "_checkbox" || id === "actions") return true;
-        return columnVisibility.includes(id);
-      });
-    }
+  //   if (Array.isArray(columnVisibility) && columnVisibility.length > 0) {
+  //     cols = cols.filter((col) => {
+  //       const id = getId(col);
+  //       if (id === "_checkbox" || id === "actions") return true;
+  //       return columnVisibility.includes(id);
+  //     });
+  //   }
 
-    return cols;
-  }, [sortedAllColumns, columnVisibility, isAdmin]);
+  //   return cols;
+  // }, [sortedAllColumns, columnVisibility, isAdmin]);
 
   // Columns the user may actually see based on columnVisibility (if provided)
   //   const allowedColumns = useMemo(() => {
@@ -393,8 +393,8 @@ const ExportModal = ({
   const handleExport = ({ mode = "page" }) => {
     const selected =
       selectedColumns.size > 0
-        ? visibleSortedColumns.filter((c) => selectedColumns.has(c.id))
-        : visibleSortedColumns;
+        ? sortedAllColumns.filter((c) => selectedColumns.has(c.id))
+        : sortedAllColumns;
 
     const FIXED_KEYS = new Set([
       "user_id",
@@ -583,11 +583,11 @@ const ExportModal = ({
           </p>
 
           <div className="columnsList">
-            {visibleSortedColumns.length === 0 ? (
+            {sortedAllColumns.length === 0 ? (
               <div className="empty">No columns available</div>
             ) : (
               <div className="scrollArea">
-                {visibleSortedColumns
+                {sortedAllColumns
                   .filter((c) =>
                     canManageHandler ? true : !isHandlerColumn(c.raw),
                   )
@@ -620,7 +620,7 @@ const ExportModal = ({
             className="secondary"
             onClick={() => {
               const next = new Set();
-              visibleSortedColumns.forEach((c) => next.add(c.id));
+              sortedAllColumns.forEach((c) => next.add(c.id));
               setSelectedColumns(next);
             }}
           >
