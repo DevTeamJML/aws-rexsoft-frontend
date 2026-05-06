@@ -214,11 +214,11 @@ const ClientList = () => {
   useEffect(() => {
     if (currSelectedGroup === null) return;
     if (searchText === "" && fixedColumns.length > 0) {
-      saveFilterPreference(currSelectedGroupId, {
-        filters: filters,
-        search: "",
-        sort: sortConfig,
-      });
+      // saveFilterPreference(currSelectedGroupId, {
+      //   filters: filters,
+      //   search: searchText,
+      //   sort: sortConfig,
+      // });
       // localStorage.setItem("search", "");
       dispatch(
         getAllClients({
