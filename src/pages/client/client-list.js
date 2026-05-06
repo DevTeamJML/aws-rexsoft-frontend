@@ -209,7 +209,7 @@ const ClientList = () => {
         hasPermission: canManageHandler,
       }),
     );
-  }, [currSelectedGroup, isArchivedPage]);
+  }, [currSelectedGroup, isArchivedPage])
 
   useEffect(() => {
     if (currSelectedGroup === null) return;
