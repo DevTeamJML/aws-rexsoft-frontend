@@ -22,6 +22,7 @@ import dashboardReducer from "./slices/dashboardSlice";
 import chatReducer from "./slices/chatSlice";
 import messageReducer from "./slices/messageSlice";
 import featureFlagsReducer from "./slices/featureFlagsSlice";
+import leaderReducer from "./slices/leaderSlice";
 
 const rootReducer = combineReducers({
     toast : toastReducer,
@@ -46,7 +47,8 @@ const rootReducer = combineReducers({
     dashboard : dashboardReducer,
     chat : chatReducer,
     message : messageReducer,
-    featureFlags: featureFlagsReducer
+    featureFlags: featureFlagsReducer,
+    leader : leaderReducer
   });
   
   export default rootReducer;

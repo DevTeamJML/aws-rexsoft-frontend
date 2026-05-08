@@ -500,6 +500,17 @@ const ReusableTable = ({
     return `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
   };
 
+   const formatArray = (value) => {
+    if (!value) return "-";
+
+    const processedArr = value?.map((item) => item.label || "");
+    if (processedArr.length === 0) return "-";
+    
+    const renderString = processedArr.join(', ');
+
+    return renderString;
+  };
+
   const renderCellContent = (row, column, setRtePreviewContent) => {
     const getCellValue = () => {
       if (column.field_type === "_checkbox" || column.field_type === "action")
@@ -529,6 +540,9 @@ const ReusableTable = ({
 
       case "action":
         return renderActionIcons(row);
+
+      case "array" : 
+        return formatArray(value);
 
       case "user":
         return formatUser(value);

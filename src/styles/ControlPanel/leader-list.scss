@@ -1,0 +1,21 @@
+@use "../_variables.scss";
+
+.leader-page-container{
+    display: flex;
+    flex-direction: column;
+
+    .title-container{
+        font-size: variables.$font-s;
+        padding-left: 1rem;
+        padding-right: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .title-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    }
+}

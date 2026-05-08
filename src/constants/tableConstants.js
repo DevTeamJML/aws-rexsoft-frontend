@@ -11,6 +11,7 @@ export const ColumnType = {
   DROPDOWN: 'dropdown',
   ACTION: 'action',
   USER: 'user',
+  ARRAY: 'array'
 };
 
 export const ActionIcons = {

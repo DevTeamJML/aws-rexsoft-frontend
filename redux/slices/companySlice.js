@@ -16,7 +16,7 @@ const initialState = {
   getAllCompaniesLoading: false,
   setCompanyLoading: false,
   getAllCompanyUsersLoading: false,
-  updateCompanyUserLoading : false,
+  updateCompanyUserLoading: false,
 };
 
 const companySlice = createSlice({
@@ -68,7 +68,13 @@ const companySlice = createSlice({
       state.setCompanyLoading = true;
     },
     getAllCompanyUsersSuccess(state, { payload }) {
-      state.allCompanyUsers = payload.list;
+      const updatedList = payload.list.map((user) => ({
+        ...user,
+        displayName:
+          user.displayName ||
+          `${user.first_name || ""} ${user.last_name || ""}`.trim(),
+      }));
+      state.allCompanyUsers = updatedList;
       state.loading = false;
 
       const currentUserId = payload.currentUserId;
@@ -116,7 +122,7 @@ export const {
   getAllCompanyUsers,
   getAllCompanyUsersSuccess,
   updateCompanyUser,
-  updateCompanyUserSuccess
+  updateCompanyUserSuccess,
 } = companySlice.actions;
 
 export const useSelectAllCompanies = () =>

@@ -21,6 +21,7 @@ import "@/styles/Misc/reset-password-modal.scss";
 import "@/styles/Misc/appointment-drawer.scss";
 import "@/styles/Misc/rte-preview-modal.scss";
 import "@/styles/Misc/column-filter-popover.scss";
+import "@/styles/Misc/assign-leader-modal.scss";
 
 // Form
 import "@/styles/Form/new-form-template.scss";
@@ -61,6 +62,7 @@ import "@/styles/ControlPanel/new-role.scss";
 import "@/styles/ControlPanel/new-invite-user.scss";
 import "@/styles/ControlPanel/logs.scss";
 import "@/styles/ControlPanel/create-user.scss";
+import "@/styles/ControlPanel/leader-list.scss";
 
 // Components
 import "@/styles/FormComponents/date-field.scss";

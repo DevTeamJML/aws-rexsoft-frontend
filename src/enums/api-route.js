@@ -18,6 +18,12 @@ export const ApiRoute = {
     getUserDetailsById: "/user/getUserDetailsById",
     updateUserProfile: "/user/updateUserProfile",
   },
+  leader : {
+    getAllLeader : "/leader/getAllLeader",
+    assignLeader : "/leader/assignLeader",
+    updateLeader : "/leader/updateLeader",
+    deleteLeader : "/leader/deleteLeader"
+  },
   company: {
     createCompany: "/company/createCompany",
     getAllCompanies: "/company/getAllCompanies",

@@ -19,6 +19,7 @@ import { kpiSaga } from './sagas/kpiSaga';
 import { dashboardSaga } from './sagas/dashboardSaga';
 import { messageSaga } from './sagas/messageSaga';
 import watchFeatureFlags from './sagas/featureFlagsSaga';
+import leaderSaga from './sagas/leaderSaga';
 // Root saga
 function* rootSaga() {
   yield all([
@@ -40,7 +41,8 @@ function* rootSaga() {
     kpiSaga(),
     dashboardSaga(),
     messageSaga(),
-    watchFeatureFlags()
+    watchFeatureFlags(),
+    leaderSaga()
   ]);
 }
 

@@ -72,13 +72,32 @@ export const TableColumns = {
       sortable: true,
       width: 120,
     },
-    // {
-    //   id: "created_at",
-    //   label: "Creation Date",
-    //   field_field_type: ColumnType.DATE,
-    //   sortable: true,
-    //   width: 150,
-    // },
+  ],
+
+
+  "leader-list": [
+    {
+      id: "leader_name",
+      label: "Leader Name",
+      field_type: ColumnType.TEXT,
+      sortable: true,
+      width: 120,
+      copy: true,
+    },
+    {
+      id: "assigned_members",
+      label: "Assigned Members",
+      field_type: ColumnType.ARRAY,
+      sortable: true,
+      width: 120,
+    },
+    {
+      id: "total_members",
+      label: "Total Members",
+      field_type: ColumnType.NUMBER,
+      sortable: true,
+      width: 120,
+    },
   ],
 
   // Client Pages

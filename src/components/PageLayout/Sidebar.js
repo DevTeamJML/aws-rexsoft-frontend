@@ -191,6 +191,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       subItems: [
         { id: "logs", label: "Logs", path: "/control-panel/logs" },
         { id: "users", label: "User", path: "/control-panel/user-list" },
+        { id: "leaders", label: "Leader", path: "/control-panel/leader-list" },
         { id: "role", label: "Role", path: "/control-panel/role-list" },
         // {
         //   id: "company-profile",

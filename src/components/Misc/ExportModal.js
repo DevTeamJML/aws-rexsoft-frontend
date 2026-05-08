@@ -1,11 +1,12 @@
 // components/ExportModal/ExportModal.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import Papa from "papaparse";
 import moment from "moment";
 import { ApiRoute } from "@/enums/api-route";
 import { API } from "@/service/api";
 import { setSelectedClientIdsSuccess } from "../../../redux/slices/clientSlice";
 import { useSelectUserPermissions } from "../../../redux/slices/roleAuthSlice";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 
 /**
  * Props:
@@ -86,19 +87,20 @@ const ExportModal = ({
   };
 
   // Normalize and pre-filter columns (permissions + handler)
+
   const allColumns = useMemo(() => {
     const filteredFixedColumns = fixedColumns.filter(
       (col) => col.id !== "user_id",
     );
+
     const merged = [...(filteredFixedColumns || []), ...(dynamicColumns || [])];
 
     return merged
       .filter((c) => {
-        // filter out not_viewable for non-admins
-        if (!isAdmin && c?.permission === "not_viewable") return false;
-
-        // filter out handler if user can't manage handler
-        if (!canManageHandler && isHandlerColumn(c)) return false;
+        // only hide not_viewable for non-admin
+        if (!isAdmin && c?.permission === "not_viewable") {
+          return false;
+        }
 
         return true;
       })
@@ -107,7 +109,30 @@ const ExportModal = ({
         label: getLabel(c),
         raw: c,
       }));
-  }, [fixedColumns, dynamicColumns, isAdmin, canManageHandler]);
+  }, [fixedColumns, dynamicColumns, isAdmin]);
+
+  // const allColumns = useMemo(() => {
+  //   const filteredFixedColumns = fixedColumns.filter(
+  //     (col) => col.id !== "user_id",
+  //   );
+  //   const merged = [...(filteredFixedColumns || []), ...(dynamicColumns || [])];
+
+  //   return merged
+  //     .filter((c) => {
+  //       // filter out not_viewable for non-admins
+  //       if (!isAdmin && c?.permission === "not_viewable") return false;
+
+  //       // filter out handler if user can't manage handler
+  //       // if (!canManageHandler && isHandlerColumn(c)) return false;
+
+  //       return true;
+  //     })
+  //     .map((c) => ({
+  //       id: getId(c),
+  //       label: getLabel(c),
+  //       raw: c,
+  //     }));
+  // }, [fixedColumns, dynamicColumns, isAdmin, canManageHandler]);
 
   const sortedAllColumns = useMemo(() => {
     const cols = Array.isArray(allColumns) ? allColumns : [];
@@ -248,16 +273,15 @@ const ExportModal = ({
         return map[col.label];
     }
 
-    // 4) fallback common keys
-    for (const fk of [
-      "created_at",
-      "updated_at",
-      "id",
-      "client_id",
-      "serial_number",
-    ]) {
-      if (Object.prototype.hasOwnProperty.call(row, fk)) return row[fk];
-    }
+    // for (const fk of [
+    //   "created_at",
+    //   "updated_at",
+    //   "id",
+    //   "client_id",
+    //   "serial_number",
+    // ]) {
+    //   if (Object.prototype.hasOwnProperty.call(row, fk)) return row[fk];
+    // }
 
     return "";
   };
@@ -273,7 +297,7 @@ const ExportModal = ({
 
       for (const c of columnsToUse) {
         // double safety: skip handler if user lacks permission
-        if (!canManageHandler && isHandlerColumn(c.raw)) continue;
+        // if (!canManageHandler && isHandlerColumn(c.raw)) continue;
 
         let value = extractValueForColumn(r, c);
 
@@ -282,7 +306,9 @@ const ExportModal = ({
           normalize(c.label) === "owner" ||
           c.id === "handler" ||
           c.raw?.field === "handler";
-        if (isHandler) value = handlerString || value;
+        if (isHandler) {
+          value = handlerString || "";
+        }
 
         // if value missing, try rawMap by column_id
         const cid = c.raw?.column_id ?? c.id;
@@ -309,10 +335,18 @@ const ExportModal = ({
         }
 
         if (typeof value === "object" && value !== null) {
-          try {
-            value = JSON.stringify(value);
-          } catch {
-            value = String(value);
+          // alert type
+          if (
+            Object.prototype.hasOwnProperty.call(value, "date") &&
+            Object.prototype.hasOwnProperty.call(value, "is_complete")
+          ) {
+            value = value.date ? moment(value.date).format("YYYY-MM-DD") : "";
+          } else {
+            try {
+              value = JSON.stringify(value);
+            } catch {
+              value = String(value);
+            }
           }
         }
 
@@ -326,14 +360,75 @@ const ExportModal = ({
   const downloadCsv = (filename, dataRows) => {
     const csv = Papa.unparse(dataRows);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
+
     link.href = url;
     link.setAttribute("download", filename);
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
     URL.revokeObjectURL(url);
+  };
+
+  const downloadXlsx = async (filename, dataRows) => {
+    const workbook = new ExcelJS.Workbook();
+
+    const worksheet = workbook.addWorksheet("Clients");
+
+    if (!dataRows || dataRows.length === 0) {
+      showToast?.("No data to export", "error");
+      return;
+    }
+
+    // Headers
+    const headers = Object.keys(dataRows[0]);
+
+    worksheet.columns = headers.map((header) => ({
+      header,
+      key: header,
+      width: Math.max(header.length + 5, 20),
+    }));
+
+    // Rows
+    dataRows.forEach((row) => {
+      worksheet.addRow(row);
+    });
+
+    // Header styling
+    worksheet.getRow(1).font = {
+      bold: true,
+    };
+
+    worksheet.getRow(1).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+
+    // Auto fit column width
+    worksheet.columns.forEach((column) => {
+      let maxLength = 10;
+
+      column.eachCell?.({ includeEmpty: true }, (cell) => {
+        const cellValue = cell.value ? cell.value.toString() : "";
+
+        maxLength = Math.max(maxLength, cellValue.length + 2);
+      });
+
+      column.width = Math.min(maxLength, 50);
+    });
+
+    // Generate file
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    saveAs(blob, filename);
   };
 
   // const handleExport = () => {
@@ -390,7 +485,7 @@ const ExportModal = ({
   //   form.remove();
   // };
 
-  const handleExport = ({ mode = "page" }) => {
+  const handleExport = async ({ mode = "page" }) => {
     const selected =
       selectedColumns.size > 0
         ? sortedAllColumns.filter((c) => selectedColumns.has(c.id))
@@ -460,109 +555,14 @@ const ExportModal = ({
 
     const dataRows = buildRowsFromClients(rows, selected);
 
-    const filename = `${currSelectedGroup.client_group_name}_${moment(new Date()).format("YYYY-MM-DD")}.csv`;
+    const filename = `${currSelectedGroup.client_group_name}_${moment(new Date()).format("YYYY-MM-DD")}.xlsx`;
 
     dispatch(setSelectedClientIdsSuccess([]));
     setSelectedRows(new Set());
     setIsAllSelected(false);
-    downloadCsv(filename, dataRows);
+    await downloadXlsx(filename, dataRows);
     onClose();
   };
-
-  //
-
-  // const handleExport = async ({ exportAll = false }) => {
-  //   setLoadingExport(true);
-  //   try {
-  //     // determine which columns to use
-  //     let colsToUse = selectedColumns.size > 0 ? allColumns.filter((c) => selectedColumns.has(c.id)) : allColumns;
-
-  //     if (!canManageHandler) {
-  //       colsToUse = colsToUse.filter((c) => !isHandlerColumn(c.raw));
-  //     }
-
-  //     if (!colsToUse || colsToUse.length === 0) {
-  //       showToast &&
-  //         dispatch &&
-  //         dispatch(
-  //           showToast({
-  //             message: "No columns available to export.",
-  //             status: "error",
-  //           })
-  //         );
-  //       setLoadingExport(false);
-  //       return;
-  //     }
-
-  //     let rows = [];
-
-  //     if (exportAll) {
-  //       // request all rows from backend
-  //       try {
-  //         const apiPayload = {
-  //           client_group_id: currSelectedGroup?.client_group_id ?? currSelectedGroup?.id ?? null,
-  //           columns: dynamicColumns,
-  //           fixedColumns,
-  //           pagination: { pageSize: 0 }, // server: return all
-  //           filters: currSelectedGroup?.filters || [],
-  //           searchText: "",
-  //           sortConfig: {},
-  //           user_id: user?.uid ?? user?.user_id ?? null,
-  //           isAdmin: user?.isAdmin ?? isAdmin ?? false,
-  //           hasPermission: false,
-  //           isArchivedPage: !!isArchivedPage,
-  //         };
-
-  //         const res = await API.post(ApiRoute.client.get, apiPayload);
-  //         const data = res?.data?.data ?? res?.data?.clients ?? res?.data ?? [];
-  //         rows = Array.isArray(data) ? data : [];
-  //       } catch (apiErr) {
-  //         console.error("Failed to fetch all clients for export:", apiErr);
-  //         showToast &&
-  //           dispatch &&
-  //           dispatch(
-  //             showToast({
-  //               message: "Failed to fetch all clients for export.",
-  //               status: "error",
-  //             })
-  //           );
-  //         setLoadingExport(false);
-  //         return;
-  //       }
-  //     } else {
-  //       rows = clients || [];
-  //       if (Array.isArray(selectedClientIds) && selectedClientIds.length > 0) {
-  //         const setIds = new Set(selectedClientIds);
-  //         rows = rows.filter((c) => setIds.has(c.id ?? c.client_id ?? c._id));
-  //       }
-  //     }
-
-  //     const dataRows = buildRowsFromClients(rows, colsToUse);
-  //     const filename = `clients_export_${moment().toISOString().replace(/[:.]/g, "-")}.csv`;
-  //     downloadCsv(filename, dataRows);
-
-  //     showToast &&
-  //       dispatch &&
-  //       dispatch(
-  //         showToast({
-  //           message: exportAll ? "Exported all clients (CSV ready)." : "Exported clients (CSV ready).",
-  //           status: "success",
-  //         })
-  //       );
-  //   } catch (err) {
-  //     console.error("Export error:", err);
-  //     showToast &&
-  //       dispatch &&
-  //       dispatch(
-  //         showToast({
-  //           message: "Failed to export. Check console for details.",
-  //           status: "error",
-  //         })
-  //       );
-  //   } finally {
-  //     setLoadingExport(false);
-  //   }
-  // };
 
   if (!open) return null;
 
