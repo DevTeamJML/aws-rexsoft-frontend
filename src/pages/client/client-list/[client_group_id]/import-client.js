@@ -304,11 +304,24 @@ export default function ClientImportForm() {
             const rows = [];
             worksheet.eachRow((row) => {
               const cleanedRow = row.values.slice(1).map((cell) => {
-                if (cell && typeof cell === "object") {
-                  // ExcelJS formula object
-                  if ("result" in cell) return cell.result;
-                  return ""; // fallback
+                // Handle ExcelJS formula object
+                if (
+                  cell &&
+                  typeof cell === "object" &&
+                  !(cell instanceof Date)
+                ) {
+                  if ("result" in cell) {
+                    cell = cell.result;
+                  } else {
+                    return "";
+                  }
                 }
+
+                // Handle Date
+                if (cell instanceof Date) {
+                  return moment(cell).format("YYYY-MM-DD");
+                }
+
                 return cell;
               });
 
@@ -524,7 +537,7 @@ export default function ClientImportForm() {
                       client_id,
                       column_id,
                       client_group_id,
-                      row_value: JSON.stringify(alertObj), 
+                      row_value: JSON.stringify(alertObj),
                     });
                   }
 
