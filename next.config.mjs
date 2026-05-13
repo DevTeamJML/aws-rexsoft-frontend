@@ -21,7 +21,7 @@ const nextConfig = {
     CURR_USER_ID: "user_id",
     // API_URL: "https://clone.crm-server-eh2y9u82.com/v1",
     // API_URL: "http://localhost:8080/v1",
-    API_URL: "https://dupli.crm-server-eh2y9u82.com/v1",
+    API_URL: "https://crm-server-eh2y9u82.com/v1",
     
     // API_URL: "https://crm-server-eh2y9u82.com/v1",
     
