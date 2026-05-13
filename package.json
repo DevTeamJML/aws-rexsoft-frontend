@@ -6,6 +6,7 @@
     "node": "20.x"
   },
   "scripts": {
+    "prod": "npm run build && pm2 start ecosystem.config.json",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
