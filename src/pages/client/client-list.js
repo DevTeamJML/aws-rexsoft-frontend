@@ -459,6 +459,12 @@ const ClientList = () => {
 
     setFilters(newFilters);
 
+    saveFilterPreference(currSelectedGroupId, {
+      filters: newFilters,
+      search: searchText,
+      sort: sortConfig,
+    });
+
     dispatch(
       getAllClients({
         ...currSelectedGroup,

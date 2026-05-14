@@ -21,14 +21,10 @@ const nextConfig = {
     CURR_USER_ID: "user_id",
     // API_URL: "https://clone.crm-server-eh2y9u82.com/v1",
     // API_URL: "http://localhost:8080/v1",
-    API_URL: "https://dupli.crm-server-eh2y9u82.com/v1",
     
-    // API_URL: "https://crm-server-eh2y9u82.com/v1",
+    API_URL: "https://crm-server-eh2y9u82.com/v1",
     
-
-      //aws
-    FIREBASE_API_KEY: "AIzaSyDJF65OL3Pk3mwU9zpwCF38HbjSlIOWxvk",
-    // FIREBASE_API_KEY: "AIzaSyBE4XGHiR8N5mQlVAFRDYwuIgYrpI3DJLQ",
+    FIREBASE_API_KEY: "AIzaSyBE4XGHiR8N5mQlVAFRDYwuIgYrpI3DJLQ",
     FIREBASE_AUTH_DOMAIN: "rexsoft-crm.firebaseapp.com",
     FIREBASE_PROJECT_ID: "rexsoft-crm",
     FIREBASE_STORAGE_BUCKET: "rexsoft-crm.appspot.com",
@@ -37,7 +33,6 @@ const nextConfig = {
     FIREBASE_DATABASE_URL:
       "https://rexsoft-crm-default-rtdb.asia-southeast1.firebasedatabase.app",
 
-       
     // FIREBASE_API_KEY: "AIzaSyARgnICQB_9v8l2xIMhgzvo8NP-lSRbZvs",
     // FIREBASE_AUTH_DOMAIN: "temp-crm-b8272.firebaseapp.com",
     // FIREBASE_PROJECT_ID: "temp-crm-b8272",
